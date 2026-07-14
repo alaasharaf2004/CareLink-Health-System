@@ -1,0 +1,1026 @@
+{
+  "info": {
+    "_postman_id": "c4d74362-673f-4550-8187-4b1f7b865db3",
+    "name": "CareLink",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "43159122",
+    "_collection_link": "https://go.postman.co/collection/43159122-c4d74362-673f-4550-8187-4b1f7b865db3?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Doctor",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "Ahmed Ali",
+                  "type": "text",
+                  "uuid": "474a0d7b-4ce4-4a75-bb5f-e4419c3335b5"
+                },
+                {
+                  "key": "email",
+                  "value": "nonomassi270@gmail.com",
+                  "type": "text",
+                  "uuid": "4bfff706-bc16-423a-98cf-95ac3defebba"
+                },
+                {
+                  "key": "national_id",
+                  "value": "403729655",
+                  "type": "text",
+                  "uuid": "eb824d63-cd8f-4eb9-a8eb-f891618147cf"
+                },
+                {
+                  "key": "password",
+                  "value": "password123",
+                  "type": "text",
+                  "uuid": "7fe5679d-4245-439f-a471-512454cfc779"
+                },
+                {
+                  "key": "phone",
+                  "value": "0599123456",
+                  "type": "text",
+                  "uuid": "878e131a-b079-41ba-8e06-25bb512e72c8"
+                },
+                {
+                  "key": "date_of_birth",
+                  "value": "1985-05-15",
+                  "type": "text",
+                  "uuid": "755667ed-ad60-4260-b43e-bb26958ad8df"
+                },
+                {
+                  "key": "address",
+                  "value": "Gaza, Palestine",
+                  "type": "text",
+                  "uuid": "7c30da97-a10e-4ec8-b1cf-1cf95eb9051d"
+                },
+                {
+                  "key": "gender",
+                  "value": "male",
+                  "type": "text",
+                  "uuid": "c406f8d6-e9d7-4b8c-9d07-d47b97a08201"
+                },
+                {
+                  "key": "specialty",
+                  "value": "Cardiology",
+                  "type": "text",
+                  "uuid": "edcea5b6-a7b3-4a6c-91e1-83097d044242"
+                },
+                {
+                  "key": "years_of_experience",
+                  "value": "10",
+                  "type": "text",
+                  "uuid": "b733d066-de21-4d0b-bd32-9195c576839d"
+                },
+                {
+                  "key": "credential_document",
+                  "type": "file",
+                  "uuid": "6ca41e0c-af57-4258-9da4-be1a1cf94fc2",
+                  "src": "/home/vortex/PDFs.js viewer.pdf"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base}}api/doctor/register",
+              "host": [
+                "{{base}}api"
+              ],
+              "path": [
+                "doctor",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "email",
+                  "value": "ahmed@gmail.com",
+                  "type": "text",
+                  "uuid": "37c92691-6d0f-4389-b0bd-32921c73ae33"
+                },
+                {
+                  "key": "password",
+                  "value": "password123",
+                  "type": "text",
+                  "uuid": "de6dcc7c-86d8-46f0-b8c4-370c10b57624"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base}}api/doctor/login",
+              "host": [
+                "{{base}}api"
+              ],
+              "path": [
+                "doctor",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "Y8TlYri5s9DqnCLl3j8wRu7Eh3fz37cPnXwastGA3d7af112",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": []
+            },
+            "url": {
+              "raw": "{{base}}api/doctor/forgot-password",
+              "host": [
+                "{{base}}api"
+              ],
+              "path": [
+                "doctor",
+                "forgot-password"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reset Password",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    98cd058d86f372586f08b18ecfd985637d49955cdd6727944d393db7522c6fbd\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Patient",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "Sami Ali",
+                  "type": "text",
+                  "uuid": "474a0d7b-4ce4-4a75-bb5f-e4419c3335b5"
+                },
+                {
+                  "key": "email",
+                  "value": "nonomassi270@gmail.com",
+                  "type": "text",
+                  "uuid": "4bfff706-bc16-423a-98cf-95ac3defebba"
+                },
+                {
+                  "key": "national_id",
+                  "value": "403789657",
+                  "type": "text",
+                  "uuid": "eb824d63-cd8f-4eb9-a8eb-f891618147cf"
+                },
+                {
+                  "key": "password",
+                  "value": "password123",
+                  "type": "text",
+                  "uuid": "7fe5679d-4245-439f-a471-512454cfc779"
+                },
+                {
+                  "key": "phone",
+                  "value": "0599123456",
+                  "type": "text",
+                  "uuid": "878e131a-b079-41ba-8e06-25bb512e72c8"
+                },
+                {
+                  "key": "date_of_birth",
+                  "value": "1985-05-15",
+                  "type": "text",
+                  "uuid": "755667ed-ad60-4260-b43e-bb26958ad8df"
+                },
+                {
+                  "key": "address",
+                  "value": "Gaza, Palestine",
+                  "type": "text",
+                  "uuid": "7c30da97-a10e-4ec8-b1cf-1cf95eb9051d"
+                },
+                {
+                  "key": "gender",
+                  "value": "male",
+                  "type": "text",
+                  "uuid": "c406f8d6-e9d7-4b8c-9d07-d47b97a08201"
+                },
+                {
+                  "key": "specialty",
+                  "value": "Cardiology",
+                  "type": "text",
+                  "uuid": "edcea5b6-a7b3-4a6c-91e1-83097d044242"
+                },
+                {
+                  "key": "years_of_experience",
+                  "value": "10",
+                  "type": "text",
+                  "uuid": "b733d066-de21-4d0b-bd32-9195c576839d"
+                },
+                {
+                  "key": "credential_document",
+                  "type": "file",
+                  "uuid": "6ca41e0c-af57-4258-9da4-be1a1cf94fc2",
+                  "src": "/home/vortex/PDF.js viewer.pdf"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base}}api/patient/register",
+              "host": [
+                "{{base}}api"
+              ],
+              "path": [
+                "patient",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "email",
+                  "value": "nonomassi270@gmail.com",
+                  "type": "text",
+                  "uuid": "4bfff706-bc16-423a-98cf-95ac3defebba"
+                },
+                {
+                  "key": "password",
+                  "value": "password123",
+                  "type": "text",
+                  "uuid": "a8e3063e-271f-4211-a5d3-d9e8bfae3b03"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base}}api/patient/login",
+              "host": [
+                "{{base}}api"
+              ],
+              "path": [
+                "patient",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "Y8TlYri5s9DqnCLl3j8wRu7Eh3fz37cPnXwastGA3d7af112",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "email",
+                  "value": "nonomassi270@gmail.com",
+                  "type": "text",
+                  "uuid": "e46bf73f-efa3-411c-bd40-ab4fde6297a0"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base}}api/patient/forgot-password",
+              "host": [
+                "{{base}}api"
+              ],
+              "path": [
+                "patient",
+                "forgot-password"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base}}api/doctor/reset-password",
+              "host": [
+                "{{base}}api"
+              ],
+              "path": [
+                "doctor",
+                "reset-password"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Ads",
+          "item": [
+            {
+              "name": "Show All",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base}}api/admin/ads",
+                  "host": [
+                    "{{base}}api"
+                  ],
+                  "path": [
+                    "admin",
+                    "ads"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "title",
+                      "value": "تخفيضات رمضان للأطباء",
+                      "type": "text",
+                      "uuid": "65d759ae-b768-4c17-bc9f-72e3b47327ae"
+                    },
+                    {
+                      "key": "image",
+                      "type": "file",
+                      "uuid": "016e24d2-2f91-48f2-a6ef-7c06bd4472db",
+                      "src": "/home/vortex/Pasted image.png"
+                    },
+                    {
+                      "key": "link",
+                      "value": "https://carelink.com/offers",
+                      "type": "text",
+                      "uuid": "8cb9a31e-ae8a-4a67-acbf-216f18ed8f8b"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{base}}api/admin/ads",
+                  "host": [
+                    "{{base}}api"
+                  ],
+                  "path": [
+                    "admin",
+                    "ads"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base}}api/admin/ads/:id",
+                  "host": [
+                    "{{base}}api"
+                  ],
+                  "path": [
+                    "admin",
+                    "ads",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "1"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "title",
+                      "value": "تخفيضات رمضان للأطباء-2",
+                      "type": "text",
+                      "uuid": "65d759ae-b768-4c17-bc9f-72e3b47327ae"
+                    },
+                    {
+                      "key": "image",
+                      "type": "file",
+                      "uuid": "016e24d2-2f91-48f2-a6ef-7c06bd4472db",
+                      "src": "/home/vortex/Pasted image.png"
+                    },
+                    {
+                      "key": "link",
+                      "value": "https://carelink.com/offers",
+                      "type": "text",
+                      "uuid": "8cb9a31e-ae8a-4a67-acbf-216f18ed8f8b"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{base}}api/admin/ads/:id",
+                  "host": [
+                    "{{base}}api"
+                  ],
+                  "path": [
+                    "admin",
+                    "ads",
+                    ":id"
+                  ],
+                  "query": [
+                    {
+                      "key": "",
+                      "value": null,
+                      "type": "text",
+                      "disabled": true
+                    }
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "1"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Notifications",
+          "item": [
+            {
+              "name": "Show All",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "title",
+                      "value": "تخفيضات رمضان للأطباء",
+                      "type": "text",
+                      "uuid": "65d759ae-b768-4c17-bc9f-72e3b47327ae"
+                    },
+                    {
+                      "key": "image",
+                      "type": "file",
+                      "uuid": "016e24d2-2f91-48f2-a6ef-7c06bd4472db",
+                      "src": "/home/vortex/Pasted image.png"
+                    },
+                    {
+                      "key": "link",
+                      "value": "https://carelink.com/offers",
+                      "type": "text",
+                      "uuid": "8cb9a31e-ae8a-4a67-acbf-216f18ed8f8b"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{base}}api/admin/notifications",
+                  "host": [
+                    "{{base}}api"
+                  ],
+                  "path": [
+                    "admin",
+                    "notifications"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Send To All",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "title",
+                      "value": "تخفيضات رمضان للأطباء",
+                      "type": "text",
+                      "uuid": "65d759ae-b768-4c17-bc9f-72e3b47327ae"
+                    },
+                    {
+                      "key": "image",
+                      "type": "file",
+                      "uuid": "016e24d2-2f91-48f2-a6ef-7c06bd4472db",
+                      "src": "/home/vortex/Pasted image.png"
+                    },
+                    {
+                      "key": "link",
+                      "value": "https://carelink.com/offers",
+                      "type": "text",
+                      "uuid": "8cb9a31e-ae8a-4a67-acbf-216f18ed8f8b"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{base}}api/admin/notifications",
+                  "host": [
+                    "{{base}}api"
+                  ],
+                  "path": [
+                    "admin",
+                    "notifications"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Sent To User",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "user_id",
+                      "value": "1",
+                      "type": "text",
+                      "uuid": "41b6847f-019c-431e-ba85-1f53cbb7cb15"
+                    },
+                    {
+                      "key": "user_type",
+                      "value": "patient",
+                      "type": "text",
+                      "uuid": "17d2e3f2-3aa4-4380-8118-96effc883503"
+                    },
+                    {
+                      "key": "title",
+                      "value": "تعديل بيانات",
+                      "type": "text",
+                      "uuid": "fea85e30-b3ea-4b5f-a139-58014b61ec46"
+                    },
+                    {
+                      "key": "body",
+                      "value": "تعديل بينانات ",
+                      "type": "text",
+                      "uuid": "c57bda87-90e3-4462-a995-79150b533262"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{base}}api/admin/notifications/user",
+                  "host": [
+                    "{{base}}api"
+                  ],
+                  "path": [
+                    "admin",
+                    "notifications",
+                    "user"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Posts",
+          "item": [
+            {
+              "name": "Show all posts",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base}}api/admin/posts",
+                  "host": [
+                    "{{base}}api"
+                  ],
+                  "path": [
+                    "admin",
+                    "posts"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "title",
+                      "value": "جلسة نفسية مجانية",
+                      "type": "text",
+                      "uuid": "b0ce67aa-b1d7-413b-bf6f-75461fdbe650"
+                    },
+                    {
+                      "key": "content",
+                      "value": "جلسة مجانية عنداطباء النفس يوم الجمعه عصرا",
+                      "type": "text",
+                      "uuid": "f7f679ee-4c1c-44e4-bd7e-623f76cdbad7"
+                    },
+                    {
+                      "key": "image",
+                      "type": "file",
+                      "uuid": "1e53f700-bb2f-409a-9642-b3770e3135df",
+                      "src": "/home/vortex/Pasted image.png"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{base}}api/admin/posts",
+                  "host": [
+                    "{{base}}api"
+                  ],
+                  "path": [
+                    "admin",
+                    "posts"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "title",
+                      "value": "جلسة نفسية مجانية",
+                      "type": "text",
+                      "uuid": "b0ce67aa-b1d7-413b-bf6f-75461fdbe650"
+                    },
+                    {
+                      "key": "content",
+                      "value": "جلسة مجانية عنداطباء النفس يوم الجمعه عصرا",
+                      "type": "text",
+                      "uuid": "f7f679ee-4c1c-44e4-bd7e-623f76cdbad7"
+                    },
+                    {
+                      "key": "image",
+                      "type": "file",
+                      "uuid": "1e53f700-bb2f-409a-9642-b3770e3135df",
+                      "src": "/home/vortex/Pasted image.png"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{base}}api/admin/posts/:id",
+                  "host": [
+                    "{{base}}api"
+                  ],
+                  "path": [
+                    "admin",
+                    "posts",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "1"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Doctors",
+          "item": [
+            {
+              "name": "Approve Doctor",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "Y8TlYri5s9DqnCLl3j8wRu7Eh3fz37cPnXwastGA3d7af112",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{base}}api/admin/approve-doctor/:id",
+                  "host": [
+                    "{{base}}api"
+                  ],
+                  "path": [
+                    "admin",
+                    "approve-doctor",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "3"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Pending Doctors",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "name",
+                      "value": "Ahmed Ali",
+                      "type": "text",
+                      "uuid": "474a0d7b-4ce4-4a75-bb5f-e4419c3335b5"
+                    },
+                    {
+                      "key": "email",
+                      "value": "ahmed@gmail.com",
+                      "type": "text",
+                      "uuid": "4bfff706-bc16-423a-98cf-95ac3defebba"
+                    },
+                    {
+                      "key": "national_id",
+                      "value": "403789655",
+                      "type": "text",
+                      "uuid": "eb824d63-cd8f-4eb9-a8eb-f891618147cf"
+                    },
+                    {
+                      "key": "password",
+                      "value": "password123",
+                      "type": "text",
+                      "uuid": "7fe5679d-4245-439f-a471-512454cfc779"
+                    },
+                    {
+                      "key": "phone",
+                      "value": "0599123456",
+                      "type": "text",
+                      "uuid": "878e131a-b079-41ba-8e06-25bb512e72c8"
+                    },
+                    {
+                      "key": "date_of_birth",
+                      "value": "1985-05-15",
+                      "type": "text",
+                      "uuid": "755667ed-ad60-4260-b43e-bb26958ad8df"
+                    },
+                    {
+                      "key": "address",
+                      "value": "Gaza, Palestine",
+                      "type": "text",
+                      "uuid": "7c30da97-a10e-4ec8-b1cf-1cf95eb9051d"
+                    },
+                    {
+                      "key": "gender",
+                      "value": "male",
+                      "type": "text",
+                      "uuid": "c406f8d6-e9d7-4b8c-9d07-d47b97a08201"
+                    },
+                    {
+                      "key": "specialty",
+                      "value": "Cardiology",
+                      "type": "text",
+                      "uuid": "edcea5b6-a7b3-4a6c-91e1-83097d044242"
+                    },
+                    {
+                      "key": "years_of_experience",
+                      "value": "10",
+                      "type": "text",
+                      "uuid": "b733d066-de21-4d0b-bd32-9195c576839d"
+                    },
+                    {
+                      "key": "credential_document",
+                      "type": "file",
+                      "uuid": "6ca41e0c-af57-4258-9da4-be1a1cf94fc2",
+                      "src": "/home/vortex/PDF.js viewer.pdf"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{base}}api/admin/pending-doctors",
+                  "host": [
+                    "{{base}}api"
+                  ],
+                  "path": [
+                    "admin",
+                    "pending-doctors"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Doctors",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "Y8TlYri5s9DqnCLl3j8wRu7Eh3fz37cPnXwastGA3d7af112",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base}}api/admin/doctors",
+                  "host": [
+                    "{{base}}api"
+                  ],
+                  "path": [
+                    "admin",
+                    "doctors"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Reject Doctor",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "Y8TlYri5s9DqnCLl3j8wRu7Eh3fz37cPnXwastGA3d7af112",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base}}api/admin/reject-doctor/:id",
+                  "host": [
+                    "{{base}}api"
+                  ],
+                  "path": [
+                    "admin",
+                    "reject-doctor",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "2"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "email",
+                  "value": "admin@gmail.com",
+                  "type": "text",
+                  "uuid": "4bfff706-bc16-423a-98cf-95ac3defebba"
+                },
+                {
+                  "key": "password",
+                  "value": "password123",
+                  "type": "text",
+                  "uuid": "a8e3063e-271f-4211-a5d3-d9e8bfae3b03"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base}}api/admin/login",
+              "host": [
+                "{{base}}api"
+              ],
+              "path": [
+                "admin",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "ShowAllAdmin",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base}}api/admin/list",
+              "host": [
+                "{{base}}api"
+              ],
+              "path": [
+                "admin",
+                "list"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
