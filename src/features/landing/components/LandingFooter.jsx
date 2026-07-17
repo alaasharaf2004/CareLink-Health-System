@@ -292,11 +292,11 @@ function LandingFooter() {
               <Mail size={14} /> info@carelink.com
             </a>
             <a
-              href="tel:+970590000000"
+              href="tel:+970591234567"
               className="landing-footer-contact"
               dir="ltr"
             >
-              <Phone size={14} /> +970 59 000 0000
+              <Phone size={14} /> +970 59 123 4567
             </a>
             <p className="landing-footer-contact">
               <MapPin size={14} /> فلسطين، قطاع غزة

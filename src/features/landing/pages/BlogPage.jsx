@@ -5,7 +5,15 @@ import AnimatedSection from "../components/AnimatedSection";
 import { ArticleCard, SectionHeading } from "../components/LandingCards";
 import { articles } from "../data/landingMockData";
 
-const categories = ["الكل", "تغذية صحية", "صحة نفسية", "فحوصات دورية", "صحة الأسرة"];
+const categories = [
+  "الكل",
+  "تغذية صحية",
+  "صحة نفسية",
+  "أخبار طبية",
+  "صحة الأسرة",
+  "اللياقة",
+  "تقنية طبية",
+];
 
 function BlogPage() {
   const [query, setQuery] = useState("");

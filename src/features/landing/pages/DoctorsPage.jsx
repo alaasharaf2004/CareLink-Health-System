@@ -1,11 +1,26 @@
 ﻿import { useMemo, useState } from "react";
-import { Search, ShieldCheck, Users } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Search, ShieldCheck } from "lucide-react";
 
 import AnimatedSection from "../components/AnimatedSection";
 import { DoctorCard, SectionHeading } from "../components/LandingCards";
 import { doctors } from "../data/landingMockData";
 
-const specialties = ["الكل", "القلب", "الأطفال", "العظام", "الطب العام"];
+const specialties = [
+  "الكل",
+  "القلب",
+  "الأطفال",
+  "العظام",
+  "الطب العام",
+  "الجلدية",
+  "النساء",
+];
+
+const trustAvatars = [
+  "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face",
+  "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face",
+  "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop&crop=face",
+];
 
 function DoctorsPage() {
   const [query, setQuery] = useState("");
@@ -83,22 +98,61 @@ function DoctorsPage() {
         )}
       </AnimatedSection>
 
-      <AnimatedSection className="landing-section mx-auto grid max-w-7xl gap-6 px-5 md:grid-cols-[0.7fr_1.3fr] lg:px-8">
-        <div className="landing-feature-card p-8">
-          <Users size={30} className="text-[#101860]" />
-          <h2 className="mt-5 text-xl font-black text-[#101860]">ضمان الخصوصية</h2>
-          <p className="mt-3 text-sm leading-8 text-slate-500">
-            بياناتك الطبية متاحة فقط لك ولمقدمي الرعاية المخولين.
-          </p>
-        </div>
-        <div className="landing-cta">
+      <AnimatedSection className="landing-section mx-auto grid max-w-7xl gap-6 px-5 md:grid-cols-[1.3fr_0.7fr] lg:px-8">
+        <div className="landing-cta flex flex-col justify-between gap-8 p-8 sm:p-10">
           <div className="landing-cta-glow" aria-hidden="true" />
-          <ShieldCheck size={34} className="relative text-blue-200" />
-          <h2 className="relative mt-5 text-3xl font-black">رعاية صحية ذكية بين يديك</h2>
-          <p className="relative mt-3 max-w-2xl text-sm leading-8 text-blue-100/85">
-            تجربة حجز مرنة تربطك بالطبيب المناسب وتحفظ تاريخك الطبي في مكان
-            واحد.
-          </p>
+          <div className="relative">
+            <h2 className="text-3xl font-black leading-snug sm:text-4xl">
+              رعاية صحية ذكية بين يديك
+            </h2>
+            <p className="mt-4 max-w-2xl text-sm leading-8 text-blue-100/85 sm:text-base">
+              نحن نستخدم أحدث التقنيات لنربطك بأفضل الكفاءات الطبية، تجربة حجز
+              سلسة، متابعة دقيقة، وتقارير فورية.
+            </p>
+          </div>
+          <div className="relative flex flex-wrap gap-3">
+            <Link
+              to="/#about"
+              className="rounded-xl bg-white px-5 py-3 text-sm font-extrabold text-[#101860] transition hover:-translate-y-0.5"
+            >
+              تعرف على خدماتنا
+            </Link>
+            <a
+              href="#app"
+              className="rounded-xl border border-white/40 px-5 py-3 text-sm font-extrabold text-white transition hover:bg-white/10"
+            >
+              حمل التطبيق
+            </a>
+          </div>
+        </div>
+
+        <div className="landing-feature-card flex flex-col justify-between p-8">
+          <div>
+            <div className="landing-feature-icon">
+              <ShieldCheck size={20} />
+            </div>
+            <h2 className="mt-5 text-xl font-black text-[#101860]">
+              ضمان الخصوصية
+            </h2>
+            <p className="mt-3 text-sm leading-8 text-slate-500">
+              بياناتك الطبية مشفرة بالكامل ومحمية بأعلى معايير الأمان الدولية.
+            </p>
+          </div>
+          <div className="mt-8 flex items-center justify-between gap-3">
+            <div className="flex -space-x-2 space-x-reverse">
+              {trustAvatars.map((src) => (
+                <img
+                  key={src}
+                  src={src}
+                  alt=""
+                  className="h-9 w-9 rounded-full border-2 border-white object-cover"
+                />
+              ))}
+            </div>
+            <p className="text-xs font-bold text-[#101860]">
+              +2,000 مريض يثقون بنا
+            </p>
+          </div>
         </div>
       </AnimatedSection>
     </>

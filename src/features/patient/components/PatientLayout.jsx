@@ -14,10 +14,6 @@ import {
 
 import CareLinkLogo from "../../../components/CareLinkLogo";
 import { useAuth } from "../../authentication/context/AuthContext";
-import {
-  MOCK_PATIENT_NOTIFICATIONS,
-  MOCK_PATIENT_PROFILE,
-} from "../data/patientMockData";
 import NotificationsBell from "./NotificationsBell";
 import PatientPageShell from "./PatientPageShell";
 import ProfileAvatar from "./ProfileAvatar";
@@ -39,7 +35,7 @@ function PatientLayout() {
   const { clearSession } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const patientName = MOCK_PATIENT_PROFILE.name;
+  const patientName = "المريض";
 
   const handleLogout = () => {
     clearSession();
@@ -142,14 +138,14 @@ function PatientLayout() {
           </div>
 
           <div className="flex items-center gap-3 sm:gap-4">
-            <NotificationsBell notifications={MOCK_PATIENT_NOTIFICATIONS} />
+            <NotificationsBell notifications={[]} />
 
             <Link
               to="/patient/settings"
               className="flex cursor-pointer items-center gap-2.5 rounded-2xl border border-slate-200/80 bg-white py-1.5 pe-3 ps-1.5 shadow-sm transition-all duration-200 hover:border-[#40c0a0]/40 hover:shadow-md"
             >
               <ProfileAvatar
-                src={MOCK_PATIENT_PROFILE.profile_picture}
+                src=""
                 name={patientName}
                 size="md"
               />

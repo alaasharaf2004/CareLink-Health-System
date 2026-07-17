@@ -11,6 +11,7 @@ import {
 
 import AnimatedSection from "../components/AnimatedSection";
 import FaqAccordion from "../components/FaqAccordion";
+import HeroStats from "../components/HeroStats";
 import {
   ArticleCard,
   DoctorCard,
@@ -22,12 +23,6 @@ import {
   faqs,
   testimonials,
 } from "../data/landingMockData";
-
-const stats = [
-  { value: "24/7", label: "دعم طبي" },
-  { value: "500+", label: "طبيب متخصص" },
-  { value: "15k+", label: "مراجع سعيد" },
-];
 
 function LandingPage() {
   return (
@@ -67,48 +62,33 @@ function LandingPage() {
               </Link>
             </div>
 
-            <div className="landing-hero-stats">
-              {stats.map((stat) => (
-                <div key={stat.label} className="landing-hero-stat">
-                  <p className="landing-hero-stat-value">{stat.value}</p>
-                  <p className="landing-hero-stat-label">{stat.label}</p>
-                  <div className="landing-hero-stat-bar" aria-hidden="true" />
-                </div>
-              ))}
-            </div>
+            <HeroStats />
           </div>
 
           <div
-            className="relative mx-auto w-full max-w-xl opacity-0"
+            className="landing-hero-visual relative mx-auto w-full max-w-xl opacity-0"
             style={{
               animation:
                 "landingHeroVisual 1.05s cubic-bezier(0.22,1,0.36,1) 0.15s forwards",
             }}
           >
-            <div
-              className="landing-hero-ring absolute -right-6 top-8 h-24 w-24"
-              aria-hidden="true"
-            />
-            <div
-              className="landing-hero-ring absolute -left-4 bottom-24 h-16 w-16"
-              aria-hidden="true"
-            />
-
             <div className="landing-hero-frame">
               <img
-                src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=1200&h=1200&fit=crop&crop=faces"
+                src="/images/carelink-hero-doctor.png"
                 alt="طبيب من فريق CareLink"
-                className="h-[480px] w-full object-cover object-top sm:h-[560px]"
+                className="landing-hero-photo"
               />
-            </div>
 
-            <div className="landing-hero-float-card -bottom-4 right-2 sm:right-6">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-[#101860]/10 to-[#40c0a0]/15 text-[#101860]">
-                <ShieldCheck size={24} />
-              </div>
-              <div>
-                <p className="text-sm font-black text-[#101860]">كوادر طبية معتمدة</p>
-                <p className="mt-0.5 text-xs text-slate-400">جودة وخبرة موثوقة</p>
+              <div className="landing-hero-float-card">
+                <div className="landing-hero-float-icon" aria-hidden="true">
+                  <ShieldCheck size={20} strokeWidth={2.25} />
+                </div>
+                <div>
+                  <p className="landing-hero-float-title">كوادر طبية معتمدة</p>
+                  <p className="landing-hero-float-text">
+                    جميع أطباؤنا مسجلون رسمياً
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -117,13 +97,38 @@ function LandingPage() {
 
       <AnimatedSection
         as="section"
-        className="landing-section landing-section--white border-y border-slate-100/80"
+        className="landing-section landing-section--about landing-section--white border-y border-slate-100/80"
       >
         <div
           id="about"
-          className="mx-auto grid max-w-7xl gap-12 px-5 lg:grid-cols-[0.72fr_1.5fr] lg:px-8"
+          className="mx-auto grid max-w-7xl gap-12 px-5 lg:grid-cols-[1.5fr_0.72fr] lg:items-start lg:px-8"
         >
-          <div className="grid gap-4">
+          <div className="landing-about-copy order-1">
+            <p className="landing-about-eyebrow">من نحن</p>
+            <h2 className="landing-about-title">
+              نعيد تعريف مفهوم الرعاية الصحية في CareLink
+            </h2>
+            <p className="landing-about-text">
+              نؤمن أن الوصول للرعاية الصحية المتميزة يجب أن يكون بسيطاً وفعالاً
+              للجميع. مهمتنا الربط المباشر بين المرضى وأفضل الكوادر الطبية عبر
+              منصة موثوقة تضمن أعلى معايير الجودة والخصوصية.
+            </p>
+            <div className="mt-9 grid gap-4 sm:grid-cols-2">
+              {["اختصاصيون موثوقون", "حجز سريع", "ملف طبي منظم", "متابعة مستمرة"].map(
+                (item) => (
+                  <p
+                    key={item}
+                    className="flex items-center gap-2.5 text-sm font-bold text-slate-600"
+                  >
+                    <CheckCircle2 size={18} className="text-[#40c0a0]" />
+                    {item}
+                  </p>
+                )
+              )}
+            </div>
+          </div>
+
+          <div className="grid order-2 gap-7">
             {[
               {
                 icon: ShieldCheck,
@@ -145,31 +150,6 @@ function LandingPage() {
               </div>
             ))}
           </div>
-
-          <div className="lg:pt-2">
-            <p className="landing-eyebrow">من نحن</p>
-            <h2 className="landing-section-title">
-              نعيد تعريف مفهوم الرعاية الصحية في CareLink
-            </h2>
-            <p className="mt-5 max-w-3xl text-base leading-[1.9] text-slate-500">
-              نؤمن أن الوصول للرعاية الصحية المتميزة يجب أن يكون بسيطاً وفعالاً
-              للجميع. مهمتنا الربط المباشر بين المرضى وأفضل الكوادر الطبية عبر
-              منصة موثوقة تضمن أعلى معايير الجودة والخصوصية.
-            </p>
-            <div className="mt-8 grid gap-3 sm:grid-cols-2">
-              {["اختصاصيون موثوقون", "حجز سريع", "ملف طبي منظم", "متابعة مستمرة"].map(
-                (item) => (
-                  <p
-                    key={item}
-                    className="flex items-center gap-2.5 text-sm font-bold text-slate-600"
-                  >
-                    <CheckCircle2 size={18} className="text-[#40c0a0]" />
-                    {item}
-                  </p>
-                )
-              )}
-            </div>
-          </div>
         </div>
       </AnimatedSection>
 
@@ -181,7 +161,7 @@ function LandingPage() {
           action={{ to: "/doctors", label: "عرض جميع الأطباء" }}
         />
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {doctors.map((doctor, index) => (
+          {doctors.slice(0, 3).map((doctor, index) => (
             <DoctorCard key={doctor.id} doctor={doctor} index={index} />
           ))}
         </div>
@@ -254,7 +234,7 @@ function LandingPage() {
               <ArrowLeft size={16} />
             </Link>
           </div>
-          <FaqAccordion items={faqs.slice(0, 3)} />
+          <FaqAccordion items={faqs.filter((item) => item.category === "الحجز والمواعيد").slice(0, 3)} />
         </div>
       </AnimatedSection>
 

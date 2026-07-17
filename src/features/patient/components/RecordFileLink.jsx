@@ -1,36 +1,29 @@
 import { FileText } from "lucide-react";
 
-import { downloadDummyRecordFile } from "../utils/downloadDummyRecordFile";
-
-function RecordFileLink({
-  fileName,
-  patientName,
-  doctorName,
-  diagnosis,
-  notes,
-  appointmentDate,
-}) {
-  const handleDownload = (event) => {
-    event.preventDefault();
-    downloadDummyRecordFile(fileName, {
-      patientName,
-      doctorName,
-      diagnosis,
-      notes,
-      appointmentDate,
-    });
-  };
+function RecordFileLink({ fileName, fileUrl }) {
+  if (!fileUrl) {
+    return (
+      <span
+        className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-400"
+        title="لا يوجد ملف"
+      >
+        <FileText size={15} />
+        {fileName || "لا يوجد ملف"}
+      </span>
+    );
+  }
 
   return (
-    <button
-      type="button"
-      onClick={handleDownload}
+    <a
+      href={fileUrl}
+      target="_blank"
+      rel="noreferrer"
       className="inline-flex cursor-pointer items-center gap-1.5 text-sm font-bold text-blue-600 transition-colors hover:text-blue-700"
-      title="تحميل الملف"
+      title="فتح الملف"
     >
       <FileText size={15} />
-      {fileName}
-    </button>
+      {fileName || "ملف"}
+    </a>
   );
 }
 

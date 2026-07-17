@@ -2,7 +2,6 @@ import { Link } from "react-router-dom";
 import { ArrowLeft, CalendarPlus, Sparkles } from "lucide-react";
 
 import ProfileAvatar from "./ProfileAvatar";
-import { MOCK_MEDICAL_PROFILE, MOCK_PATIENT_PROFILE } from "../data/patientMockData";
 
 function PatientWelcomeHero() {
   return (
@@ -20,7 +19,7 @@ function PatientWelcomeHero() {
           <h2 className="mt-4 text-3xl font-extrabold leading-tight text-[#101860] sm:text-4xl">
             مرحباً بعودتك،{" "}
             <span className="bg-gradient-to-l from-[#40c0a0] to-blue-600 bg-clip-text text-transparent">
-              {MOCK_PATIENT_PROFILE.name}
+              المريض
             </span>
           </h2>
 
@@ -48,9 +47,9 @@ function PatientWelcomeHero() {
 
           <div className="mt-8 flex flex-wrap gap-4 border-t border-white/60 pt-6">
             {[
-              { label: "فصيلة الدم", value: MOCK_MEDICAL_PROFILE.blood_type },
-              { label: "الملف", value: MOCK_MEDICAL_PROFILE.patient_id },
-              { label: "الحالة", value: "نشط" },
+              { label: "فصيلة الدم", value: "—" },
+              { label: "الملف", value: "—" },
+              { label: "الحالة", value: "—" },
             ].map((item) => (
               <div key={item.label}>
                 <p className="text-[11px] font-medium text-slate-400">{item.label}</p>
@@ -65,13 +64,13 @@ function PatientWelcomeHero() {
             <div className="patient-hero-ring" aria-hidden="true" />
             <div className="patient-hero-ring patient-hero-ring--delay" aria-hidden="true" />
             <ProfileAvatar
-              src={MOCK_PATIENT_PROFILE.profile_picture}
-              name={MOCK_PATIENT_PROFILE.name}
+              src=""
+              name="المريض"
               size="xl"
               className="relative z-10 !h-44 !w-44 border-4 border-white shadow-2xl shadow-blue-900/15 sm:!h-52 sm:!w-52"
             />
             <div className="absolute -bottom-2 start-1/2 z-20 -translate-x-1/2 rounded-full border border-white bg-gradient-to-l from-[#40c0a0] to-emerald-500 px-4 py-1.5 text-xs font-extrabold text-white shadow-md">
-              مريض نشط
+              حسابي
             </div>
           </div>
         </div>

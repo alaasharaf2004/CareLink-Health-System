@@ -1,17 +1,6 @@
-import AdminTable, {
-  AdminTableCell,
-  AdminTableRow,
-} from "../../admin/components/AdminTable";
+import AdminTable from "../../admin/components/AdminTable";
 import FadeUp from "../components/FadeUp";
 import PatientPageHeader from "../components/PatientPageHeader";
-import RecordFileLink from "../components/RecordFileLink";
-import { RECORD_TYPE_LABELS } from "../constants/appointmentLabels";
-import {
-  MOCK_MEDICAL_RECORDS,
-  MOCK_PATIENT_PROFILE,
-} from "../data/patientMockData";
-import { formatArabicDateTime } from "../utils/formatDateTime";
-import { staggerDelay } from "../utils/staggerDelay";
 
 const COLUMNS = [
   { key: "doctor", label: "اسم الطبيب" },
@@ -23,9 +12,7 @@ const COLUMNS = [
 ];
 
 function PatientMedicalRecordsPage() {
-  const myRecords = MOCK_MEDICAL_RECORDS.filter(
-    (r) => r.patient_name === MOCK_PATIENT_PROFILE.name
-  );
+  const myRecords = [];
 
   return (
     <div className="space-y-6">
@@ -35,41 +22,13 @@ function PatientMedicalRecordsPage() {
       />
 
       <FadeUp index={1}>
-        <AdminTable columns={COLUMNS}>
-          {myRecords.map((record, index) => (
-            <AdminTableRow
-              key={record.id}
-              className="opacity-0 animate-[formFadeUp_0.45s_ease_forwards]"
-              style={{ animationDelay: staggerDelay(index, 0.05, 0.12) }}
-            >
-              <AdminTableCell className="font-bold text-blue-950">
-                {record.doctor_name}
-              </AdminTableCell>
-              <AdminTableCell dir="rtl">
-                {formatArabicDateTime(record.appointment_date)}
-              </AdminTableCell>
-              <AdminTableCell>
-                {RECORD_TYPE_LABELS[record.record_type] ?? record.record_type}
-              </AdminTableCell>
-              <AdminTableCell>{record.diagnosis}</AdminTableCell>
-              <AdminTableCell>
-                <p className="max-w-[200px] text-sm text-slate-600">
-                  {record.notes}
-                </p>
-              </AdminTableCell>
-              <AdminTableCell>
-                <RecordFileLink
-                  fileName={record.file_name}
-                  patientName={record.patient_name}
-                  doctorName={record.doctor_name}
-                  diagnosis={record.diagnosis}
-                  notes={record.notes}
-                  appointmentDate={record.appointment_date}
-                />
-              </AdminTableCell>
-            </AdminTableRow>
-          ))}
-        </AdminTable>
+        {myRecords.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-slate-200 bg-white py-16 text-center">
+            <p className="font-bold text-slate-500">لا توجد سجلات طبية حالياً</p>
+          </div>
+        ) : (
+          <AdminTable columns={COLUMNS}>{null}</AdminTable>
+        )}
       </FadeUp>
     </div>
   );

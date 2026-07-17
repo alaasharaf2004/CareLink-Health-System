@@ -14,10 +14,6 @@ import {
 import { AppointmentStatusBadge } from "../components/AppointmentBadges";
 import PatientWelcomeHero from "../components/PatientWelcomeHero";
 import ProfileAvatar from "../components/ProfileAvatar";
-import {
-  MOCK_APPOINTMENTS,
-  MOCK_PATIENT_PROFILE,
-} from "../data/patientMockData";
 import { formatArabicDateTime } from "../utils/formatDateTime";
 
 const QUICK_ACTIONS = [
@@ -63,13 +59,11 @@ const STATS = [
 ];
 
 function PatientHomePage() {
-  const myAppointments = MOCK_APPOINTMENTS.filter(
-    (a) => a.patient_name === MOCK_PATIENT_PROFILE.name
-  );
+  const myAppointments = [];
   const pending = myAppointments.filter((a) => a.status === "pending");
   const confirmed = myAppointments.filter((a) => a.status === "confirmed");
   const today = myAppointments.filter((a) =>
-    a.scheduled_at.startsWith("2026-07-08")
+    a.scheduled_at?.startsWith(new Date().toISOString().slice(0, 10))
   );
   const nextAppointment = [...myAppointments]
     .filter((a) => a.status === "pending" || a.status === "confirmed")

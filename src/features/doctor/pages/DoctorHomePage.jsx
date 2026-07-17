@@ -20,7 +20,6 @@ import ProfileAvatar from "../../patient/components/ProfileAvatar";
 import { formatArabicDateTime } from "../../patient/utils/formatDateTime";
 import { staggerDelay } from "../../patient/utils/staggerDelay";
 import DoctorWelcomeHero from "../components/DoctorWelcomeHero";
-import { MOCK_DOCTOR_APPOINTMENTS } from "../data/doctorMockData";
 
 const QUICK_ACTIONS = [
   {
@@ -65,11 +64,11 @@ const STATS = [
 ];
 
 function DoctorHomePage() {
-  const appointments = MOCK_DOCTOR_APPOINTMENTS;
+  const appointments = [];
   const pending = appointments.filter((a) => a.status === "pending");
   const confirmed = appointments.filter((a) => a.status === "confirmed");
   const today = appointments.filter((a) =>
-    a.scheduled_at.startsWith("2026-07-08")
+    a.scheduled_at?.startsWith(new Date().toISOString().slice(0, 10))
   );
   const nextAppointment = [...appointments]
     .filter((a) => a.status === "pending" || a.status === "confirmed")

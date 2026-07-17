@@ -11,7 +11,6 @@ import ConfirmDialog from "../components/ConfirmDialog";
 import EmptyState from "../components/EmptyState";
 import Toast from "../components/Toast";
 import { useToast } from "../hooks/useToast";
-import { MOCK_ADS } from "../data/adminMockData";
 
 const AD_COLUMNS = [
   { key: "title", label: "العنوان" },
@@ -21,7 +20,7 @@ const AD_COLUMNS = [
 ];
 
 function AdsPage() {
-  const [ads, setAds] = useState(MOCK_ADS);
+  const [ads, setAds] = useState([]);
   const [editingAd, setEditingAd] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [deletingAd, setDeletingAd] = useState(null);

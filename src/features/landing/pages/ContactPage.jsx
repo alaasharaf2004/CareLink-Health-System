@@ -12,7 +12,7 @@ import {
 import AnimatedSection from "../components/AnimatedSection";
 
 const contactItems = [
-  { icon: Phone, title: "هاتفنا", value: "+970 59 000 0000", dir: "ltr" },
+  { icon: Phone, title: "هاتفنا", value: "+970 59 123 4567", dir: "ltr" },
   { icon: Mail, title: "البريد الإلكتروني", value: "info@carelink.com", dir: "ltr" },
   { icon: MapPin, title: "موقعنا", value: "فلسطين، قطاع غزة" },
   { icon: Clock3, title: "أوقات العمل", value: "على مدار الساعة، 7 أيام" },

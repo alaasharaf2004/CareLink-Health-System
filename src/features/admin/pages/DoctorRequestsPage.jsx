@@ -20,7 +20,6 @@ import SendEmailModal from "../components/SendEmailModal";
 import StatusBadge from "../components/StatusBadge";
 import Toast from "../components/Toast";
 import { useToast } from "../hooks/useToast";
-import { MOCK_DOCTORS } from "../data/adminMockData";
 
 const FILTER_OPTIONS = [
   { value: "all", label: "الكل" },
@@ -52,7 +51,7 @@ function ActionButton({ onClick, label, className, children }) {
 }
 
 function DoctorRequestsPage() {
-  const [doctors, setDoctors] = useState(MOCK_DOCTORS);
+  const [doctors, setDoctors] = useState([]);
   const [filter, setFilter] = useState("all");
   const [reviewingDoctor, setReviewingDoctor] = useState(null);
   const [emailDoctor, setEmailDoctor] = useState(null);

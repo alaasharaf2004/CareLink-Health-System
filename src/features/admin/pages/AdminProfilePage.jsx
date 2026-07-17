@@ -4,7 +4,6 @@ import { Eye, EyeOff, Lock, Mail, Save, User } from "lucide-react";
 import AdminPageHeader from "../components/AdminPageHeader";
 import Toast from "../components/Toast";
 import { useToast } from "../hooks/useToast";
-import { MOCK_ADMIN_PROFILE } from "../data/adminMockData";
 import { isValidEmail } from "../../authentication/utils/validation";
 
 const inputClass =
@@ -12,8 +11,8 @@ const inputClass =
 
 function AdminProfilePage() {
   const { toast, showToast, hideToast } = useToast();
-  const [name, setName] = useState(MOCK_ADMIN_PROFILE.name);
-  const [email, setEmail] = useState(MOCK_ADMIN_PROFILE.email);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");

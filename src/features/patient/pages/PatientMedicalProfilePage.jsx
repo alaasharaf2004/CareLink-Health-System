@@ -5,7 +5,21 @@ import PatientPageHeader from "../components/PatientPageHeader";
 import FadeUp from "../components/FadeUp";
 import Toast from "../../admin/components/Toast";
 import { useToast } from "../../admin/hooks/useToast";
-import { MOCK_MEDICAL_PROFILE } from "../data/patientMockData";
+
+const EMPTY_MEDICAL_PROFILE = {
+  patient_id: "",
+  blood_type: "",
+  weight_kg: "",
+  height_cm: "",
+  is_diabetic: false,
+  is_hypertensive: false,
+  is_smoker: false,
+  allergies: "",
+  chronic_diseases: "",
+  current_medications: "",
+  emergency_contact_name: "",
+  emergency_contact_phone: "",
+};
 
 const inputClass =
   "h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100";
@@ -17,7 +31,7 @@ const BOOL_FIELDS = [
 ];
 
 function PatientMedicalProfilePage() {
-  const [form, setForm] = useState({ ...MOCK_MEDICAL_PROFILE });
+  const [form, setForm] = useState({ ...EMPTY_MEDICAL_PROFILE });
   const { toast, showToast, hideToast } = useToast();
 
   const updateField = (key, value) =>

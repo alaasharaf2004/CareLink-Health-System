@@ -18,7 +18,6 @@ import ProfileAvatar from "../../patient/components/ProfileAvatar";
 import { formatArabicDateTime } from "../../patient/utils/formatDateTime";
 import { staggerDelay } from "../../patient/utils/staggerDelay";
 import DoctorPageHeader from "../components/DoctorPageHeader";
-import { MOCK_DOCTOR_APPOINTMENTS } from "../data/doctorMockData";
 
 const COLUMNS = [
   { key: "patient", label: "المريض" },
@@ -61,7 +60,7 @@ function PatientMiniCard({ appointment }) {
 }
 
 function DoctorAppointmentsPage() {
-  const [appointments, setAppointments] = useState(MOCK_DOCTOR_APPOINTMENTS);
+  const [appointments, setAppointments] = useState([]);
   const [activeFilter, setActiveFilter] = useState("all");
   const [acceptTarget, setAcceptTarget] = useState(null);
   const [rejectTarget, setRejectTarget] = useState(null);

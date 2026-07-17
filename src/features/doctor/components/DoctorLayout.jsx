@@ -16,11 +16,6 @@ import CareLinkLogo from "../../../components/CareLinkLogo";
 import { useAuth } from "../../authentication/context/AuthContext";
 import NotificationsBell from "../../patient/components/NotificationsBell";
 import ProfileAvatar from "../../patient/components/ProfileAvatar";
-import {
-  MOCK_DOCTOR_APPOINTMENTS,
-  MOCK_DOCTOR_NOTIFICATIONS,
-  MOCK_DOCTOR_PROFILE,
-} from "../data/doctorMockData";
 import DoctorPageShell from "./DoctorPageShell";
 
 const NAV_ITEMS = [
@@ -36,10 +31,8 @@ function DoctorLayout() {
   const { clearSession } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const doctorName = MOCK_DOCTOR_PROFILE.name;
-  const pendingCount = MOCK_DOCTOR_APPOINTMENTS.filter(
-    (a) => a.status === "pending"
-  ).length;
+  const doctorName = "الطبيب";
+  const pendingCount = 0;
 
   const handleLogout = () => {
     clearSession();
@@ -150,20 +143,20 @@ function DoctorLayout() {
           </div>
 
           <div className="flex items-center gap-3 sm:gap-4">
-            <NotificationsBell notifications={MOCK_DOCTOR_NOTIFICATIONS} />
+            <NotificationsBell notifications={[]} />
 
             <Link
               to="/doctor/settings"
               className="flex cursor-pointer items-center gap-2.5 rounded-2xl border border-slate-200/80 bg-white py-1.5 pe-3 ps-1.5 shadow-sm transition-all duration-200 hover:border-blue-200 hover:shadow-md"
             >
               <ProfileAvatar
-                src={MOCK_DOCTOR_PROFILE.profile_picture}
+                src=""
                 name={doctorName}
                 size="md"
               />
               <div className="hidden min-w-0 text-right sm:block">
                 <p className="text-sm font-extrabold text-slate-800">{doctorName}</p>
-                <p className="text-xs text-slate-400">{MOCK_DOCTOR_PROFILE.specialty}</p>
+                <p className="text-xs text-slate-400">طبيب</p>
               </div>
               <ChevronDown size={16} className="hidden text-slate-400 sm:block" />
             </Link>

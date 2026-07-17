@@ -7,14 +7,26 @@ import { isValidEmail } from "../../authentication/utils/validation";
 import FadeUp from "../../patient/components/FadeUp";
 import ProfileAvatar from "../../patient/components/ProfileAvatar";
 import DoctorPageHeader from "../components/DoctorPageHeader";
-import { MOCK_DOCTOR_PROFILE } from "../data/doctorMockData";
+
+const EMPTY_DOCTOR_PROFILE = {
+  name: "",
+  email: "",
+  phone: "",
+  date_of_birth: "",
+  national_id: "",
+  address: "",
+  gender: "male",
+  status: "active",
+  specialty: "",
+  profile_picture: "",
+};
 
 const inputClass =
   "h-11 w-full rounded-xl border border-slate-200 bg-white pr-10 pl-4 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100";
 
 function DoctorSettingsPage() {
   const { toast, showToast, hideToast } = useToast();
-  const [profile, setProfile] = useState({ ...MOCK_DOCTOR_PROFILE });
+  const [profile, setProfile] = useState({ ...EMPTY_DOCTOR_PROFILE });
   const [passwords, setPasswords] = useState({
     current: "",
     newPassword: "",

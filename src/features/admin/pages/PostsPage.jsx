@@ -11,7 +11,6 @@ import EmptyState from "../components/EmptyState";
 import PostFormModal from "../components/PostFormModal";
 import Toast from "../components/Toast";
 import { useToast } from "../hooks/useToast";
-import { MOCK_POSTS } from "../data/adminMockData";
 
 const POST_COLUMNS = [
   { key: "title", label: "العنوان" },
@@ -21,7 +20,7 @@ const POST_COLUMNS = [
 ];
 
 function PostsPage() {
-  const [posts, setPosts] = useState(MOCK_POSTS);
+  const [posts, setPosts] = useState([]);
   const [editingPost, setEditingPost] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [deletingPost, setDeletingPost] = useState(null);

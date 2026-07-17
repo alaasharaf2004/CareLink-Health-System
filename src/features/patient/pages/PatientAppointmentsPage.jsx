@@ -25,16 +25,13 @@ import FadeUp from "../components/FadeUp";
 import PatientPageHeader from "../components/PatientPageHeader";
 import ProfileAvatar from "../components/ProfileAvatar";
 import {
-  MOCK_APPOINTMENTS,
-  MOCK_DOCTORS,
-  MOCK_PATIENT_PROFILE,
-} from "../data/patientMockData";
-import {
   formatArabicDateTime,
   QUICK_TIME_SLOTS,
   todayIsoDate,
 } from "../utils/formatDateTime";
 import { staggerDelay } from "../utils/staggerDelay";
+
+const AVAILABLE_DOCTORS = [];
 
 const COLUMNS = [
   { key: "doctor", label: "الطبيب" },
@@ -76,10 +73,7 @@ function DoctorMiniCard({ doctorName, avatar, specialty, scheduledAt }) {
 }
 
 function PatientAppointmentsPage() {
-  const initialAppointments = MOCK_APPOINTMENTS.filter(
-    (a) => a.patient_name === MOCK_PATIENT_PROFILE.name
-  );
-  const [appointments, setAppointments] = useState(initialAppointments);
+  const [appointments, setAppointments] = useState([]);
   const [activeFilter, setActiveFilter] = useState("all");
   const [cancelTarget, setCancelTarget] = useState(null);
   const [rescheduleTarget, setRescheduleTarget] = useState(null);
@@ -88,7 +82,7 @@ function PatientAppointmentsPage() {
   const [rescheduleDate, setRescheduleDate] = useState("");
   const [rescheduleNote, setRescheduleNote] = useState("");
   const [newAppointment, setNewAppointment] = useState({
-    doctor: Object.keys(MOCK_DOCTORS)[0],
+    doctor: "",
     datetime: "",
     type: "online",
     description: "",
@@ -151,17 +145,25 @@ function PatientAppointmentsPage() {
   };
 
   const handleAddAppointment = () => {
+    if (!newAppointment.doctor) {
+      showToast("لا يوجد أطباء متاحون حالياً", "error");
+      return;
+    }
     if (!newAppointment.datetime.trim()) {
       showToast("اختر تاريخ ووقت الموعد", "error");
       return;
     }
-    const doctor = MOCK_DOCTORS[newAppointment.doctor];
+    const doctor = AVAILABLE_DOCTORS.find((d) => d.name === newAppointment.doctor);
+    if (!doctor) {
+      showToast("اختر طبيباً صالحاً", "error");
+      return;
+    }
     const nextId = Math.max(...appointments.map((a) => a.id), 0) + 1;
 
     setAppointments((current) => [
       {
         id: nextId,
-        patient_name: MOCK_PATIENT_PROFILE.name,
+        patient_name: "المريض",
         doctor_name: doctor.name,
         doctor_specialty: doctor.specialty,
         doctor_phone: doctor.phone,
@@ -172,17 +174,17 @@ function PatientAppointmentsPage() {
         status: "pending",
         description: newAppointment.description || "موعد جديد",
         rejection_reason: "",
-        zoom_link: newAppointment.type === "online" ? "https://zoom.us/j/new" : "",
+        zoom_link: newAppointment.type === "online" ? "" : "",
         fee: 0,
         fee_label: "مجاني",
       },
       ...current,
     ]);
 
-    showToast("تم حجز الموعد بنجاح (تصميم)", "success");
+    showToast("تم حجز الموعد بنجاح", "success");
     setIsAddOpen(false);
     setNewAppointment({
-      doctor: Object.keys(MOCK_DOCTORS)[0],
+      doctor: AVAILABLE_DOCTORS[0]?.name ?? "",
       datetime: "",
       type: "online",
       description: "",
@@ -448,7 +450,12 @@ function PatientAppointmentsPage() {
                 اختر الطبيب
               </p>
               <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-                {Object.values(MOCK_DOCTORS).map((doctor) => {
+                {AVAILABLE_DOCTORS.length === 0 ? (
+                  <p className="col-span-full rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-sm font-bold text-slate-500">
+                    لا يوجد أطباء متاحون حالياً
+                  </p>
+                ) : (
+                  AVAILABLE_DOCTORS.map((doctor) => {
                   const selected = newAppointment.doctor === doctor.name;
                   return (
                     <button
@@ -490,7 +497,8 @@ function PatientAppointmentsPage() {
                       )}
                     </button>
                   );
-                })}
+                })
+                )}
               </div>
             </section>
 

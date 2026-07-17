@@ -72,41 +72,57 @@ export function DoctorCard({ doctor, index = 0 }) {
 }
 
 export function ArticleCard({ article, index = 0 }) {
+  const initials =
+    article.initials ||
+    article.author
+      .replace(/^د\.\s*/, "")
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part.charAt(0))
+      .join("");
+
   return (
     <article
-      className="landing-card landing-card--article group overflow-hidden"
+      className="landing-article-card group"
       style={{ "--stagger": `${index * 100}ms` }}
     >
-      <div className="relative h-52 overflow-hidden">
+      <div className="landing-article-media">
         <img
           src={article.image}
           alt=""
-          className="landing-card-image h-full w-full object-cover"
+          className="landing-article-image"
           loading="lazy"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#101860]/50 via-transparent to-transparent opacity-80" />
-        <span className="absolute right-4 top-4 landing-tag">{article.category}</span>
+        <span className="landing-article-tag">{article.category}</span>
       </div>
-      <div className="p-6">
-        <h3 className="line-clamp-2 text-lg font-extrabold leading-8 text-[#101860]">
-          {article.title}
-        </h3>
-        <p className="mt-2 line-clamp-2 text-sm leading-7 text-slate-500">
-          {article.excerpt}
-        </p>
-        <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-[#101860] text-xs font-bold text-white">
-              {article.author.charAt(2)}
+
+      <div className="landing-article-body">
+        <h3 className="landing-article-title">{article.title}</h3>
+        <p className="landing-article-excerpt">{article.excerpt}</p>
+
+        <div className="landing-article-footer">
+          <div className="landing-article-author">
+            <div className="landing-article-avatar" aria-hidden="true">
+              {initials}
             </div>
             <div>
-              <p className="text-xs font-bold text-[#101860]">{article.author}</p>
-              <p className="text-[11px] text-slate-400">{article.readTime}</p>
+              <p className="landing-article-author-name">{article.author}</p>
+              <p className="landing-article-meta">
+                {article.readTime}
+              </p>
             </div>
           </div>
-          <div className="flex gap-3 text-slate-400">
-            <Heart size={14} />
-            <MessageCircle size={14} />
+
+          <div className="landing-article-actions">
+            <span>
+              <Heart size={15} strokeWidth={1.8} />
+              {article.likes != null && <em>{article.likes}</em>}
+            </span>
+            <span>
+              <MessageCircle size={15} strokeWidth={1.8} />
+              {article.comments != null && <em>{article.comments}</em>}
+            </span>
           </div>
         </div>
       </div>

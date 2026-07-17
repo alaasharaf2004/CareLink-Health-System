@@ -11,7 +11,6 @@ import {
 } from "lucide-react";
 
 import CareLinkLogo from "../../../components/CareLinkLogo";
-import { MOCK_ADMIN_PROFILE } from "../data/adminMockData";
 import { useAuth } from "../../authentication/context/AuthContext";
 
 const NAV_ITEMS = [
@@ -26,7 +25,7 @@ function AdminLayout() {
   const { clearSession } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const adminName = MOCK_ADMIN_PROFILE.name;
+  const adminName = "المسؤول";
   const adminInitial = adminName.charAt(0).toUpperCase();
 
   const handleLogout = () => {

@@ -3,17 +3,23 @@ import { Headphones, Mail, Search } from "lucide-react";
 
 import AnimatedSection from "../components/AnimatedSection";
 import FaqAccordion from "../components/FaqAccordion";
-import { faqs } from "../data/landingMockData";
+import { faqCategories, faqs } from "../data/landingMockData";
 
 function FaqPage() {
   const [query, setQuery] = useState("");
+  const [activeCategory, setActiveCategory] = useState(faqCategories[0]);
+
   const filteredFaqs = useMemo(() => {
     const normalized = query.trim().toLowerCase();
-    if (!normalized) return faqs;
-    return faqs.filter((item) =>
-      `${item.question} ${item.answer}`.toLowerCase().includes(normalized)
-    );
-  }, [query]);
+
+    return faqs.filter((item) => {
+      const matchesCategory = item.category === activeCategory;
+      const matchesQuery =
+        !normalized ||
+        `${item.question} ${item.answer}`.toLowerCase().includes(normalized);
+      return matchesCategory && matchesQuery;
+    });
+  }, [activeCategory, query]);
 
   return (
     <>
@@ -42,26 +48,28 @@ function FaqPage() {
 
       <AnimatedSection className="mx-auto grid max-w-6xl gap-8 px-5 py-16 lg:grid-cols-[0.32fr_0.68fr] lg:px-8">
         <aside className="space-y-3">
-          {["الحجز والمواعيد", "الحساب والملف الطبي", "الخصوصية والأمان", "الدفع والفواتير"].map(
-            (item, index) => (
-              <button
-                key={item}
-                type="button"
-                className={`landing-chip w-full text-right ${
-                  index === 0 ? "is-active" : ""
-                }`}
-              >
-                {item}
-              </button>
-            )
-          )}
+          {faqCategories.map((item) => (
+            <button
+              key={item}
+              type="button"
+              onClick={() => setActiveCategory(item)}
+              className={`landing-chip w-full text-right ${
+                activeCategory === item ? "is-active" : ""
+              }`}
+            >
+              {item}
+            </button>
+          ))}
         </aside>
         <div>
           {filteredFaqs.length > 0 ? (
-            <FaqAccordion items={filteredFaqs} />
+            <FaqAccordion
+              key={`${activeCategory}-${query}`}
+              items={filteredFaqs}
+            />
           ) : (
             <div className="rounded-2xl border border-slate-200 bg-white py-16 text-center text-sm font-bold text-slate-500">
-              لم نجد إجابة مطابقة لبحثك.
+              لم نجد إجابة مطابقة لبحثك في هذا القسم.
             </div>
           )}
         </div>
@@ -77,8 +85,14 @@ function FaqPage() {
               فريقنا جاهز لمساعدتك في الحجز، الحساب، أو استخدام المنصة.
             </p>
             <div className="relative mt-6 space-y-3 text-sm">
-              <p>الدعم: +966 500 000 000</p>
-              <p>البريد: support@carelink.com</p>
+              <p className="flex flex-wrap items-center gap-2">
+                <span>الدعم:</span>
+                <span dir="ltr">+970 59 123 4567</span>
+              </p>
+              <p className="flex flex-wrap items-center gap-2">
+                <span>البريد:</span>
+                <span dir="ltr">support@carelink.com</span>
+              </p>
             </div>
           </div>
           <form
