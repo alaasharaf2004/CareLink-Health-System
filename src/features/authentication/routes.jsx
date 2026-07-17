@@ -12,7 +12,7 @@ export const authenticationRoutes = [
     element: <AuthPageTransition />,
     children: [
       {
-        path: "/",
+        path: "/login",
         element: (
           <GuestRoute>
             <LoginPage />
@@ -45,7 +45,11 @@ export const authenticationRoutes = [
       },
       {
         path: "/admin/login",
-        element: <AdminLoginPage />,
+        element: (
+          <GuestRoute>
+            <AdminLoginPage />
+          </GuestRoute>
+        ),
       },
     ],
   },

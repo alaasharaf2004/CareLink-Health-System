@@ -67,7 +67,7 @@ function ResetPasswordPage() {
 
       clearPasswordResetDraft();
 
-      navigate("/", {
+      navigate("/login", {
         replace: true,
         state: {
           authRole: role,
@@ -203,7 +203,7 @@ function ResetPasswordPage() {
           dir="rtl"
         >
           <Link
-            to="/"
+            to="/login"
             className={`inline-flex items-center justify-center gap-1.5 font-bold text-blue-600 ${AUTH_CLICKABLE.textLink}`}
           >
             <ArrowRight size={16} />

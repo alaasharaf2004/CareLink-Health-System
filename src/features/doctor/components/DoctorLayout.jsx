@@ -14,32 +14,32 @@ import {
 
 import CareLinkLogo from "../../../components/CareLinkLogo";
 import { useAuth } from "../../authentication/context/AuthContext";
+import NotificationsBell from "../../patient/components/NotificationsBell";
+import ProfileAvatar from "../../patient/components/ProfileAvatar";
 import {
-  MOCK_PATIENT_NOTIFICATIONS,
-  MOCK_PATIENT_PROFILE,
-} from "../data/patientMockData";
-import NotificationsBell from "./NotificationsBell";
-import PatientPageShell from "./PatientPageShell";
-import ProfileAvatar from "./ProfileAvatar";
+  MOCK_DOCTOR_APPOINTMENTS,
+  MOCK_DOCTOR_NOTIFICATIONS,
+  MOCK_DOCTOR_PROFILE,
+} from "../data/doctorMockData";
+import DoctorPageShell from "./DoctorPageShell";
 
 const NAV_ITEMS = [
-  { to: "/patient/dashboard", label: "الرئيسية", icon: Home, end: true },
-  { to: "/patient/appointments", label: "المواعيد", icon: CalendarDays },
-  {
-    to: "/patient/medical-records",
-    label: "السجلات الطبية",
-    icon: ClipboardList,
-  },
-  { to: "/patient/medical-profile", label: "الملف الطبي", icon: FileHeart },
-  { to: "/patient/settings", label: "الإعدادات", icon: Settings },
+  { to: "/doctor/dashboard", label: "الرئيسية", icon: Home, end: true },
+  { to: "/doctor/appointments", label: "المواعيد", icon: CalendarDays },
+  { to: "/doctor/medical-records", label: "السجلات الطبية", icon: ClipboardList },
+  { to: "/doctor/patients", label: "الملف الطبي للمرضى", icon: FileHeart },
+  { to: "/doctor/settings", label: "الإعدادات", icon: Settings },
 ];
 
-function PatientLayout() {
+function DoctorLayout() {
   const navigate = useNavigate();
   const { clearSession } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const patientName = MOCK_PATIENT_PROFILE.name;
+  const doctorName = MOCK_DOCTOR_PROFILE.name;
+  const pendingCount = MOCK_DOCTOR_APPOINTMENTS.filter(
+    (a) => a.status === "pending"
+  ).length;
 
   const handleLogout = () => {
     clearSession();
@@ -65,7 +65,7 @@ function PatientLayout() {
           <X size={20} />
         </button>
 
-        <Link to="/patient/dashboard" className="transition-opacity hover:opacity-90">
+        <Link to="/doctor/dashboard" className="transition-opacity hover:opacity-90">
           <CareLinkLogo
             size={48}
             showText
@@ -87,6 +87,11 @@ function PatientLayout() {
           >
             <Icon size={19} />
             {label}
+            {label === "المواعيد" && pendingCount > 0 && (
+              <span className="ms-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1.5 text-[10px] font-extrabold text-white">
+                {pendingCount}
+              </span>
+            )}
           </NavLink>
         ))}
       </nav>
@@ -103,7 +108,10 @@ function PatientLayout() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-bl from-slate-100 via-[#f8fafc] to-blue-50/30" dir="rtl">
+    <div
+      className="min-h-screen bg-gradient-to-bl from-slate-100 via-[#f8fafc] to-blue-50/30"
+      dir="rtl"
+    >
       <aside className="fixed right-0 top-0 z-30 hidden h-screen w-72 border-l border-slate-200 bg-white p-5 lg:block">
         {sidebarContent}
       </aside>
@@ -133,7 +141,7 @@ function PatientLayout() {
             </button>
             <div>
               <h1 className="text-xl font-extrabold leading-tight text-[#101860]">
-                لوحة التحكم
+                لوحة الطبيب
               </h1>
               <p className="mt-0.5 hidden text-sm font-semibold tracking-wide text-[#40c0a0] sm:block">
                 CareLink Health
@@ -142,20 +150,20 @@ function PatientLayout() {
           </div>
 
           <div className="flex items-center gap-3 sm:gap-4">
-            <NotificationsBell notifications={MOCK_PATIENT_NOTIFICATIONS} />
+            <NotificationsBell notifications={MOCK_DOCTOR_NOTIFICATIONS} />
 
             <Link
-              to="/patient/settings"
-              className="flex cursor-pointer items-center gap-2.5 rounded-2xl border border-slate-200/80 bg-white py-1.5 pe-3 ps-1.5 shadow-sm transition-all duration-200 hover:border-[#40c0a0]/40 hover:shadow-md"
+              to="/doctor/settings"
+              className="flex cursor-pointer items-center gap-2.5 rounded-2xl border border-slate-200/80 bg-white py-1.5 pe-3 ps-1.5 shadow-sm transition-all duration-200 hover:border-blue-200 hover:shadow-md"
             >
               <ProfileAvatar
-                src={MOCK_PATIENT_PROFILE.profile_picture}
-                name={patientName}
+                src={MOCK_DOCTOR_PROFILE.profile_picture}
+                name={doctorName}
                 size="md"
               />
               <div className="hidden min-w-0 text-right sm:block">
-                <p className="text-sm font-extrabold text-slate-800">{patientName}</p>
-                <p className="text-xs text-slate-400">مريض</p>
+                <p className="text-sm font-extrabold text-slate-800">{doctorName}</p>
+                <p className="text-xs text-slate-400">{MOCK_DOCTOR_PROFILE.specialty}</p>
               </div>
               <ChevronDown size={16} className="hidden text-slate-400 sm:block" />
             </Link>
@@ -163,13 +171,13 @@ function PatientLayout() {
         </header>
 
         <main className="px-5 py-6 lg:px-8 lg:py-8">
-          <PatientPageShell>
+          <DoctorPageShell>
             <Outlet />
-          </PatientPageShell>
+          </DoctorPageShell>
         </main>
       </div>
     </div>
   );
 }
 
-export default PatientLayout;
+export default DoctorLayout;

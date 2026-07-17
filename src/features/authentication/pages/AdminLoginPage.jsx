@@ -13,15 +13,14 @@ import {
   AUTH_HERO_NUDGE,
 } from "../constants/authForm";
 import { getDashboardPath } from "../constants/authRoutes";
-import { login } from "../services/authService";
+import { loginAdmin } from "../services/authService";
 import { getApiErrorMessage } from "../../../lib/api/getApiErrorMessage";
 import { getSubmitButtonClass, isValidEmail } from "../utils/validation";
-import GuestRoute from "../components/GuestRoute";
 
 const inputClass =
   "h-11 w-full rounded-xl border border-slate-200 bg-white pr-10 pl-4 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100";
 
-function AdminLoginPageContent() {
+function AdminLoginPage() {
   const navigate = useNavigate();
   const { setSession } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
@@ -40,7 +39,7 @@ function AdminLoginPageContent() {
     setErrorMessage("");
 
     try {
-      const data = await login("admin", {
+      const data = await loginAdmin({
         email: email.trim(),
         password,
       });
@@ -163,7 +162,7 @@ function AdminLoginPageContent() {
           dir="rtl"
         >
           <Link
-            to="/"
+            to="/login"
             className={`inline-flex items-center justify-center gap-1.5 font-bold text-blue-600 ${AUTH_CLICKABLE.textLink}`}
           >
             العودة لتسجيل دخول المريض / الطبيب
@@ -171,14 +170,6 @@ function AdminLoginPageContent() {
         </p>
       </AuthCard>
     </AuthLayout>
-  );
-}
-
-function AdminLoginPage() {
-  return (
-    <GuestRoute>
-      <AdminLoginPageContent />
-    </GuestRoute>
   );
 }
 

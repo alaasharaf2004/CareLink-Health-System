@@ -212,6 +212,20 @@ function LoginPage() {
           </button>
         </form>
 
+        <button
+          type="button"
+          onClick={() => {
+            setSession({
+              token: `demo-${selectedRole}-token`,
+              role: selectedRole,
+            });
+            navigate(getDashboardPath(selectedRole), { replace: true });
+          }}
+          className={`${AUTH_CLICKABLE.roleTabBase} mt-3 w-full border border-dashed border-blue-200 bg-blue-50/70 text-blue-700 hover:bg-blue-50`}
+        >
+          دخول تجريبي — معاينة لوحة {selectedRole === "doctor" ? "الطبيب" : "المريض"}
+        </button>
+
         <div className="my-5 flex items-center gap-4 opacity-0 animate-[formFadeUp_0.7s_ease_0.45s_forwards]">
           <div className="h-px flex-1 bg-slate-200" />
           <span className="text-sm text-slate-400">أو</span>

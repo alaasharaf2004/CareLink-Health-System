@@ -152,3 +152,33 @@ export const MOCK_MEDICAL_RECORDS = [
 export function getDoctorInfo(doctorName) {
   return MOCK_DOCTORS[doctorName] ?? null;
 }
+
+export const MOCK_PATIENT_NOTIFICATIONS = [
+  {
+    id: "pn-1",
+    type: "appointment",
+    title: "تذكير بموعد",
+    body: "موعدك مع د. أحمد علي غداً الساعة 10:00 عن بُعد.",
+    time: "منذ 20 دقيقة",
+    read: false,
+    to: "/patient/appointments/1",
+  },
+  {
+    id: "pn-2",
+    type: "appointment",
+    title: "تم تأكيد الموعد",
+    body: "أكدت د. سارة محمود موعدك الحضوري يوم 10 يوليو.",
+    time: "منذ ساعتين",
+    read: false,
+    to: "/patient/appointments/2",
+  },
+  {
+    id: "pn-3",
+    type: "record",
+    title: "سجل طبي جديد",
+    body: "تمت إضافة تقرير استشارة إلى سجلاتك الطبية.",
+    time: "أمس",
+    read: true,
+    to: "/patient/medical-records",
+  },
+];

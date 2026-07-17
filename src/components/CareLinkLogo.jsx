@@ -74,6 +74,7 @@ function CareLinkLogo({
   layout = "header",
   align = "center",
   textScale = "default",
+  onDark = false,
 }) {
   const isForm = layout === "form";
   const isLargeText = isForm && textScale === "large";
@@ -93,16 +94,20 @@ function CareLinkLogo({
       : "text-[11px] font-bold leading-none"
     : "text-[13px] font-extrabold leading-none";
 
-  const titleStyle = isForm
-    ? { color: NAVY }
-    : { color: NAVY, textShadow: "0 2px 14px rgba(255,255,255,0.45)" };
+  const titleStyle = onDark
+    ? { color: "#ffffff", textShadow: "0 0 18px rgba(255,255,255,0.28)" }
+    : isForm
+      ? { color: NAVY }
+      : { color: NAVY, textShadow: "0 2px 14px rgba(255,255,255,0.45)" };
 
-  const subtitleStyle = isForm
-    ? { color: SUBTITLE_GREEN }
-    : {
-        color: SUBTITLE_GREEN,
-        textShadow: "0 1px 5px rgba(0,0,0,0.45), 0 0 14px rgba(0,0,0,0.18)",
-      };
+  const subtitleStyle = onDark
+    ? { color: "rgba(255,255,255,0.92)" }
+    : isForm
+      ? { color: SUBTITLE_GREEN }
+      : {
+          color: SUBTITLE_GREEN,
+          textShadow: "0 1px 5px rgba(0,0,0,0.45), 0 0 14px rgba(0,0,0,0.18)",
+        };
 
   const containerClass = isForm
     ? `flex items-center gap-3 ${alignClass} animate-[logoReveal_0.8s_ease_forwards]`

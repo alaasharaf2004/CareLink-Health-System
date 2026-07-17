@@ -13,11 +13,11 @@ function buildFormData(fields) {
 
 /**
  * تسجيل الدخول حسب الدور: patient | doctor | admin
- * POST /api/{role}/login
+ * POST /api/auth/{role}/login
  */
 export async function login(role, { email, password }) {
   const response = await apiClient.post(
-    `/${role}/login`,
+    `/auth/${role}/login`,
     buildFormData({ email, password })
   );
 
@@ -40,7 +40,7 @@ export function formatPhoneForApi(countryCode, phone) {
 
 /**
  * إنشاء حساب مريض
- * POST /api/patient/register
+ * POST /api/auth/patient/register
  */
 export async function registerPatient({
   name,
@@ -53,7 +53,7 @@ export async function registerPatient({
   gender,
 }) {
   const response = await apiClient.post(
-    "/patient/register",
+    "/auth/patient/register",
     buildFormData({
       name,
       email,
@@ -71,7 +71,7 @@ export async function registerPatient({
 
 /**
  * إنشاء حساب طبيب
- * POST /api/doctor/register
+ * POST /api/auth/doctor/register
  */
 export async function registerDoctor({
   name,
@@ -103,18 +103,18 @@ export async function registerDoctor({
     formData.append("credential_document", credentialDocument);
   }
 
-  const response = await apiClient.post("/doctor/register", formData);
+  const response = await apiClient.post("/auth/doctor/register", formData);
 
   return response.data;
 }
 
 /**
  * طلب رمز إعادة تعيين كلمة المرور
- * POST /api/{role}/forgot-password
+ * POST /api/auth/{role}/forgot-password
  */
 export async function forgotPassword(role, { email }) {
   const response = await apiClient.post(
-    `/${role}/forgot-password`,
+    `/auth/${role}/forgot-password`,
     buildFormData({ email })
   );
 
@@ -123,14 +123,14 @@ export async function forgotPassword(role, { email }) {
 
 /**
  * إعادة تعيين كلمة المرور بالرمز
- * POST /api/{role}/reset-password
+ * POST /api/auth/{role}/reset-password
  */
 export async function resetPassword(
   role,
   { email, code, password, passwordConfirmation }
 ) {
   const response = await apiClient.post(
-    `/${role}/reset-password`,
+    `/auth/${role}/reset-password`,
     buildFormData({
       email,
       code,
@@ -139,5 +139,31 @@ export async function resetPassword(
     })
   );
 
+  return response.data;
+}
+
+/**
+ * تسجيل دخول الإدارة
+ * POST /api/auth/admin/login
+ */
+export async function loginAdmin({ email, password }) {
+  return login("admin", { email, password });
+}
+
+/**
+ * قائمة جميع الأدمن
+ * GET /api/auth/admin/list
+ */
+export async function getAllAdmins() {
+  const response = await apiClient.get("/auth/admin/list");
+  return response.data;
+}
+
+/**
+ * قائمة جميع المرضى (للإدارة)
+ * GET /api/auth/admin/patients
+ */
+export async function getAllPatients() {
+  const response = await apiClient.get("/auth/admin/patients");
   return response.data;
 }

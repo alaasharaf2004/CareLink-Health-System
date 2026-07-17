@@ -1,13 +1,13 @@
 import { useLocation } from "react-router-dom";
 
-function PatientPageShell({ children }) {
+function DoctorPageShell({ children }) {
   const { pathname } = useLocation();
 
   return (
-    <div key={pathname} className="panel-page-enter">
+    <div key={pathname} className="doctor-page-enter">
       {children}
     </div>
   );
 }
 
-export default PatientPageShell;
+export default DoctorPageShell;

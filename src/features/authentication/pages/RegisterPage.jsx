@@ -142,7 +142,7 @@ function RegisterPage() {
         return;
       }
 
-      navigate("/", {
+      navigate("/login", {
         replace: true,
         state: {
           authRole: selectedRole,
@@ -632,7 +632,7 @@ function RegisterPage() {
           dir="rtl"
         >
           لديك حساب بالفعل؟{" "}
-          <Link to="/" className={AUTH_CLICKABLE.underlineLink}>
+          <Link to="/login" className={AUTH_CLICKABLE.underlineLink}>
             تسجيل الدخول
           </Link>
         </p>

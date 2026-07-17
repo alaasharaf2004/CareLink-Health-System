@@ -1,20 +1,19 @@
+import { Link } from "react-router-dom";
+
 import AdminTable, {
   AdminTableCell,
   AdminTableRow,
 } from "../../admin/components/AdminTable";
-import FadeUp from "../components/FadeUp";
-import PatientPageHeader from "../components/PatientPageHeader";
-import RecordFileLink from "../components/RecordFileLink";
-import { RECORD_TYPE_LABELS } from "../constants/appointmentLabels";
-import {
-  MOCK_MEDICAL_RECORDS,
-  MOCK_PATIENT_PROFILE,
-} from "../data/patientMockData";
-import { formatArabicDateTime } from "../utils/formatDateTime";
-import { staggerDelay } from "../utils/staggerDelay";
+import FadeUp from "../../patient/components/FadeUp";
+import RecordFileLink from "../../patient/components/RecordFileLink";
+import { RECORD_TYPE_LABELS } from "../../patient/constants/appointmentLabels";
+import { formatArabicDateTime } from "../../patient/utils/formatDateTime";
+import { staggerDelay } from "../../patient/utils/staggerDelay";
+import DoctorPageHeader from "../components/DoctorPageHeader";
+import { MOCK_DOCTOR_MEDICAL_RECORDS } from "../data/doctorMockData";
 
 const COLUMNS = [
-  { key: "doctor", label: "اسم الطبيب" },
+  { key: "patient", label: "اسم المريض" },
   { key: "date", label: "الموعد" },
   { key: "type", label: "نوع السجل" },
   { key: "diagnosis", label: "التشخيص" },
@@ -22,28 +21,29 @@ const COLUMNS = [
   { key: "file", label: "الملف" },
 ];
 
-function PatientMedicalRecordsPage() {
-  const myRecords = MOCK_MEDICAL_RECORDS.filter(
-    (r) => r.patient_name === MOCK_PATIENT_PROFILE.name
-  );
-
+function DoctorMedicalRecordsPage() {
   return (
     <div className="space-y-6">
-      <PatientPageHeader
+      <DoctorPageHeader
         title="السجلات الطبية"
-        description="تقارير وسجلاتك الطبية بعد كل لقاء أو موعد."
+        description="تقارير وسجلات المرضى بعد كل لقاء أو موعد."
       />
 
       <FadeUp index={1}>
         <AdminTable columns={COLUMNS}>
-          {myRecords.map((record, index) => (
+          {MOCK_DOCTOR_MEDICAL_RECORDS.map((record, index) => (
             <AdminTableRow
               key={record.id}
               className="opacity-0 animate-[formFadeUp_0.45s_ease_forwards]"
               style={{ animationDelay: staggerDelay(index, 0.05, 0.12) }}
             >
-              <AdminTableCell className="font-bold text-blue-950">
-                {record.doctor_name}
+              <AdminTableCell>
+                <Link
+                  to={`/doctor/patients/${record.patient_id}`}
+                  className="font-bold text-blue-950 transition-colors hover:text-blue-600"
+                >
+                  {record.patient_name}
+                </Link>
               </AdminTableCell>
               <AdminTableCell dir="rtl">
                 {formatArabicDateTime(record.appointment_date)}
@@ -61,7 +61,6 @@ function PatientMedicalRecordsPage() {
                 <RecordFileLink
                   fileName={record.file_name}
                   patientName={record.patient_name}
-                  doctorName={record.doctor_name}
                   diagnosis={record.diagnosis}
                   notes={record.notes}
                   appointmentDate={record.appointment_date}
@@ -75,4 +74,4 @@ function PatientMedicalRecordsPage() {
   );
 }
 
-export default PatientMedicalRecordsPage;
+export default DoctorMedicalRecordsPage;
