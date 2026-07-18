@@ -3,13 +3,40 @@ import {
   Building2,
   CheckCircle2,
   Clock3,
+  HeartHandshake,
   Mail,
   MapPin,
+  MessageCircle,
   Phone,
   Send,
 } from "lucide-react";
 
 import AnimatedSection from "../components/AnimatedSection";
+import MedicalBackdropIcons from "../components/MedicalBackdropIcons";
+
+const contactChannels = [
+  {
+    id: "phone",
+    icon: Phone,
+    label: "اتصال",
+    value: "+970 59 123 4567",
+    href: "tel:+970591234567",
+  },
+  {
+    id: "email",
+    icon: Mail,
+    label: "إيميل",
+    value: "info@carelink.com",
+    href: "mailto:info@carelink.com",
+  },
+  {
+    id: "whatsapp",
+    icon: MessageCircle,
+    label: "واتساب",
+    value: "تواصل فوري",
+    href: "https://wa.me/970591234567",
+  },
+];
 
 const contactItems = [
   { icon: Phone, title: "هاتفنا", value: "+970 59 123 4567", dir: "ltr" },
@@ -24,6 +51,7 @@ const GAZA_MAP_LINK = "https://maps.google.com/maps?q=Gaza+Palestine&z=11";
 
 function ContactPage() {
   const [isSent, setIsSent] = useState(false);
+  const [pulseTarget, setPulseTarget] = useState(null);
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -31,24 +59,87 @@ function ContactPage() {
     event.currentTarget.reset();
   };
 
+  const triggerPulse = (id) => {
+    setPulseTarget(id);
+    window.setTimeout(() => setPulseTarget(null), 560);
+  };
+
   return (
     <>
-      <section className="landing-page-hero mx-5 mt-6 lg:mx-8">
-        <div className="mx-auto grid max-w-7xl items-center gap-10 px-5 py-16 lg:grid-cols-2 lg:px-8">
-          <div className="relative">
-            <p className="text-sm font-extrabold text-blue-200/90">نحن قريبون منك</p>
-            <h1 className="mt-3 text-4xl font-black sm:text-5xl">اتصل بنا</h1>
-            <p className="mt-4 max-w-xl text-sm leading-8 text-blue-100/85">
-              لأي استفسار أو مساعدة في الحجز، تواصل معنا وسيرد عليك فريق
-              CareLink في أقرب وقت.
-            </p>
-          </div>
-          <div className="landing-hero-frame relative">
-            <img
-              src="https://images.unsplash.com/photo-1551601651-2a8555f1a136?w=1200&h=650&fit=crop"
-              alt="فريق الدعم الطبي"
-              className="h-64 w-full object-cover lg:h-72"
+      <section className="landing-contact-hero">
+        <div className="landing-contact-hero-bg" aria-hidden="true">
+          <span className="landing-contact-glow landing-contact-glow--one" />
+          <span className="landing-contact-glow landing-contact-glow--two" />
+          <span className="landing-contact-glow landing-contact-glow--three" />
+          <MedicalBackdropIcons tone="dark" />
+          <svg
+            className="landing-contact-ecg"
+            viewBox="0 0 900 80"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M0 40 H140 L160 40 L178 14 L200 66 L222 40 H380 L400 40 L418 18 L440 62 L462 40 H900"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
             />
+          </svg>
+        </div>
+
+        <div className="relative z-10 mx-auto max-w-7xl px-5 py-16 lg:px-8 lg:py-24">
+          <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
+            <div>
+              <p className="landing-contact-kicker">نحن قريبون منك</p>
+              <h1 className="landing-contact-title">اتصل بنا</h1>
+              <p className="landing-contact-lead">
+                نحن هنا للإجابة على استفساراتكم وتقديم الرعاية الصحية التي
+                تستحقونها. تواصل معنا مباشرة عبر القنوات التالية أو أرسل
+                رسالتك من النموذج.
+              </p>
+
+              <div className="landing-contact-actions">
+                {contactChannels.map(({ id, icon: Icon, label, value, href }) => (
+                  <a
+                    key={id}
+                    href={href}
+                    target={id === "whatsapp" ? "_blank" : undefined}
+                    rel={id === "whatsapp" ? "noreferrer" : undefined}
+                    className={`landing-contact-action ${pulseTarget === id ? "is-pulsing" : ""}`}
+                    onClick={() => triggerPulse(id)}
+                  >
+                    <span className="landing-contact-action-icon">
+                      <Icon size={18} />
+                    </span>
+                    <span className="min-w-0">
+                      <strong>{label}</strong>
+                      <em dir={id === "phone" || id === "email" ? "ltr" : undefined}>
+                        {value}
+                      </em>
+                    </span>
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            <div className="landing-contact-media">
+              <div className="landing-contact-media-frame">
+                <img
+                  src="/images/carelink-contact-kiosk.png"
+                  alt="مركز دعم ورعاية CareLink"
+                  className="landing-contact-media-image"
+                />
+                <div className="landing-contact-media-shade" aria-hidden="true" />
+              </div>
+              <div className="landing-contact-media-badge">
+                <HeartHandshake size={16} />
+                <span>نحن هنا لخدمتك</span>
+              </div>
+              <div className="landing-contact-media-chip" aria-hidden="true">
+                CareLink
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -63,7 +154,7 @@ function ContactPage() {
             {contactItems.map(({ icon: Icon, title, value, dir }) => (
               <div
                 key={title}
-                className="landing-card flex items-center gap-4 p-4"
+                className="landing-card flex items-center gap-4 p-4 transition-transform duration-300 hover:-translate-y-1"
               >
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
                   <Icon size={19} />
@@ -79,17 +170,14 @@ function ContactPage() {
           </div>
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="landing-card p-6 sm:p-8"
-        >
+        <form onSubmit={handleSubmit} className="landing-card p-6 sm:p-8">
           <h2 className="text-2xl font-black text-[#101860]">أرسل لنا رسالة</h2>
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
             <label className="text-sm font-bold text-slate-600">
               الاسم الكامل
               <input
                 required
-                className="mt-2 h-11 w-full rounded-xl border border-slate-200 px-4 font-normal outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                className="mt-2 h-11 w-full rounded-xl border border-slate-200 px-4 font-normal outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
               />
             </label>
             <label className="text-sm font-bold text-slate-600">
@@ -97,14 +185,14 @@ function ContactPage() {
               <input
                 required
                 type="email"
-                className="mt-2 h-11 w-full rounded-xl border border-slate-200 px-4 font-normal outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                className="mt-2 h-11 w-full rounded-xl border border-slate-200 px-4 font-normal outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
               />
             </label>
             <label className="text-sm font-bold text-slate-600 sm:col-span-2">
               الموضوع
               <input
                 required
-                className="mt-2 h-11 w-full rounded-xl border border-slate-200 px-4 font-normal outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                className="mt-2 h-11 w-full rounded-xl border border-slate-200 px-4 font-normal outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
               />
             </label>
             <label className="text-sm font-bold text-slate-600 sm:col-span-2">
@@ -112,7 +200,7 @@ function ContactPage() {
               <textarea
                 required
                 rows={5}
-                className="mt-2 w-full resize-none rounded-xl border border-slate-200 px-4 py-3 font-normal outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                className="mt-2 w-full resize-none rounded-xl border border-slate-200 px-4 py-3 font-normal outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
               />
             </label>
           </div>

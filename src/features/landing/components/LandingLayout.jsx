@@ -10,6 +10,7 @@ const navItems = [
   { to: "/", label: "الرئيسية", end: true },
   { to: "/doctors", label: "الخدمات" },
   { to: "/faq", label: "الأسئلة الشائعة" },
+  { to: "/about", label: "عن المنصة" },
   { to: "/contact", label: "اتصل بنا" },
   { to: "/blog", label: "المدونة" },
   { to: "/offers", label: "العروض والإعلانات" },

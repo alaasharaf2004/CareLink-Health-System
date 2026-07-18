@@ -12,6 +12,7 @@ import {
 import CareLinkLogo from "../../../components/CareLinkLogo";
 
 const quickLinks = [
+  { to: "/about", label: "عن المنصة" },
   { to: "/doctors", label: "استكشف الأطباء" },
   { to: "/blog", label: "النصائح الطبية" },
   { to: "/faq", label: "الأسئلة الشائعة" },

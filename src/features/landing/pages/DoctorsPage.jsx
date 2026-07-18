@@ -4,6 +4,7 @@ import { Search, ShieldCheck } from "lucide-react";
 
 import AnimatedSection from "../components/AnimatedSection";
 import { DoctorCard, SectionHeading } from "../components/LandingCards";
+import MedicalBackdropIcons from "../components/MedicalBackdropIcons";
 import { doctors } from "../data/landingMockData";
 
 const specialties = [
@@ -41,36 +42,56 @@ function DoctorsPage() {
 
   return (
     <>
-      <section className="landing-section landing-section--white border-b border-slate-100/80">
-        <div className="mx-auto max-w-7xl px-5 lg:px-8">
-          <p className="landing-eyebrow">خدماتنا الطبية</p>
-          <h1 className="landing-section-title">ابحث عن طبيبك المناسب</h1>
-          <p className="landing-section-desc">
-            نخبة من الأطباء والاستشاريين مع مواعيد واضحة وخيارات حضور أو
-            استشارة عن بُعد.
-          </p>
+      <section className="landing-doctors-hero">
+        <div className="landing-doctors-hero-bg" aria-hidden="true">
+          <span className="landing-doctors-orb landing-doctors-orb--one" />
+          <span className="landing-doctors-orb landing-doctors-orb--two" />
+          <span className="landing-doctors-orb landing-doctors-orb--three" />
+          <MedicalBackdropIcons tone="light" />
+          <svg
+            className="landing-doctors-ecg"
+            viewBox="0 0 900 80"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M0 40 H140 L158 40 L176 12 L198 68 L220 40 H380 L398 40 L416 16 L438 64 L460 40 H900"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </div>
 
-          <div className="landing-filter-bar mt-8">
-            <div className="relative">
-              <Search
-                size={18}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"
-              />
+        <div className="relative z-10 mx-auto max-w-7xl px-5 py-14 lg:px-8 lg:py-16">
+          <div className="landing-doctors-hero-copy">
+            <p className="landing-eyebrow text-[#40c0a0]">خدماتنا الطبية</p>
+            <h1 className="landing-section-title mt-3">ابحث عن طبيبك المناسب</h1>
+            <p className="landing-section-desc mt-3 max-w-2xl">
+              نخبة من الأطباء والاستشاريين مع مواعيد واضحة وخيارات حضور أو
+              استشارة عن بُعد.
+            </p>
+          </div>
+
+          <div className="landing-doctors-search-panel">
+            <div className="landing-doctors-search">
+              <Search size={18} aria-hidden="true" />
               <input
                 type="search"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="ابحث باسم الطبيب أو التخصص..."
-                className="h-12 w-full rounded-full border border-slate-200/80 bg-white pr-11 pl-4 text-sm outline-none transition focus:border-[#101860]/30 focus:ring-4 focus:ring-[#101860]/8"
               />
             </div>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {specialties.map((item) => (
+            <div className="landing-doctors-chips">
+              {specialties.map((item, index) => (
                 <button
                   key={item}
                   type="button"
                   onClick={() => setSpecialty(item)}
                   className={`landing-chip ${specialty === item ? "is-active" : ""}`}
+                  style={{ "--chip-delay": `${index * 60}ms` }}
                 >
                   {item}
                 </button>
@@ -112,17 +133,17 @@ function DoctorsPage() {
           </div>
           <div className="relative flex flex-wrap gap-3">
             <Link
-              to="/#about"
+              to="/about"
               className="rounded-xl bg-white px-5 py-3 text-sm font-extrabold text-[#101860] transition hover:-translate-y-0.5"
             >
               تعرف على خدماتنا
             </Link>
-            <a
-              href="#app"
+            <Link
+              to="/contact"
               className="rounded-xl border border-white/40 px-5 py-3 text-sm font-extrabold text-white transition hover:bg-white/10"
             >
-              حمل التطبيق
-            </a>
+              تواصل معنا
+            </Link>
           </div>
         </div>
 

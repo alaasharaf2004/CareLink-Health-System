@@ -82,8 +82,12 @@ export function ArticleCard({ article, index = 0 }) {
       .map((part) => part.charAt(0))
       .join("");
 
+  const metaParts = article.date ? [article.date] : [];
+  const href = `/blog/${article.slug || article.id}`;
+
   return (
-    <article
+    <Link
+      to={href}
       className="landing-article-card group"
       style={{ "--stagger": `${index * 100}ms` }}
     >
@@ -98,6 +102,13 @@ export function ArticleCard({ article, index = 0 }) {
       </div>
 
       <div className="landing-article-body">
+        {metaParts.length > 0 && (
+          <div className="landing-article-topline">
+            {metaParts.map((part) => (
+              <span key={part}>{part}</span>
+            ))}
+          </div>
+        )}
         <h3 className="landing-article-title">{article.title}</h3>
         <p className="landing-article-excerpt">{article.excerpt}</p>
 
@@ -106,26 +117,24 @@ export function ArticleCard({ article, index = 0 }) {
             <div className="landing-article-avatar" aria-hidden="true">
               {initials}
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="landing-article-author-name">{article.author}</p>
-              <p className="landing-article-meta">
-                {article.readTime}
-              </p>
+              <p className="landing-article-meta">{article.readTime}</p>
             </div>
           </div>
 
           <div className="landing-article-actions">
-            <span>
+            <span aria-label={`${article.likes ?? 0} إعجاب`}>
               <Heart size={15} strokeWidth={1.8} />
               {article.likes != null && <em>{article.likes}</em>}
             </span>
-            <span>
+            <span aria-label={`${article.comments ?? 0} تعليق`}>
               <MessageCircle size={15} strokeWidth={1.8} />
               {article.comments != null && <em>{article.comments}</em>}
             </span>
           </div>
         </div>
       </div>
-    </article>
+    </Link>
   );
 }

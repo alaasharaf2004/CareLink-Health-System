@@ -1,4 +1,5 @@
-﻿import { Link } from "react-router-dom";
+﻿import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   ArrowLeft,
   CalendarDays,
@@ -24,7 +25,52 @@ import {
   testimonials,
 } from "../data/landingMockData";
 
+const heroDoctors = [
+  {
+    src: "/images/carelink-hero-doc-a.png",
+    alt: "طبيب من فريق CareLink",
+  },
+  {
+    src: "/images/carelink-hero-doc-b.png",
+    alt: "طبيبة من فريق CareLink",
+  },
+  {
+    src: "/images/carelink-hero-doc-c.png",
+    alt: "طبيب من فريق CareLink",
+  },
+  {
+    src: "/images/carelink-hero-doc-d.png",
+    alt: "طبيبة من فريق CareLink",
+  },
+];
+
 function LandingPage() {
+  const [activeDoctor, setActiveDoctor] = useState(0);
+
+  useEffect(() => {
+    heroDoctors.forEach((doctor) => {
+      const preload = new window.Image();
+      preload.src = doctor.src;
+    });
+  }, []);
+
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return undefined;
+    }
+
+    const timer = window.setInterval(() => {
+      setActiveDoctor((current) => (current + 1) % heroDoctors.length);
+    }, 2000);
+
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const showDoctor = (index) => {
+    if (index === activeDoctor) return;
+    setActiveDoctor(index);
+  };
+
   return (
     <>
       <section className="landing-hero">
@@ -73,11 +119,20 @@ function LandingPage() {
             }}
           >
             <div className="landing-hero-frame">
-              <img
-                src="/images/carelink-hero-doctor.png"
-                alt="طبيب من فريق CareLink"
-                className="landing-hero-photo"
-              />
+              <div className="landing-hero-slideshow" aria-live="polite">
+                {heroDoctors.map((doctor, index) => {
+                  const isActive = index === activeDoctor;
+                  return (
+                    <img
+                      key={doctor.src}
+                      src={doctor.src}
+                      alt={isActive ? doctor.alt : ""}
+                      aria-hidden={!isActive}
+                      className={`landing-hero-slide ${isActive ? "is-active" : ""}`}
+                    />
+                  );
+                })}
+              </div>
 
               <div className="landing-hero-float-card">
                 <div className="landing-hero-float-icon" aria-hidden="true">
@@ -89,6 +144,18 @@ function LandingPage() {
                     جميع أطباؤنا مسجلون رسمياً
                   </p>
                 </div>
+              </div>
+
+              <div className="landing-hero-dots">
+                {heroDoctors.map((doctor, index) => (
+                  <button
+                    key={doctor.src}
+                    type="button"
+                    className={index === activeDoctor ? "is-active" : ""}
+                    onClick={() => showDoctor(index)}
+                    aria-label={`عرض صورة الطبيب ${index + 1}`}
+                  />
+                ))}
               </div>
             </div>
           </div>
