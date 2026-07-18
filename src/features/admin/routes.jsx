@@ -6,6 +6,7 @@ import AdminProfilePage from "./pages/AdminProfilePage";
 import AdsPage from "./pages/AdsPage";
 import DoctorRequestsPage from "./pages/DoctorRequestsPage";
 import PostsPage from "./pages/PostsPage";
+import NewDoctorPage from "./pages/AddNewDoctor";
 
 export const adminRoutes = [
   {
@@ -22,6 +23,7 @@ export const adminRoutes = [
       { path: "ads", element: <AdsPage /> },
       { path: "posts", element: <PostsPage /> },
       { path: "profile", element: <AdminProfilePage /> },
+      { path: "doctors/new", element: <NewDoctorPage /> },
     ],
   },
 ];

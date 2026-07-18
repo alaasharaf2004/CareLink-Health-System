@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Eye, EyeOff, Lock, Save } from "lucide-react";
 
 import Toast from "../../admin/components/Toast";
@@ -7,6 +7,7 @@ import { isValidEmail } from "../../authentication/utils/validation";
 import FadeUp from "../../patient/components/FadeUp";
 import ProfileAvatar from "../../patient/components/ProfileAvatar";
 import DoctorPageHeader from "../components/DoctorPageHeader";
+import { apiClient } from "../../../lib/api/client";
 
 const EMPTY_DOCTOR_PROFILE = {
   name: "",
@@ -27,6 +28,7 @@ const inputClass =
 function DoctorSettingsPage() {
   const { toast, showToast, hideToast } = useToast();
   const [profile, setProfile] = useState({ ...EMPTY_DOCTOR_PROFILE });
+  const [isLoading, setIsLoading] = useState(true); // إضافة حالة التحميل
   const [passwords, setPasswords] = useState({
     current: "",
     newPassword: "",
@@ -38,27 +40,99 @@ function DoctorSettingsPage() {
     confirm: false,
   });
 
-  const handleProfileSave = (event) => {
+  useEffect(() => {
+    const fetchProfile = async () => {
+      setIsLoading(true); // ابدأ التحميل
+      try {
+        // const response = await fetch("http://127.0.0.1:8000/api/doctor/profile", {
+        // method: "GET",
+        // headers: {
+        // "Accept": "application/json", // هذا هو السطر الأهم لحل مشكلة الـ Redirect
+        // "Authorization": `Bearer ${localStorage.getItem("carelink_auth_token")}`,
+        // },
+        // });
+        const response = await apiClient.get("/doctor/profile");
+        const result = response.data;
+
+        if (result.data) {
+          // هنا نقوم بعمل المطابقة بين بيانات السيرفر والـ State الخاصة بالـ Inputs
+          setProfile({
+            name: result.data.name || "",
+            email: result.data.email || "",
+            phone: result.data.phone || "",
+            date_of_birth: result.data.date_of_birth || "",
+            national_id: result.data.national_id || "",
+            address: result.data.address || "",
+            gender: result.data.gender || "male",
+            status: result.data.status || "active",
+            specialty: result.data.specialty || "",
+            profile_picture: result.data.profile_picture || "",
+          });
+        }
+      } catch (error) {
+        console.error("Error loading profile:", error);
+      } finally {
+        setIsLoading(false); // أنهِ التحميل سواء نجح أو فشل
+      }
+    };
+    fetchProfile();
+    setIsLoading(false);
+  }, []);
+
+  if (isLoading) {
+    return <div className="text-center py-10">جاري تحميل بياناتك...</div>;
+  }
+
+  const handleProfileSave = async (event) => {
     event.preventDefault();
-    if (!isValidEmail(profile.email)) {
-      showToast("أدخل بريداً إلكترونياً صحيحاً", "error");
-      return;
+    try {
+      const response = await apiClient.put("/doctor/profile", profile);
+
+      if (response.ok) {
+        showToast("تم حفظ البيانات بنجاح", "success");
+        // الخيار الأفضل: إعادة جلب البيانات المحدثة من السيرفر
+        // fetchProfile();
+      } else {
+        showToast("حدث خطأ أثناء الحفظ", "error");
+      }
+    } catch (error) {
+      showToast("خطأ في الاتصال بالخادم", "error");
     }
-    showToast("تم حفظ الإعدادات", "success");
   };
 
-  const handlePasswordSave = (event) => {
+  const handlePasswordSave = async (event) => {
     event.preventDefault();
-    if (passwords.newPassword.length < 6) {
-      showToast("كلمة المرور 6 أحرف على الأقل", "error");
-      return;
-    }
     if (passwords.newPassword !== passwords.confirm) {
       showToast("كلمتا المرور غير متطابقتين", "error");
       return;
     }
-    setPasswords({ current: "", newPassword: "", confirm: "" });
-    showToast("تم تحديث كلمة المرور", "success");
+
+    try {
+      const response = await fetch(
+        "YOUR_API_ENDPOINT/profile/change-password",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({
+            current_password: passwords.current,
+            new_password: passwords.newPassword,
+          }),
+        },
+      );
+
+      if (response.ok) {
+        showToast("تم تحديث كلمة المرور", "success");
+        setPasswords({ current: "", newPassword: "", confirm: "" });
+      } else {
+        const errorData = await response.json();
+        showToast(errorData.message || "فشل التحديث", "error");
+      }
+    } catch (error) {
+      showToast("خطأ في الاتصال بالخادم", "error");
+    }
   };
 
   return (
@@ -121,7 +195,7 @@ function DoctorSettingsPage() {
                     type={type}
                     className={inputClass}
                     dir={dir}
-                    value={profile[key]}
+                    value={profile[key] || ""} // إضافة || "" لتجنب خطأ الـ Controlled Component
                     onChange={(e) =>
                       setProfile((c) => ({ ...c, [key]: e.target.value }))
                     }
