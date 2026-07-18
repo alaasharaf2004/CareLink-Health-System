@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { Megaphone, Pencil, Plus, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
 
+import { Megaphone, Pencil, Plus, Trash2 } from "lucide-react";
 import AdFormModal from "../components/AdFormModal";
 import AdminPageHeader from "../components/AdminPageHeader";
 import AdminTable, {
@@ -11,6 +11,7 @@ import ConfirmDialog from "../components/ConfirmDialog";
 import EmptyState from "../components/EmptyState";
 import Toast from "../components/Toast";
 import { useToast } from "../hooks/useToast";
+import apiClient from "../../../lib/api/client";
 
 const AD_COLUMNS = [
   { key: "title", label: "العنوان" },
@@ -20,11 +21,28 @@ const AD_COLUMNS = [
 ];
 
 function AdsPage() {
-  const [ads, setAds] = useState([]);
+ const [ads, setAds] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [editingAd, setEditingAd] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [deletingAd, setDeletingAd] = useState(null);
   const { toast, showToast, hideToast } = useToast();
+
+  // جلب الإعلانات من الباك إند
+  const fetchAds = async () => {
+    try {
+      setIsLoading(true);
+      const response = await apiClient.get("/admin/ads");
+      setAds(response.data.data || []);
+    } catch (error) {
+      showToast("خطأ في جلب الإعلانات", "error");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => { fetchAds(); }, []);
+
 
   const openCreate = () => {
     setEditingAd(null);
@@ -41,26 +59,31 @@ function AdsPage() {
     setEditingAd(null);
   };
 
-  const handleSubmit = (data) => {
-    if (editingAd) {
-      setAds((current) =>
-        current.map((ad) => (ad.id === editingAd.id ? { ...ad, ...data } : ad))
-      );
-      showToast("تم تحديث الإعلان بنجاح", "success");
-    } else {
-      setAds((current) => [
-        { ...data, id: Date.now(), created_at: new Date().toISOString().slice(0, 10) },
-        ...current,
-      ]);
-      showToast("تمت إضافة الإعلان بنجاح", "success");
+  const handleSubmit = async (data) => {
+    try {
+      if (editingAd) {
+        await apiClient.put(`/admin/ads/${editingAd.id}`, data);
+        showToast("تم تحديث الإعلان", "success");
+      } else {
+        await apiClient.post("/admin/ads", data);
+        showToast("تمت إضافة الإعلان", "success");
+      }
+      fetchAds(); // إعادة تحميل البيانات
+      closeForm();
+    } catch (error) {
+      showToast("حدث خطأ أثناء الحفظ", "error");
     }
-    closeForm();
   };
 
-  const handleDelete = () => {
-    setAds((current) => current.filter((ad) => ad.id !== deletingAd.id));
-    showToast("تم حذف الإعلان", "error");
-    setDeletingAd(null);
+  const handleDelete = async () => {
+    try {
+      await apiClient.delete(`/admin/ads/${deletingAd.id}`);
+      showToast("تم حذف الإعلان", "error");
+      fetchAds();
+      setDeletingAd(null);
+    } catch (error) {
+      showToast("خطأ في حذف الإعلان", "error");
+    }
   };
 
   return (
@@ -137,7 +160,11 @@ function AdsPage() {
       )}
 
       {isFormOpen && (
-        <AdFormModal ad={editingAd} onSubmit={handleSubmit} onClose={closeForm} />
+        <AdFormModal
+          ad={editingAd}
+          onSubmit={handleSubmit}
+          onClose={closeForm}
+        />
       )}
 
       {deletingAd && (

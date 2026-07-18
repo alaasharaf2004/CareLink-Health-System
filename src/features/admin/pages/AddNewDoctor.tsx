@@ -37,15 +37,14 @@ function AddNewDoctor() {
   const [formData, setFormData] = useState({ ...EMPTY_FORM });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleChange = (e: { target: { name: any; value: any; }; }) => {
+  const handleChange = (e: { target: { name: any; value: any } }) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e: { preventDefault: () => void; }) => {
+  const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
 
-    // تحقق سريع قبل إرسال الطلب (Client-side validation) عشان ما ترهق السيرفر عالفاضي
     if (!formData.name || !formData.email || !formData.password) {
       showToast(
         "يرجى تعبئة الحقول الأساسية (الاسم، البريد، كلمة المرور)",
@@ -56,23 +55,22 @@ function AddNewDoctor() {
 
     try {
       setIsSubmitting(true);
-      // إرسال البيانات للباك إند لإنشاء طبيب جديد
+
+      // إرسال الطلب لـ API لارافيل
       const response = await apiClient.post("/admin/doctors", formData);
 
       if (response.status === 201 || response.status === 200) {
         showToast("تم إضافة الطبيب بنجاح", "success");
-        // توجيه المستخدم لصفحة الأطباء بعد ثانية ونص عشان يلحق يشوف رسالة النجاح
         setTimeout(() => {
           navigate("/admin/doctors");
         }, 1500);
       }
     } catch (error) {
-      // طباعة خطأ السيرفر بصراحة بدون تلطيف
+      // طباعة الخطأ القادم من سيرفر لارافيل (مثال: الإيميل مسجل مسبقاً)
       const errorMsg =
-        (error as any)?.response?.data?.message ||
+        (error as any).response?.data?.message ||
         "حدث خطأ أثناء إضافة الطبيب. تأكد من البيانات.";
       showToast(errorMsg, "error");
-      console.error("Error creating doctor:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -85,7 +83,7 @@ function AddNewDoctor() {
       <AdminPageHeader
         title="إضافة طبيب جديد"
         description="قم بإدخال بيانات الطبيب الجديد لإنشاء حساب له في النظام."
-        action={null}
+        action={undefined}
       />
 
       <div className="mx-auto max-w-4xl">
@@ -98,7 +96,6 @@ function AddNewDoctor() {
           </h2>
 
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-            {/* الاسم */}
             <div>
               <label className="mb-2 block text-sm font-bold text-slate-700">
                 الاسم الكامل *
@@ -120,7 +117,6 @@ function AddNewDoctor() {
               </div>
             </div>
 
-            {/* البريد الإلكتروني */}
             <div>
               <label className="mb-2 block text-sm font-bold text-slate-700">
                 البريد الإلكتروني *
@@ -143,7 +139,6 @@ function AddNewDoctor() {
               </div>
             </div>
 
-            {/* كلمة المرور */}
             <div>
               <label className="mb-2 block text-sm font-bold text-slate-700">
                 كلمة المرور *
@@ -167,7 +162,6 @@ function AddNewDoctor() {
               </div>
             </div>
 
-            {/* الهاتف */}
             <div>
               <label className="mb-2 block text-sm font-bold text-slate-700">
                 رقم الهاتف
@@ -189,7 +183,6 @@ function AddNewDoctor() {
               </div>
             </div>
 
-            {/* التخصص */}
             <div>
               <label className="mb-2 block text-sm font-bold text-slate-700">
                 التخصص
@@ -210,7 +203,6 @@ function AddNewDoctor() {
               </div>
             </div>
 
-            {/* رقم الهوية */}
             <div>
               <label className="mb-2 block text-sm font-bold text-slate-700">
                 رقم الهوية
@@ -232,7 +224,6 @@ function AddNewDoctor() {
               </div>
             </div>
 
-            {/* العنوان */}
             <div>
               <label className="mb-2 block text-sm font-bold text-slate-700">
                 العنوان
@@ -253,7 +244,6 @@ function AddNewDoctor() {
               </div>
             </div>
 
-            {/* الجنس */}
             <div>
               <label className="mb-2 block text-sm font-bold text-slate-700">
                 الجنس
