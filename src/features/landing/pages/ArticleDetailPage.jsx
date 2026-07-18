@@ -1,11 +1,56 @@
 import { Link, Navigate, useParams } from "react-router-dom";
-import { ArrowRight, CalendarDays, Clock3, Heart, MessageCircle } from "lucide-react";
+import {
+  ArrowRight,
+  CalendarDays,
+  CheckCircle2,
+  Clock3,
+  Heart,
+  MessageCircle,
+  Sparkles,
+} from "lucide-react";
 
-import { getArticleBySlug } from "../data/landingMockData";
+import { getCmsArticleBySlug } from "../data/cmsContent";
+
+function ArticleContentBlock({ block, index }) {
+  if (typeof block === "string") {
+    return <p key={`p-${index}`}>{block}</p>;
+  }
+
+  if (block.type === "h2") {
+    return <h2 key={`h2-${index}`}>{block.text}</h2>;
+  }
+
+  if (block.type === "tips") {
+    return (
+      <div key={`tips-${index}`} className="landing-article-tips">
+        {block.title && <h3>{block.title}</h3>}
+        <ul>
+          {block.items.map((item) => (
+            <li key={item}>
+              <CheckCircle2 size={16} aria-hidden="true" />
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
+
+  if (block.type === "callout") {
+    return (
+      <aside key={`callout-${index}`} className="landing-article-callout">
+        <Sparkles size={18} aria-hidden="true" />
+        <p>{block.text}</p>
+      </aside>
+    );
+  }
+
+  return <p key={`p-${index}`}>{block.text}</p>;
+}
 
 function ArticleDetailPage() {
   const { slug } = useParams();
-  const article = getArticleBySlug(slug);
+  const article = getCmsArticleBySlug(slug);
 
   if (!article) {
     return <Navigate to="/blog" replace />;
@@ -24,7 +69,7 @@ function ArticleDetailPage() {
           <span className="landing-article-tag">{article.category}</span>
         </div>
 
-        <header className="mt-7">
+        <header className="mt-7 landing-article-page-header">
           <div className="landing-article-page-meta">
             <span>
               <CalendarDays size={15} />
@@ -59,15 +104,18 @@ function ArticleDetailPage() {
         </header>
 
         <div className="landing-article-page-content">
-          {(article.content || []).map((paragraph) => (
-            <p key={paragraph.slice(0, 24)}>{paragraph}</p>
+          {(article.content || []).map((block, index) => (
+            <ArticleContentBlock key={`${article.slug}-${index}`} block={block} index={index} />
           ))}
         </div>
 
-        <div className="mt-10">
+        <div className="landing-article-page-footer">
           <Link to="/blog" className="landing-btn-secondary">
             <ArrowRight size={16} />
             تصفح المزيد من المقالات
+          </Link>
+          <Link to="/doctors" className="landing-btn-primary">
+            احجز استشارة
           </Link>
         </div>
       </div>

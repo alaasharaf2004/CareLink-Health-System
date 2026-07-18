@@ -579,6 +579,7 @@
 .landing-blog-hero-cta,
 .landing-article-actions span,
 .landing-footer-link,
+.landing-footer-service-item,
 .landing-footer-social {
   cursor: pointer;
 }
@@ -3992,9 +3993,10 @@
   align-items: center;
 }
 
-.landing-faq-search svg {
+.landing-faq-search > svg {
   position: absolute;
   inset-inline-start: 1.1rem;
+  z-index: 1;
   color: #94a3b8;
   pointer-events: none;
 }
@@ -4005,7 +4007,7 @@
   border-radius: 9999px;
   border: 1px solid rgba(16, 24, 96, 0.08);
   background: #fff;
-  padding-inline: 2.9rem 1.15rem;
+  padding-inline: 2.9rem 2.8rem;
   font-size: 0.92rem;
   color: #334155;
   outline: none;
@@ -4019,6 +4021,86 @@
   border-color: rgba(16, 24, 96, 0.22);
   box-shadow: 0 0 0 5px rgba(16, 24, 96, 0.08);
   transform: translateY(-1px);
+}
+
+.landing-faq-search-clear {
+  position: absolute;
+  inset-inline-end: 0.85rem;
+  z-index: 2;
+  display: inline-flex;
+  height: 1.85rem;
+  width: 1.85rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  color: #64748b;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+.landing-faq-search-clear:hover {
+  background: rgba(16, 24, 96, 0.08);
+  color: var(--landing-navy);
+}
+
+.landing-faq-suggestions {
+  position: absolute;
+  top: calc(100% + 0.55rem);
+  inset-inline: 0;
+  z-index: 20;
+  overflow: hidden;
+  border-radius: 1.15rem;
+  border: 1px solid rgba(16, 24, 96, 0.08);
+  background: #fff;
+  box-shadow: 0 22px 48px rgba(16, 24, 96, 0.14);
+  animation: landingFaqHeroRise 0.35s var(--landing-ease) both;
+  text-align: start;
+}
+
+.landing-faq-suggestion {
+  display: flex;
+  width: 100%;
+  align-items: flex-start;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid rgba(16, 24, 96, 0.05);
+  transition: background-color 0.2s ease;
+}
+
+.landing-faq-suggestion:last-child {
+  border-bottom: 0;
+}
+
+.landing-faq-suggestion:hover {
+  background: rgba(64, 192, 160, 0.08);
+}
+
+.landing-faq-suggestion span {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.landing-faq-suggestion strong {
+  font-size: 0.88rem;
+  font-weight: 800;
+  line-height: 1.6;
+  color: var(--landing-navy);
+}
+
+.landing-faq-suggestion em {
+  font-size: 0.75rem;
+  font-style: normal;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.landing-faq-suggestions-empty {
+  padding: 1.1rem 1rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #64748b;
+  text-align: center;
 }
 
 .landing-faq-quick-hints {
@@ -4044,7 +4126,8 @@
     border-color 0.3s ease;
 }
 
-.landing-faq-quick-hints button:hover {
+.landing-faq-quick-hints button:hover,
+.landing-faq-quick-hints button.is-active {
   transform: translateY(-2px);
   border-color: rgba(64, 192, 160, 0.35);
   background: rgba(64, 192, 160, 0.12);
@@ -4164,9 +4247,10 @@
   align-items: center;
 }
 
-.landing-doctors-search svg {
+.landing-doctors-search > svg {
   position: absolute;
   inset-inline-start: 1.1rem;
+  z-index: 1;
   color: #94a3b8;
   pointer-events: none;
 }
@@ -4177,7 +4261,7 @@
   border-radius: 9999px;
   border: 1px solid rgba(16, 24, 96, 0.08);
   background: #fff;
-  padding-inline: 2.9rem 1.15rem;
+  padding-inline: 2.9rem 2.8rem;
   font-size: 0.92rem;
   color: #334155;
   outline: none;
@@ -4191,6 +4275,107 @@
   border-color: rgba(16, 24, 96, 0.22);
   box-shadow: 0 0 0 5px rgba(16, 24, 96, 0.08);
   transform: translateY(-1px);
+}
+
+.landing-doctors-search-clear {
+  position: absolute;
+  inset-inline-end: 0.85rem;
+  z-index: 2;
+  display: inline-flex;
+  height: 1.85rem;
+  width: 1.85rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  color: #64748b;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+.landing-doctors-search-clear:hover {
+  background: rgba(16, 24, 96, 0.08);
+  color: var(--landing-navy);
+}
+
+.landing-doctors-suggestions {
+  position: absolute;
+  top: calc(100% + 0.55rem);
+  inset-inline: 0;
+  z-index: 20;
+  overflow: hidden;
+  border-radius: 1.15rem;
+  border: 1px solid rgba(16, 24, 96, 0.08);
+  background: #fff;
+  box-shadow: 0 22px 48px rgba(16, 24, 96, 0.14);
+  animation: landingDoctorsRise 0.35s var(--landing-ease) both;
+}
+
+.landing-doctors-suggestion {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.8rem 1rem;
+  text-align: start;
+  border-bottom: 1px solid rgba(16, 24, 96, 0.05);
+  transition: background-color 0.2s ease;
+}
+
+.landing-doctors-suggestion:last-child {
+  border-bottom: 0;
+}
+
+.landing-doctors-suggestion:hover {
+  background: rgba(64, 192, 160, 0.08);
+}
+
+.landing-doctors-suggestion img {
+  height: 2.55rem;
+  width: 2.55rem;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  object-fit: cover;
+}
+
+.landing-doctors-suggestion span {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.landing-doctors-suggestion strong {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--landing-navy);
+}
+
+.landing-doctors-suggestion em {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.78rem;
+  font-style: normal;
+  color: #64748b;
+}
+
+.landing-doctors-suggestion-rating {
+  display: inline-flex !important;
+  flex: 0 0 auto !important;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #475569;
+}
+
+.landing-doctors-suggestions-empty {
+  padding: 1.1rem 1rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #64748b;
+  text-align: center;
 }
 
 .landing-doctors-chips {
@@ -4637,6 +4822,10 @@
   color: #64748b;
 }
 
+.landing-article-page-header {
+  animation: landingOffersRise 0.75s var(--landing-ease) both;
+}
+
 .landing-article-page-author {
   display: flex;
   align-items: center;
@@ -4647,15 +4836,95 @@
 }
 
 .landing-article-page-content {
-  margin-top: 1.75rem;
+  margin-top: 1.9rem;
   display: grid;
-  gap: 1.15rem;
+  gap: 1.2rem;
+  animation: landingOffersRise 0.85s var(--landing-ease) 0.1s both;
 }
 
 .landing-article-page-content p {
-  font-size: 1rem;
-  line-height: 2.05;
+  font-size: 1.02rem;
+  line-height: 2.1;
   color: #334155;
+}
+
+.landing-article-page-content h2 {
+  margin-top: 0.55rem;
+  font-size: clamp(1.15rem, 2.2vw, 1.4rem);
+  font-weight: 900;
+  color: var(--landing-navy);
+  line-height: 1.55;
+}
+
+.landing-article-tips {
+  border-radius: 1.35rem;
+  border: 1px solid rgba(64, 192, 160, 0.22);
+  background:
+    linear-gradient(135deg, rgba(64, 192, 160, 0.1), rgba(16, 24, 96, 0.03)),
+    #fff;
+  padding: 1.2rem 1.25rem;
+  box-shadow: 0 14px 34px rgba(16, 24, 96, 0.06);
+}
+
+.landing-article-tips h3 {
+  margin-bottom: 0.85rem;
+  font-size: 0.98rem;
+  font-weight: 900;
+  color: var(--landing-navy);
+}
+
+.landing-article-tips ul {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.landing-article-tips li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  font-size: 0.92rem;
+  line-height: 1.8;
+  color: #475569;
+}
+
+.landing-article-tips li svg {
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+  color: #40c0a0;
+}
+
+.landing-article-callout {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  border-radius: 1.25rem;
+  border: 1px solid rgba(16, 24, 96, 0.1);
+  background: linear-gradient(120deg, #101860 0%, #1a2f88 100%);
+  padding: 1.15rem 1.2rem;
+  color: #fff;
+  box-shadow: 0 18px 40px rgba(16, 24, 96, 0.18);
+}
+
+.landing-article-callout svg {
+  flex-shrink: 0;
+  margin-top: 0.2rem;
+  color: #9af0d8;
+}
+
+.landing-article-callout p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.9;
+  color: rgba(255, 255, 255, 0.94);
+}
+
+.landing-article-page-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 2.25rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e8eef4;
 }
 
 .landing-blog-grid {
@@ -4805,6 +5074,7 @@
 
 .landing-footer-link {
   color: #94a3b8;
+  text-decoration: none;
   transition: color 0.25s ease, transform 0.25s ease, padding-right 0.25s ease;
 }
 
@@ -4818,11 +5088,13 @@
   display: flex;
   align-items: center;
   gap: 0.6rem;
+  color: #94a3b8;
+  text-decoration: none;
   transition: color 0.25s ease, transform 0.25s ease;
 }
 
 .landing-footer-service-item:hover {
-  color: #e2e8f0;
+  color: #40c0a0;
   transform: translateX(-2px);
 }
 

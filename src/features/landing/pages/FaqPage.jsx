@@ -1,32 +1,122 @@
-﻿import { useMemo, useState } from "react";
-import { Headphones, Mail, Phone, Search } from "lucide-react";
+﻿import { useEffect, useMemo, useRef, useState } from "react";
+import { Headphones, Mail, Phone, Search, X } from "lucide-react";
 
 import AnimatedSection from "../components/AnimatedSection";
 import FaqAccordion from "../components/FaqAccordion";
 import MedicalBackdropIcons from "../components/MedicalBackdropIcons";
 import { faqCategories, faqs } from "../data/landingMockData";
 
+const quickHints = [
+  { label: "الحجز", query: "حجز", category: "الحجز والمواعيد" },
+  { label: "الحساب", query: "حساب", category: "الحساب والملف الطبي" },
+  { label: "الخصوصية", query: "خصوصية", category: "الخصوصية والأمان" },
+  { label: "الدفع", query: "دفع", category: "الدفع والفواتير" },
+];
+
+function normalizeArabic(value = "") {
+  return value
+    .toLowerCase()
+    .replace(/[أإآٱ]/g, "ا")
+    .replace(/ة/g, "ه")
+    .replace(/ى/g, "ي")
+    .replace(/ؤ/g, "و")
+    .replace(/ئ/g, "ي")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function matchesFaqSearch(item, normalizedQuery) {
+  if (!normalizedQuery) return true;
+  const haystack = normalizeArabic(`${item.question} ${item.answer} ${item.category}`);
+  return (
+    haystack.includes(normalizedQuery) ||
+    normalizedQuery.split(" ").every((part) => part && haystack.includes(part))
+  );
+}
+
 function FaqPage() {
   const [query, setQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState(faqCategories[0]);
   const [pulseTarget, setPulseTarget] = useState(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [focusedQuestion, setFocusedQuestion] = useState(null);
+  const searchWrapRef = useRef(null);
+  const resultsRef = useRef(null);
+
+  const normalizedQuery = useMemo(() => normalizeArabic(query), [query]);
+
+  const filteredFaqs = useMemo(() => {
+    return faqs.filter((item) => {
+      const matchesQuery = matchesFaqSearch(item, normalizedQuery);
+      if (normalizedQuery) return matchesQuery;
+      return item.category === activeCategory;
+    });
+  }, [activeCategory, normalizedQuery]);
+
+  const suggestions = useMemo(() => {
+    if (!normalizedQuery) return [];
+    return faqs.filter((item) => matchesFaqSearch(item, normalizedQuery)).slice(0, 6);
+  }, [normalizedQuery]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        searchWrapRef.current &&
+        !searchWrapRef.current.contains(event.target)
+      ) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const triggerPulse = (target) => {
     setPulseTarget(target);
     window.setTimeout(() => setPulseTarget(null), 550);
   };
 
-  const filteredFaqs = useMemo(() => {
-    const normalized = query.trim().toLowerCase();
+  const scrollToResults = () => {
+    window.setTimeout(() => {
+      resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 80);
+  };
 
-    return faqs.filter((item) => {
-      const matchesCategory = item.category === activeCategory;
-      const matchesQuery =
-        !normalized ||
-        `${item.question} ${item.answer}`.toLowerCase().includes(normalized);
-      return matchesCategory && matchesQuery;
-    });
-  }, [activeCategory, query]);
+  const handleQueryChange = (value) => {
+    setQuery(value);
+    setFocusedQuestion(null);
+    setShowSuggestions(Boolean(value.trim()));
+  };
+
+  const handleSelectFaq = (item) => {
+    setQuery(item.question);
+    setActiveCategory(item.category);
+    setFocusedQuestion(item.question);
+    setShowSuggestions(false);
+    scrollToResults();
+  };
+
+  const handleHint = (hint) => {
+    setQuery(hint.query);
+    setActiveCategory(hint.category);
+    setFocusedQuestion(null);
+    setShowSuggestions(true);
+    scrollToResults();
+  };
+
+  const handleCategory = (category) => {
+    setActiveCategory(category);
+    setQuery("");
+    setFocusedQuestion(null);
+    setShowSuggestions(false);
+    scrollToResults();
+  };
+
+  const clearSearch = () => {
+    setQuery("");
+    setFocusedQuestion(null);
+    setShowSuggestions(false);
+  };
 
   return (
     <>
@@ -64,28 +154,80 @@ function FaqPage() {
           </div>
 
           <div className="landing-faq-search-panel">
-            <div className="landing-faq-search">
+            <div className="landing-faq-search" ref={searchWrapRef}>
               <Search size={18} aria-hidden="true" />
               <input
                 type="search"
                 value={query}
-                onChange={(event) => setQuery(event.target.value)}
+                onChange={(event) => handleQueryChange(event.target.value)}
+                onFocus={() => setShowSuggestions(Boolean(query.trim()))}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    setShowSuggestions(false);
+                    scrollToResults();
+                  }
+                  if (event.key === "Escape") {
+                    setShowSuggestions(false);
+                  }
+                }}
                 placeholder="ابحث في الأسئلة الشائعة..."
+                autoComplete="off"
+                aria-autocomplete="list"
+                aria-expanded={showSuggestions && suggestions.length > 0}
               />
+              {query && (
+                <button
+                  type="button"
+                  className="landing-faq-search-clear"
+                  onClick={clearSearch}
+                  aria-label="مسح البحث"
+                >
+                  <X size={16} />
+                </button>
+              )}
+
+              {showSuggestions && normalizedQuery && (
+                <div className="landing-faq-suggestions" role="listbox">
+                  {suggestions.length > 0 ? (
+                    suggestions.map((item) => (
+                      <button
+                        key={item.question}
+                        type="button"
+                        role="option"
+                        className="landing-faq-suggestion"
+                        onClick={() => handleSelectFaq(item)}
+                      >
+                        <span>
+                          <strong>{item.question}</strong>
+                          <em>{item.category}</em>
+                        </span>
+                      </button>
+                    ))
+                  ) : (
+                    <p className="landing-faq-suggestions-empty">
+                      لا توجد أسئلة مطابقة لـ «{query}»
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
+
             <div className="landing-faq-quick-hints">
-              <button type="button" onClick={() => setQuery("حجز")}>
-                الحجز
-              </button>
-              <button type="button" onClick={() => setQuery("حساب")}>
-                الحساب
-              </button>
-              <button type="button" onClick={() => setQuery("خصوصية")}>
-                الخصوصية
-              </button>
-              <button type="button" onClick={() => setQuery("دفع")}>
-                الدفع
-              </button>
+              {quickHints.map((hint) => (
+                <button
+                  key={hint.label}
+                  type="button"
+                  className={
+                    normalizeArabic(query).includes(normalizeArabic(hint.query))
+                      ? "is-active"
+                      : ""
+                  }
+                  onClick={() => handleHint(hint)}
+                >
+                  {hint.label}
+                </button>
+              ))}
             </div>
           </div>
         </div>
@@ -97,24 +239,52 @@ function FaqPage() {
             <button
               key={item}
               type="button"
-              onClick={() => setActiveCategory(item)}
+              onClick={() => handleCategory(item)}
               className={`landing-chip w-full text-right ${
-                activeCategory === item ? "is-active" : ""
+                !normalizedQuery && activeCategory === item ? "is-active" : ""
               }`}
             >
               {item}
             </button>
           ))}
         </aside>
-        <div>
+
+        <div ref={resultsRef}>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+            <p className="text-sm font-bold text-slate-500">
+              {normalizedQuery
+                ? `${filteredFaqs.length} نتيجة مطابقة لبحثك`
+                : `أسئلة قسم ${activeCategory}`}
+            </p>
+            {normalizedQuery && (
+              <button
+                type="button"
+                className="text-sm font-extrabold text-[#101860]"
+                onClick={clearSearch}
+              >
+                مسح البحث
+              </button>
+            )}
+          </div>
+
           {filteredFaqs.length > 0 ? (
             <FaqAccordion
-              key={`${activeCategory}-${query}`}
+              key={`${activeCategory}-${query}-${focusedQuestion || "list"}`}
               items={filteredFaqs}
+              focusQuestion={focusedQuestion}
             />
           ) : (
             <div className="rounded-2xl border border-slate-200 bg-white py-16 text-center text-sm font-bold text-slate-500">
-              لم نجد إجابة مطابقة لبحثك في هذا القسم.
+              لم نجد إجابة مطابقة لبحثك.
+              <div className="mt-4">
+                <button
+                  type="button"
+                  className="landing-btn-secondary"
+                  onClick={clearSearch}
+                >
+                  إعادة ضبط البحث
+                </button>
+              </div>
             </div>
           )}
         </div>

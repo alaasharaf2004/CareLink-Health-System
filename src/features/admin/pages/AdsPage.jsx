@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-
 import { Megaphone, Pencil, Plus, Trash2 } from "lucide-react";
+
 import AdFormModal from "../components/AdFormModal";
 import AdminPageHeader from "../components/AdminPageHeader";
 import AdminTable, {
@@ -11,7 +11,7 @@ import ConfirmDialog from "../components/ConfirmDialog";
 import EmptyState from "../components/EmptyState";
 import Toast from "../components/Toast";
 import { useToast } from "../hooks/useToast";
-import apiClient from "../../../lib/api/client";
+import { careSystemStore } from "../../care-system/data/careSystemStore";
 
 const AD_COLUMNS = [
   { key: "title", label: "العنوان" },
@@ -21,28 +21,20 @@ const AD_COLUMNS = [
 ];
 
 function AdsPage() {
- const [ads, setAds] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [ads, setAds] = useState([]);
   const [editingAd, setEditingAd] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [deletingAd, setDeletingAd] = useState(null);
   const { toast, showToast, hideToast } = useToast();
 
-  // جلب الإعلانات من الباك إند
-  const fetchAds = async () => {
-    try {
-      setIsLoading(true);
-      const response = await apiClient.get("/admin/ads");
-      setAds(response.data.data || []);
-    } catch (error) {
-      showToast("خطأ في جلب الإعلانات", "error");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const reload = () => setAds(careSystemStore.listAds());
 
-  useEffect(() => { fetchAds(); }, []);
-
+  useEffect(() => {
+    reload();
+    const onUpdate = () => reload();
+    window.addEventListener("carelink-store-updated", onUpdate);
+    return () => window.removeEventListener("carelink-store-updated", onUpdate);
+  }, []);
 
   const openCreate = () => {
     setEditingAd(null);
@@ -59,31 +51,11 @@ function AdsPage() {
     setEditingAd(null);
   };
 
-  const handleSubmit = async (data) => {
-    try {
-      if (editingAd) {
-        await apiClient.put(`/admin/ads/${editingAd.id}`, data);
-        showToast("تم تحديث الإعلان", "success");
-      } else {
-        await apiClient.post("/admin/ads", data);
-        showToast("تمت إضافة الإعلان", "success");
-      }
-      fetchAds(); // إعادة تحميل البيانات
-      closeForm();
-    } catch (error) {
-      showToast("حدث خطأ أثناء الحفظ", "error");
-    }
-  };
-
-  const handleDelete = async () => {
-    try {
-      await apiClient.delete(`/admin/ads/${deletingAd.id}`);
-      showToast("تم حذف الإعلان", "error");
-      fetchAds();
-      setDeletingAd(null);
-    } catch (error) {
-      showToast("خطأ في حذف الإعلان", "error");
-    }
+  const handleSubmit = (data) => {
+    careSystemStore.saveAd({ ...data, id: editingAd?.id });
+    showToast(editingAd ? "تم تحديث الإعلان" : "تمت إضافة الإعلان", "success");
+    closeForm();
+    reload();
   };
 
   return (
@@ -92,15 +64,15 @@ function AdsPage() {
 
       <AdminPageHeader
         title="الإعلانات"
-        description="إدارة الإعلانات المعروضة للمستخدمين في المنصة."
+        description="إدارة الإعلانات والعروض الظاهرة للمستخدمين."
         action={
           <button
             type="button"
             onClick={openCreate}
-            className="flex cursor-pointer items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-blue-700"
+            className="flex cursor-pointer items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-700"
           >
-            <Plus size={18} />
-            إضافة
+            <Plus size={16} />
+            إعلان جديد
           </button>
         }
       />
@@ -109,48 +81,32 @@ function AdsPage() {
         <EmptyState
           icon={Megaphone}
           title="لا توجد إعلانات"
-          description="اضغط «إضافة» لإنشاء أول إعلان."
+          description="أضف إعلاناً ليظهر في المنصة."
         />
       ) : (
         <AdminTable columns={AD_COLUMNS}>
           {ads.map((ad) => (
             <AdminTableRow key={ad.id}>
-              <AdminTableCell>
-                <span className="font-bold text-blue-950">{ad.title}</span>
+              <AdminTableCell className="font-bold text-blue-950">
+                {ad.title}
               </AdminTableCell>
+              <AdminTableCell dir="ltr">{ad.link}</AdminTableCell>
+              <AdminTableCell>{ad.date}</AdminTableCell>
               <AdminTableCell>
-                {ad.link ? (
-                  <a
-                    href={ad.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="truncate text-blue-600 hover:underline"
-                    dir="ltr"
-                  >
-                    {ad.link}
-                  </a>
-                ) : (
-                  <span className="text-slate-400">—</span>
-                )}
-              </AdminTableCell>
-              <AdminTableCell>{ad.created_at ?? "—"}</AdminTableCell>
-              <AdminTableCell>
-                <div className="flex items-center gap-1">
+                <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={() => openEdit(ad)}
-                    title="تعديل"
-                    className="cursor-pointer rounded-lg p-2 text-slate-500 transition-colors hover:bg-blue-50 hover:text-blue-700"
+                    className="rounded-lg p-2 text-blue-600 hover:bg-blue-50"
                   >
-                    <Pencil size={17} />
+                    <Pencil size={16} />
                   </button>
                   <button
                     type="button"
                     onClick={() => setDeletingAd(ad)}
-                    title="حذف"
-                    className="cursor-pointer rounded-lg p-2 text-red-500 transition-colors hover:bg-red-50"
+                    className="rounded-lg p-2 text-rose-600 hover:bg-rose-50"
                   >
-                    <Trash2 size={17} />
+                    <Trash2 size={16} />
                   </button>
                 </div>
               </AdminTableCell>
@@ -160,17 +116,19 @@ function AdsPage() {
       )}
 
       {isFormOpen && (
-        <AdFormModal
-          ad={editingAd}
-          onSubmit={handleSubmit}
-          onClose={closeForm}
-        />
+        <AdFormModal ad={editingAd} onClose={closeForm} onSubmit={handleSubmit} />
       )}
 
       {deletingAd && (
         <ConfirmDialog
+          title="حذف الإعلان"
           message={`هل أنت متأكد من حذف الإعلان «${deletingAd.title}»؟`}
-          onConfirm={handleDelete}
+          onConfirm={() => {
+            careSystemStore.deleteAd(deletingAd.id);
+            setDeletingAd(null);
+            showToast("تم حذف الإعلان", "error");
+            reload();
+          }}
           onClose={() => setDeletingAd(null)}
         />
       )}

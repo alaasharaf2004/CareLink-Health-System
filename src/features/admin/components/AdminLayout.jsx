@@ -1,12 +1,16 @@
 import { useState } from "react";
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
+  BookOpen,
+  CalendarDays,
   LogOut,
   Megaphone,
   Menu,
   Newspaper,
+  Settings,
   User,
   UserCheck,
+  Users,
   X,
 } from "lucide-react";
 
@@ -14,9 +18,14 @@ import CareLinkLogo from "../../../components/CareLinkLogo";
 import { useAuth } from "../../authentication/context/AuthContext";
 
 const NAV_ITEMS = [
-  { to: "/admin/doctors", label: "الأطباء", icon: UserCheck },
+  { to: "/admin/staff", label: "الكوادر", icon: Users },
+  { to: "/admin/doctors", label: "طلبات الأطباء", icon: UserCheck },
+  { to: "/admin/articles", label: "المقالات", icon: BookOpen },
   { to: "/admin/ads", label: "الإعلانات", icon: Megaphone },
   { to: "/admin/posts", label: "المنشورات", icon: Newspaper },
+  { to: "/admin/patients", label: "المرضى", icon: Users },
+  { to: "/admin/appointments", label: "المواعيد", icon: CalendarDays },
+  { to: "/admin/settings", label: "إعدادات الموقع", icon: Settings },
   { to: "/admin/profile", label: "الملف الشخصي", icon: User },
 ];
 
@@ -30,7 +39,7 @@ function AdminLayout() {
 
   const handleLogout = () => {
     clearSession();
-    navigate("/admin/login", { replace: true });
+    navigate("/login", { replace: true, state: { authRole: "admin" } });
   };
 
   const navLinkClass = ({ isActive }) =>
@@ -53,7 +62,7 @@ function AdminLayout() {
         </button>
 
         <Link
-          to="/admin/doctors"
+          to="/admin/staff"
           className="transition-opacity hover:opacity-90"
         >
           <CareLinkLogo

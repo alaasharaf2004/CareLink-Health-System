@@ -1,3 +1,5 @@
+import { Navigate } from "react-router-dom";
+
 import AuthPageTransition from "./components/AuthPageTransition";
 import GuestRoute from "./components/GuestRoute";
 import LoginPage from "./pages/LoginPage";
@@ -5,7 +7,6 @@ import RegisterPage from "./pages/RegisterPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import VerifyCodePage from "./pages/VerifyCodePage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
-import AdminLoginPage from "./pages/AdminLoginPage";
 
 export const authenticationRoutes = [
   {
@@ -18,6 +19,14 @@ export const authenticationRoutes = [
             <LoginPage />
           </GuestRoute>
         ),
+      },
+      {
+        path: "/staff/login",
+        element: <Navigate to="/login" replace />,
+      },
+      {
+        path: "/admin/login",
+        element: <Navigate to="/login" replace state={{ authRole: "admin" }} />,
       },
       {
         path: "/register",
@@ -42,14 +51,6 @@ export const authenticationRoutes = [
       {
         path: "/reset-password",
         element: <ResetPasswordPage />,
-      },
-      {
-        path: "/admin/login",
-        element: (
-          <GuestRoute>
-            <AdminLoginPage />
-          </GuestRoute>
-        ),
       },
     ],
   },

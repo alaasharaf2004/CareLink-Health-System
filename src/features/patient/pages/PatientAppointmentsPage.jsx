@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   CalendarPlus,
@@ -16,6 +16,8 @@ import AdminTable, {
 import Modal from "../../admin/components/Modal";
 import Toast from "../../admin/components/Toast";
 import { useToast } from "../../admin/hooks/useToast";
+import { useAuth } from "../../authentication/context/AuthContext";
+import { careSystemStore } from "../../care-system/data/careSystemStore";
 import {
   AppointmentStatusBadge,
   AppointmentTypeBadge,
@@ -31,8 +33,6 @@ import {
 } from "../utils/formatDateTime";
 import { staggerDelay } from "../utils/staggerDelay";
 
-const AVAILABLE_DOCTORS = [];
-
 const COLUMNS = [
   { key: "doctor", label: "الطبيب" },
   { key: "date", label: "الموعد" },
@@ -46,14 +46,36 @@ const COLUMNS = [
 
 const FILTER_TABS = [
   { key: "all", label: "الكل" },
-  { key: "pending", label: "معلقة" },
-  { key: "confirmed", label: "مؤكدة" },
-  { key: "complete", label: "مكتملة" },
+  { key: "scheduled", label: "مجدولة" },
+  { key: "with_doctor", label: "قيد الزيارة" },
+  { key: "completed", label: "مكتملة" },
   { key: "cancelled", label: "ملغاة" },
 ];
 
 const inputClass =
   "h-11 w-full rounded-xl border border-slate-200 px-4 text-sm text-blue-950 outline-none focus:border-blue-500";
+
+function mapAppointment(apt, doctorName, staffById) {
+  const doctor = staffById(apt.doctorId);
+  const type =
+    apt.type === "عن بُعد" || apt.type === "online" ? "online" : "in_person";
+  return {
+    id: apt.id,
+    doctorId: apt.doctorId,
+    patientId: apt.patientId,
+    doctor_name: doctorName(apt.doctorId),
+    doctor_specialty: doctor?.specialty || "—",
+    doctor_avatar: "",
+    scheduled_at: `${apt.date}T${apt.time || "00:00"}`,
+    date: apt.date,
+    time: apt.time,
+    duration_minutes: 30,
+    type,
+    status: apt.status,
+    description: apt.notes || "—",
+    rejection_reason: apt.cancelReason || "",
+  };
+}
 
 function DoctorMiniCard({ doctorName, avatar, specialty, scheduledAt }) {
   return (
@@ -73,7 +95,9 @@ function DoctorMiniCard({ doctorName, avatar, specialty, scheduledAt }) {
 }
 
 function PatientAppointmentsPage() {
+  const { profile } = useAuth();
   const [appointments, setAppointments] = useState([]);
+  const [availableDoctors, setAvailableDoctors] = useState([]);
   const [activeFilter, setActiveFilter] = useState("all");
   const [cancelTarget, setCancelTarget] = useState(null);
   const [rescheduleTarget, setRescheduleTarget] = useState(null);
@@ -82,17 +106,47 @@ function PatientAppointmentsPage() {
   const [rescheduleDate, setRescheduleDate] = useState("");
   const [rescheduleNote, setRescheduleNote] = useState("");
   const [newAppointment, setNewAppointment] = useState({
-    doctor: "",
+    doctorId: "",
     datetime: "",
-    type: "online",
+    type: "in_person",
     description: "",
   });
   const { toast, showToast, hideToast } = useToast();
 
+  const patientId =
+    profile?.patientId ||
+    careSystemStore.listPatients().find((p) => p.email === profile?.email)?.id ||
+    "pat-1";
+
+  const reload = () => {
+    const { doctorName, staffById } = careSystemStore.resolveNames();
+    setAvailableDoctors(
+      careSystemStore.listStaff("doctor").filter((d) => d.status === "active")
+    );
+    setAppointments(
+      careSystemStore
+        .listAppointments()
+        .filter((apt) => apt.patientId === patientId)
+        .map((apt) => mapAppointment(apt, doctorName, staffById))
+    );
+  };
+
+  useEffect(() => {
+    reload();
+    window.addEventListener("carelink-store-updated", reload);
+    return () => window.removeEventListener("carelink-store-updated", reload);
+  }, [patientId]);
+
   const filteredAppointments =
     activeFilter === "all"
       ? appointments
-      : appointments.filter((a) => a.status === activeFilter);
+      : activeFilter === "with_doctor"
+        ? appointments.filter((a) =>
+            ["checked_in", "with_doctor", "awaiting_lab", "results_ready", "awaiting_pharmacy"].includes(
+              a.status
+            )
+          )
+        : appointments.filter((a) => a.status === activeFilter);
 
   const openReschedule = (appointment) => {
     setRescheduleTarget(appointment);
@@ -105,17 +159,12 @@ function PatientAppointmentsPage() {
       showToast("يرجى كتابة سبب الإلغاء", "error");
       return;
     }
-    setAppointments((current) =>
-      current.map((item) =>
-        item.id === cancelTarget.id
-          ? {
-              ...item,
-              status: "cancelled",
-              rejection_reason: cancelReason.trim(),
-            }
-          : item
-      )
-    );
+    careSystemStore.saveAppointment({
+      id: cancelTarget.id,
+      cancelReason: cancelReason.trim(),
+      status: "cancelled",
+    });
+    careSystemStore.setAppointmentStatus(cancelTarget.id, "cancelled");
     showToast("تم إلغاء الموعد", "error");
     setCancelTarget(null);
     setCancelReason("");
@@ -126,67 +175,47 @@ function PatientAppointmentsPage() {
       showToast("اختر التاريخ والوقت الجديد", "error");
       return;
     }
-    setAppointments((current) =>
-      current.map((item) =>
-        item.id === rescheduleTarget.id
-          ? {
-              ...item,
-              scheduled_at: rescheduleDate,
-              status: "pending",
-              rejection_reason: rescheduleNote.trim(),
-            }
-          : item
-      )
-    );
-    showToast("تم إرسال طلب التأجيل للطبيب", "success");
+    const [date, time] = rescheduleDate.split("T");
+    careSystemStore.saveAppointment({
+      id: rescheduleTarget.id,
+      date,
+      time: time?.slice(0, 5) || "10:00",
+      notes: rescheduleNote.trim() || rescheduleTarget.description,
+      status: "scheduled",
+    });
+    showToast("تم تحديث الموعد", "success");
     setRescheduleTarget(null);
     setRescheduleDate("");
     setRescheduleNote("");
   };
 
   const handleAddAppointment = () => {
-    if (!newAppointment.doctor) {
-      showToast("لا يوجد أطباء متاحون حالياً", "error");
+    if (!newAppointment.doctorId) {
+      showToast("اختر طبيباً", "error");
       return;
     }
     if (!newAppointment.datetime.trim()) {
       showToast("اختر تاريخ ووقت الموعد", "error");
       return;
     }
-    const doctor = AVAILABLE_DOCTORS.find((d) => d.name === newAppointment.doctor);
-    if (!doctor) {
-      showToast("اختر طبيباً صالحاً", "error");
-      return;
-    }
-    const nextId = Math.max(...appointments.map((a) => a.id), 0) + 1;
-
-    setAppointments((current) => [
-      {
-        id: nextId,
-        patient_name: "المريض",
-        doctor_name: doctor.name,
-        doctor_specialty: doctor.specialty,
-        doctor_phone: doctor.phone,
-        doctor_avatar: doctor.avatar,
-        scheduled_at: newAppointment.datetime,
-        duration_minutes: 30,
-        type: newAppointment.type,
-        status: "pending",
-        description: newAppointment.description || "موعد جديد",
-        rejection_reason: "",
-        zoom_link: newAppointment.type === "online" ? "" : "",
-        fee: 0,
-        fee_label: "مجاني",
-      },
-      ...current,
-    ]);
+    const [date, time] = newAppointment.datetime.split("T");
+    careSystemStore.saveAppointment({
+      patientId,
+      doctorId: newAppointment.doctorId,
+      date,
+      time: time?.slice(0, 5) || "10:00",
+      type: newAppointment.type === "online" ? "عن بُعد" : "حضوري",
+      notes: newAppointment.description || "موعد عبر بوابة المريض",
+      createdBy: "patient",
+      status: "scheduled",
+    });
 
     showToast("تم حجز الموعد بنجاح", "success");
     setIsAddOpen(false);
     setNewAppointment({
-      doctor: AVAILABLE_DOCTORS[0]?.name ?? "",
+      doctorId: "",
       datetime: "",
-      type: "online",
+      type: "in_person",
       description: "",
     });
   };
@@ -309,7 +338,7 @@ function PatientAppointmentsPage() {
                     <Eye size={17} />
                   </Link>
                   {appointment.status !== "cancelled" &&
-                    appointment.status !== "complete" && (
+                    appointment.status !== "completed" && (
                       <>
                         <button
                           type="button"
@@ -450,19 +479,19 @@ function PatientAppointmentsPage() {
                 اختر الطبيب
               </p>
               <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-                {AVAILABLE_DOCTORS.length === 0 ? (
+                {availableDoctors.length === 0 ? (
                   <p className="col-span-full rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-sm font-bold text-slate-500">
                     لا يوجد أطباء متاحون حالياً
                   </p>
                 ) : (
-                  AVAILABLE_DOCTORS.map((doctor) => {
-                  const selected = newAppointment.doctor === doctor.name;
+                  availableDoctors.map((doctor) => {
+                  const selected = newAppointment.doctorId === doctor.id;
                   return (
                     <button
-                      key={doctor.name}
+                      key={doctor.id}
                       type="button"
                       onClick={() =>
-                        setNewAppointment((c) => ({ ...c, doctor: doctor.name }))
+                        setNewAppointment((c) => ({ ...c, doctorId: doctor.id }))
                       }
                       className={`flex w-full cursor-pointer items-center gap-3 rounded-2xl border p-3 text-right transition-all duration-200 ${
                         selected
@@ -471,7 +500,7 @@ function PatientAppointmentsPage() {
                       }`}
                     >
                       <ProfileAvatar
-                        src={doctor.avatar}
+                        src=""
                         name={doctor.name}
                         size="md"
                       />
@@ -487,7 +516,7 @@ function PatientAppointmentsPage() {
                             size={12}
                             className="fill-amber-400 text-amber-400"
                           />
-                          {doctor.rating}
+                          4.8
                         </div>
                       </div>
                       {selected && (

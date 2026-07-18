@@ -3,6 +3,7 @@ import { Eye, Rocket, ShieldCheck } from "lucide-react";
 
 import AnimatedSection from "../components/AnimatedSection";
 import MedicalBackdropIcons from "../components/MedicalBackdropIcons";
+import { doctors } from "../data/landingMockData";
 
 const values = [
   {
@@ -55,28 +56,20 @@ const journey = [
   },
 ];
 
-const leaders = [
-  {
-    name: "د. أحمد المنصوري",
-    role: "المؤسس والرئيس التنفيذي",
-    image: "/images/carelink-team-ceo.png",
-  },
-  {
-    name: "د. سارة الكواري",
-    role: "المديرة الطبية",
-    image: "/images/carelink-team-medical-director.png",
-  },
-  {
-    name: "د. خالد الهاشمي",
-    role: "رئيس قسم الجراحة",
-    image: "/images/carelink-team-surgery.png",
-  },
-  {
-    name: "م. عمر فيصل",
-    role: "رئيس الابتكار التقني",
-    image: "/images/carelink-team-innovation.png",
-  },
-];
+const leaders = doctors
+  .filter((doctor) =>
+    [
+      "د. أحمد المنصوري",
+      "د. سارة الكواري",
+      "د. خالد الهاشمي",
+      "م. عمر فيصل",
+    ].includes(doctor.name)
+  )
+  .map((doctor) => ({
+    name: doctor.name,
+    role: doctor.specialty,
+    image: doctor.image,
+  }));
 
 function AboutPage() {
   return (

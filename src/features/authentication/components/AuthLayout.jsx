@@ -10,7 +10,10 @@ function AuthLayout({
   heroAlign = AUTH_HERO_ALIGN.register,
   heroNudgeClass = "",
   formAlign = AUTH_FORM_ALIGN.start,
+  wideForm = false,
 }) {
+  const formColumnWidth = wideForm ? "lg:w-[820px]" : "lg:w-[540px]";
+
   return (
     <main className="relative min-h-screen overflow-hidden">
       <img
@@ -32,7 +35,9 @@ function AuthLayout({
         <div className="flex w-full flex-1 items-stretch justify-between gap-8">
           <div
             dir="rtl"
-            className="hidden flex-1 flex-col opacity-0 animate-[fadeInLeft_0.85s_ease_0.15s_forwards] lg:flex lg:max-w-[620px] xl:pl-4"
+            className={`hidden flex-1 flex-col opacity-0 animate-[fadeInLeft_0.85s_ease_0.15s_forwards] lg:flex xl:pl-4 ${
+              wideForm ? "lg:max-w-[480px]" : "lg:max-w-[620px]"
+            }`}
           >
             <div className="flex h-full flex-col">
               <AuthHeroAlignSpacer variant={heroAlign} />
@@ -64,9 +69,9 @@ function AuthLayout({
           </div>
 
           <div
-            className={`flex w-full flex-col opacity-0 animate-[fadeInRight_0.85s_ease_0.25s_forwards] lg:w-[540px] lg:shrink-0 ${formAlign}`}
+            className={`flex w-full flex-col opacity-0 animate-[fadeInRight_0.85s_ease_0.25s_forwards] lg:shrink-0 ${formColumnWidth} ${formAlign}`}
           >
-            <div className="animate-[authCardReveal_0.9s_cubic-bezier(0.22,1,0.36,1)_forwards]">
+            <div className="w-full animate-[authCardReveal_0.9s_cubic-bezier(0.22,1,0.36,1)_forwards]">
               {children}
             </div>
           </div>
@@ -75,7 +80,7 @@ function AuthLayout({
         <div className="mt-4 flex justify-center lg:justify-end">
           <p
             dir="rtl"
-            className="flex w-full items-center justify-center gap-2.5 text-sm font-semibold text-slate-600 lg:w-[540px] lg:shrink-0"
+            className={`flex w-full items-center justify-center gap-2.5 text-sm font-semibold text-slate-600 lg:shrink-0 ${formColumnWidth}`}
           >
             <ShieldCheck size={17} className="shrink-0 text-[#40C0A0]" />
             بياناتك محمية وفق أعلى معايير الأمان والخصوصية

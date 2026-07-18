@@ -18,12 +18,8 @@ import {
   DoctorCard,
   SectionHeading,
 } from "../components/LandingCards";
-import {
-  articles,
-  doctors,
-  faqs,
-  testimonials,
-} from "../data/landingMockData";
+import { listPublishedArticles } from "../data/cmsContent";
+import { doctors, faqs, testimonials } from "../data/landingMockData";
 
 const heroDoctors = [
   {
@@ -46,6 +42,14 @@ const heroDoctors = [
 
 function LandingPage() {
   const [activeDoctor, setActiveDoctor] = useState(0);
+  const [articles, setArticles] = useState(() => listPublishedArticles());
+
+  useEffect(() => {
+    const reload = () => setArticles(listPublishedArticles());
+    reload();
+    window.addEventListener("carelink-store-updated", reload);
+    return () => window.removeEventListener("carelink-store-updated", reload);
+  }, []);
 
   useEffect(() => {
     heroDoctors.forEach((doctor) => {

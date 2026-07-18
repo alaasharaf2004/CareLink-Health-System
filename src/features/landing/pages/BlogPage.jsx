@@ -1,17 +1,32 @@
-﻿import { useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Search } from "lucide-react";
 
 import AnimatedSection from "../components/AnimatedSection";
 import { ArticleCard } from "../components/LandingCards";
 import MedicalBackdropIcons from "../components/MedicalBackdropIcons";
-import { articles, blogHeroArticle } from "../data/landingMockData";
+import {
+  getBlogHeroArticle,
+  listPublishedArticles,
+} from "../data/cmsContent";
 
 const categories = ["الكل", "تغذية", "صحة نفسية", "صحة عامة", "أخبار", "تكنولوجيا"];
 
 function BlogPage() {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("الكل");
+  const [articles, setArticles] = useState(() => listPublishedArticles());
+  const [blogHeroArticle, setBlogHeroArticle] = useState(() => getBlogHeroArticle());
+
+  useEffect(() => {
+    const reload = () => {
+      setArticles(listPublishedArticles());
+      setBlogHeroArticle(getBlogHeroArticle());
+    };
+    reload();
+    window.addEventListener("carelink-store-updated", reload);
+    return () => window.removeEventListener("carelink-store-updated", reload);
+  }, []);
 
   const filteredArticles = useMemo(
     () =>
@@ -25,7 +40,7 @@ function BlogPage() {
             .includes(query.trim().toLowerCase());
         return matchesCategory && matchesQuery;
       }),
-    [category, query]
+    [articles, category, query]
   );
 
   const orderedArticles = useMemo(() => {

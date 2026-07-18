@@ -168,6 +168,11 @@ function AdminLoginPage() {
             العودة لتسجيل دخول المريض / الطبيب
           </Link>
         </p>
+        <p className="mt-2 text-center text-xs text-slate-400" dir="rtl">
+          <Link to="/staff/login" className={`font-semibold ${AUTH_CLICKABLE.textLink}`}>
+            دخول الموظفين
+          </Link>
+        </p>
       </AuthCard>
     </AuthLayout>
   );

@@ -1,18 +1,17 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { CheckCircle2, Eye, MessageSquare, XCircle } from "lucide-react";
+import { Eye } from "lucide-react";
 
 import AdminTable, { AdminTableCell, AdminTableRow } from "../../admin/components/AdminTable";
-import Modal from "../../admin/components/Modal";
 import Toast from "../../admin/components/Toast";
 import { useToast } from "../../admin/hooks/useToast";
-import { AppointmentStatusBadge, AppointmentTypeBadge } from "../../patient/components/AppointmentBadges";
+import { useAuth } from "../../authentication/context/AuthContext";
+import {
+  APPOINTMENT_STATUS_LABELS,
+  careSystemStore,
+} from "../../care-system/data/careSystemStore";
 import FadeUp from "../../patient/components/FadeUp";
-import ProfileAvatar from "../../patient/components/ProfileAvatar";
-import { formatArabicDateTime } from "../../patient/utils/formatDateTime";
-import { staggerDelay } from "../../patient/utils/staggerDelay";
 import DoctorPageHeader from "../components/DoctorPageHeader";
-import apiClient from "../../../lib/api/client"; // التأكد من المسار الصحيح
 
 const COLUMNS = [
   { key: "patient", label: "المريض" },
@@ -23,93 +22,74 @@ const COLUMNS = [
 ];
 
 function DoctorAppointmentsPage() {
+  const { profile } = useAuth();
   const [appointments, setAppointments] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [activeFilter, setActiveFilter] = useState("all");
-  const [targetAppointment, setTargetAppointment] = useState(null); // الموعد المستهدف (قبول/رفض/رسالة)
-  const [modalType, setModalType] = useState(null); // 'accept', 'reject', 'message'
-  const [messageText, setMessageText] = useState("");
   const { toast, showToast, hideToast } = useToast();
 
-  const fetchAppointments = async () => {
-    try {
-      setIsLoading(true);
-      const response = await apiClient.get("/doctor/appointments");
-      setAppointments(response.data.data);
-    } catch (error) {
-      showToast("خطأ في جلب المواعيد", "error");
-    } finally {
-      setIsLoading(false);
-    }
+  const reload = () => {
+    const doctor =
+      careSystemStore.listStaff("doctor").find((d) => d.id === profile?.staffId) ||
+      careSystemStore.listStaff("doctor").find((d) => d.email === profile?.email) ||
+      careSystemStore.listStaff("doctor").find((d) => d.email === "ahmed.heart@carelink.com") ||
+      careSystemStore.listStaff("doctor")[0];
+    const doctorId = doctor?.id;
+    const { patientName } = careSystemStore.resolveNames();
+    setAppointments(
+      careSystemStore
+        .listAppointments()
+        .filter((apt) => !doctorId || apt.doctorId === doctorId)
+        .map((apt) => ({
+          ...apt,
+          patient: patientName(apt.patientId),
+        }))
+    );
   };
 
-  useEffect(() => { fetchAppointments(); }, []);
-
-  const filteredAppointments = activeFilter === "all" 
-    ? appointments 
-    : appointments.filter((a) => a.status === activeFilter);
-
-  const handleStatusChange = async (status) => {
-    try {
-      await apiClient.put(`/doctor/appointments/${targetAppointment.id}/status`, {
-        status: status,
-        message: messageText
-      });
-      showToast("تم تحديث الموعد بنجاح", "success");
-      fetchAppointments();
-      setTargetAppointment(null);
-      setMessageText("");
-    } catch (error) {
-      showToast("حدث خطأ أثناء التحديث", "error");
-    }
-  };
+  useEffect(() => {
+    reload();
+    window.addEventListener("carelink-store-updated", reload);
+    return () => window.removeEventListener("carelink-store-updated", reload);
+  }, []);
 
   return (
     <div className="space-y-6">
       <Toast toast={toast} onClose={hideToast} />
-      <DoctorPageHeader title="المواعيد" description="إدارة مواعيد المرضى." />
+      <DoctorPageHeader title="المواعيد" description="مواعيد مرضاك فقط — افتح الموعد للتشخيص والتحاليل والوصفة." />
 
-      {isLoading ? (
-        <div className="text-center py-10">جاري تحميل المواعيد...</div>
-      ) : (
-        <FadeUp index={1}>
-           <AdminTable columns={COLUMNS}>
-            {filteredAppointments.map((appointment) => (
+      <FadeUp index={1}>
+        {appointments.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-slate-200 bg-white py-16 text-center font-bold text-slate-500">
+            لا توجد مواعيد حالياً
+          </div>
+        ) : (
+          <AdminTable columns={COLUMNS}>
+            {appointments.map((appointment) => (
               <AdminTableRow key={appointment.id}>
-                <AdminTableCell>
-                  <p className="font-bold">{appointment.patient_name}</p>
+                <AdminTableCell className="font-bold text-blue-950">
+                  {appointment.patient}
                 </AdminTableCell>
-                <AdminTableCell>{formatArabicDateTime(appointment.scheduled_at)}</AdminTableCell>
-                <AdminTableCell><AppointmentTypeBadge type={appointment.type} /></AdminTableCell>
-                <AdminTableCell><AppointmentStatusBadge status={appointment.status} /></AdminTableCell>
                 <AdminTableCell>
-                  <div className="flex gap-1">
-                    <button onClick={() => { setTargetAppointment(appointment); setModalType('message'); }} className="p-2 text-slate-500 hover:bg-violet-50"><MessageSquare size={17} /></button>
-                    {appointment.status === "pending" && (
-                      <>
-                        <button onClick={() => { setTargetAppointment(appointment); setModalType('accept'); }} className="p-2 text-emerald-600 hover:bg-emerald-50"><CheckCircle2 size={17} /></button>
-                        <button onClick={() => { setTargetAppointment(appointment); setModalType('reject'); }} className="p-2 text-red-500 hover:bg-red-50"><XCircle size={17} /></button>
-                      </>
-                    )}
-                  </div>
+                  {appointment.date} — {appointment.time}
+                </AdminTableCell>
+                <AdminTableCell>{appointment.type}</AdminTableCell>
+                <AdminTableCell>
+                  {APPOINTMENT_STATUS_LABELS[appointment.status] || appointment.status}
+                </AdminTableCell>
+                <AdminTableCell>
+                  <Link
+                    to={`/doctor/appointments/${appointment.id}`}
+                    className="inline-flex items-center gap-1 rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700 hover:bg-blue-100"
+                    onClick={() => showToast("فتح ملف الموعد", "success")}
+                  >
+                    <Eye size={14} />
+                    فتح الملف
+                  </Link>
                 </AdminTableCell>
               </AdminTableRow>
             ))}
           </AdminTable>
-        </FadeUp>
-      )}
-
-      {targetAppointment && (
-        <Modal title={modalType === 'accept' ? 'قبول' : modalType === 'reject' ? 'رفض' : 'رسالة'} onClose={() => setTargetAppointment(null)}>
-          <textarea 
-            value={messageText} 
-            onChange={(e) => setMessageText(e.target.value)} 
-            className="w-full p-3 border rounded-xl" 
-            placeholder="اكتب رسالتك للمريض..." 
-          />
-          <button onClick={() => handleStatusChange(modalType === 'accept' ? 'confirmed' : 'cancelled')} className="w-full mt-4 bg-blue-600 text-white py-2 rounded-xl">تنفيذ</button>
-        </Modal>
-      )}
+        )}
+      </FadeUp>
     </div>
   );
 }

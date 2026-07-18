@@ -11,6 +11,7 @@ import {
 
 import AnimatedSection from "../components/AnimatedSection";
 import MedicalBackdropIcons from "../components/MedicalBackdropIcons";
+import { listCmsAds } from "../data/cmsContent";
 import { offers, partnerAds } from "../data/landingMockData";
 
 function getVisibleCount() {
@@ -26,7 +27,15 @@ function OffersPage() {
   const [slidePx, setSlidePx] = useState(0);
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
+  const [cmsAds, setCmsAds] = useState(() => listCmsAds());
   const viewportRef = useRef(null);
+
+  useEffect(() => {
+    const reload = () => setCmsAds(listCmsAds());
+    reload();
+    window.addEventListener("carelink-store-updated", reload);
+    return () => window.removeEventListener("carelink-store-updated", reload);
+  }, []);
 
   const maxIndex = Math.max(0, offers.length - visibleCount);
 
@@ -257,6 +266,22 @@ function OffersPage() {
               نتعاون مع مراكز طبية مختارة لنقدم لك خدمات أوضح وأقرب.
             </p>
           </div>
+
+          {cmsAds.length > 0 && (
+            <div className="mb-10 grid gap-4 md:grid-cols-2">
+              {cmsAds.map((ad) => (
+                <Link
+                  key={ad.id}
+                  to={ad.link || "/doctors"}
+                  className="rounded-2xl border border-[#101860]/10 bg-white/90 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                >
+                  <p className="text-xs font-bold text-[#40c0a0]">إعلان CareLink</p>
+                  <h3 className="mt-2 text-lg font-extrabold text-[#101860]">{ad.title}</h3>
+                  <p className="mt-1 text-sm text-slate-500">{ad.date}</p>
+                </Link>
+              ))}
+            </div>
+          )}
 
           <div className="landing-offers-partners-grid">
             {partnerAds.map((ad, index) => (

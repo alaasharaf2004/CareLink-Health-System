@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Newspaper, Pencil, Plus, Trash2 } from "lucide-react";
 
 import AdminPageHeader from "../components/AdminPageHeader";
@@ -11,6 +11,7 @@ import EmptyState from "../components/EmptyState";
 import PostFormModal from "../components/PostFormModal";
 import Toast from "../components/Toast";
 import { useToast } from "../hooks/useToast";
+import { careSystemStore } from "../../care-system/data/careSystemStore";
 
 const POST_COLUMNS = [
   { key: "title", label: "العنوان" },
@@ -25,6 +26,15 @@ function PostsPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [deletingPost, setDeletingPost] = useState(null);
   const { toast, showToast, hideToast } = useToast();
+
+  const reload = () => setPosts(careSystemStore.listPosts());
+
+  useEffect(() => {
+    reload();
+    const onUpdate = () => reload();
+    window.addEventListener("carelink-store-updated", onUpdate);
+    return () => window.removeEventListener("carelink-store-updated", onUpdate);
+  }, []);
 
   const openCreate = () => {
     setEditingPost(null);
@@ -42,27 +52,10 @@ function PostsPage() {
   };
 
   const handleSubmit = (data) => {
-    if (editingPost) {
-      setPosts((current) =>
-        current.map((post) =>
-          post.id === editingPost.id ? { ...post, ...data } : post
-        )
-      );
-      showToast("تم تحديث المنشور بنجاح", "success");
-    } else {
-      setPosts((current) => [
-        { ...data, id: Date.now(), created_at: new Date().toISOString().slice(0, 10) },
-        ...current,
-      ]);
-      showToast("تم نشر المنشور بنجاح", "success");
-    }
+    careSystemStore.savePost({ ...data, id: editingPost?.id });
+    showToast(editingPost ? "تم تحديث المنشور بنجاح" : "تم نشر المنشور بنجاح", "success");
     closeForm();
-  };
-
-  const handleDelete = () => {
-    setPosts((current) => current.filter((post) => post.id !== deletingPost.id));
-    showToast("تم حذف المنشور", "error");
-    setDeletingPost(null);
+    reload();
   };
 
   return (
@@ -78,8 +71,8 @@ function PostsPage() {
             onClick={openCreate}
             className="flex cursor-pointer items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-blue-700"
           >
-            <Plus size={18} />
-            إضافة
+            <Plus size={16} />
+            منشور جديد
           </button>
         }
       />
@@ -88,38 +81,34 @@ function PostsPage() {
         <EmptyState
           icon={Newspaper}
           title="لا توجد منشورات"
-          description="اضغط «إضافة» لنشر أول منشور."
+          description="ابدأ بنشر أول تحديث للمستخدمين."
         />
       ) : (
         <AdminTable columns={POST_COLUMNS}>
           {posts.map((post) => (
             <AdminTableRow key={post.id}>
-              <AdminTableCell>
-                <span className="font-bold text-blue-950">{post.title}</span>
+              <AdminTableCell className="font-bold text-blue-950">
+                {post.title}
               </AdminTableCell>
-              <AdminTableCell>
-                <p className="line-clamp-2 max-w-xs text-slate-600">
-                  {post.content}
-                </p>
+              <AdminTableCell className="max-w-xs truncate">
+                {post.content}
               </AdminTableCell>
               <AdminTableCell>{post.created_at}</AdminTableCell>
               <AdminTableCell>
-                <div className="flex items-center gap-1">
+                <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={() => openEdit(post)}
-                    title="تعديل"
-                    className="cursor-pointer rounded-lg p-2 text-slate-500 transition-colors hover:bg-blue-50 hover:text-blue-700"
+                    className="rounded-lg p-2 text-blue-600 hover:bg-blue-50"
                   >
-                    <Pencil size={17} />
+                    <Pencil size={16} />
                   </button>
                   <button
                     type="button"
                     onClick={() => setDeletingPost(post)}
-                    title="حذف"
-                    className="cursor-pointer rounded-lg p-2 text-red-500 transition-colors hover:bg-red-50"
+                    className="rounded-lg p-2 text-rose-600 hover:bg-rose-50"
                   >
-                    <Trash2 size={17} />
+                    <Trash2 size={16} />
                   </button>
                 </div>
               </AdminTableCell>
@@ -131,15 +120,21 @@ function PostsPage() {
       {isFormOpen && (
         <PostFormModal
           post={editingPost}
-          onSubmit={handleSubmit}
           onClose={closeForm}
+          onSubmit={handleSubmit}
         />
       )}
 
       {deletingPost && (
         <ConfirmDialog
+          title="حذف المنشور"
           message={`هل أنت متأكد من حذف المنشور «${deletingPost.title}»؟`}
-          onConfirm={handleDelete}
+          onConfirm={() => {
+            careSystemStore.deletePost(deletingPost.id);
+            setDeletingPost(null);
+            showToast("تم حذف المنشور", "error");
+            reload();
+          }}
           onClose={() => setDeletingPost(null)}
         />
       )}

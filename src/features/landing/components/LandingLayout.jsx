@@ -3,23 +3,36 @@ import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { ArrowLeft, Menu, X } from "lucide-react";
 
 import CareLinkLogo from "../../../components/CareLinkLogo";
+import { getCmsSiteSettings } from "../data/cmsContent";
 import InteractiveBackdrop from "./InteractiveBackdrop";
 import LandingFooter from "./LandingFooter";
 
-const navItems = [
-  { to: "/", label: "الرئيسية", end: true },
-  { to: "/doctors", label: "الخدمات" },
-  { to: "/faq", label: "الأسئلة الشائعة" },
-  { to: "/about", label: "عن المنصة" },
-  { to: "/contact", label: "اتصل بنا" },
-  { to: "/blog", label: "المدونة" },
-  { to: "/offers", label: "العروض والإعلانات" },
+const ALL_NAV_ITEMS = [
+  { to: "/", label: "الرئيسية", end: true, always: true },
+  { to: "/doctors", label: "الخدمات", settingKey: "showDoctors" },
+  { to: "/faq", label: "الأسئلة الشائعة", settingKey: "showFaq" },
+  { to: "/about", label: "عن المنصة", always: true },
+  { to: "/contact", label: "اتصل بنا", always: true },
+  { to: "/blog", label: "المدونة", settingKey: "showBlog" },
+  { to: "/offers", label: "العروض والإعلانات", settingKey: "showOffers" },
 ];
 
 function LandingLayout() {
   const { pathname } = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [siteSettings, setSiteSettings] = useState(() => getCmsSiteSettings());
+
+  useEffect(() => {
+    const reload = () => setSiteSettings(getCmsSiteSettings());
+    reload();
+    window.addEventListener("carelink-store-updated", reload);
+    return () => window.removeEventListener("carelink-store-updated", reload);
+  }, []);
+
+  const navItems = ALL_NAV_ITEMS.filter(
+    (item) => item.always || siteSettings?.[item.settingKey] !== false
+  );
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
@@ -48,13 +61,13 @@ function LandingLayout() {
             isScrolled ? "h-[4.25rem]" : "h-20"
           }`}
         >
-          <Link to="/" aria-label="CareLink - الرئيسية">
+          <Link to="/" aria-label={`${siteSettings.platformName || "CareLink"} - الرئيسية`}>
             <CareLinkLogo size={isScrolled ? 38 : 42} showText layout="header" />
           </Link>
 
           <nav className="hidden items-center gap-8 lg:flex" aria-label="التنقل الرئيسي">
             {navItems.map((item) => (
-              <NavLink key={item.to} {...item} className={navClass}>
+              <NavLink key={item.to} to={item.to} end={item.end} className={navClass}>
                 {item.label}
               </NavLink>
             ))}
@@ -65,7 +78,7 @@ function LandingLayout() {
               to="/login"
               className="hidden rounded-full border border-[#101860]/15 bg-white/80 px-5 py-2.5 text-sm font-extrabold text-[#101860] backdrop-blur transition-all hover:-translate-y-0.5 hover:shadow-md sm:inline-flex"
             >
-              دخول
+              تسجيل الدخول
             </Link>
             <Link to="/doctors" className="landing-btn-primary py-2.5 text-sm">
               احجز الآن
@@ -89,7 +102,8 @@ function LandingLayout() {
               {navItems.map((item) => (
                 <NavLink
                   key={item.to}
-                  {...item}
+                  to={item.to}
+                  end={item.end}
                   onClick={() => setIsMenuOpen(false)}
                   className={({ isActive }) =>
                     `rounded-xl px-4 py-3 text-sm font-bold transition-colors ${

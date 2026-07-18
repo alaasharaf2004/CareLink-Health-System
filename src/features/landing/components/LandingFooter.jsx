@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import CareLinkLogo from "../../../components/CareLinkLogo";
+import { getCmsSiteSettings } from "../data/cmsContent";
 
 const quickLinks = [
   { to: "/about", label: "عن المنصة" },
@@ -21,16 +22,22 @@ const quickLinks = [
 ];
 
 const services = [
-  "حجز المواعيد",
-  "الاستشارات عن بُعد",
-  "السجلات الطبية",
-  "نتائج المختبر والأشعة",
+  { to: "/doctors", label: "حجز المواعيد" },
+  { to: "/doctors", label: "الاستشارات عن بُعد" },
+  { to: "/login", label: "السجلات الطبية" },
+  { to: "/login", label: "نتائج المختبر والأشعة" },
 ];
 
 const socialLinks = [
-  { icon: Globe2, label: "الموقع" },
-  { icon: MessageCircle, label: "واتساب" },
-  { icon: Share2, label: "مشاركة" },
+  { icon: Globe2, label: "الموقع", to: "/", external: false, key: "web" },
+  {
+    icon: MessageCircle,
+    label: "واتساب",
+    to: "https://wa.me/970591234567",
+    external: true,
+    key: "whatsapp",
+  },
+  { icon: Share2, label: "تواصل معنا", to: "/contact", external: false, key: "contact" },
 ];
 
 function LandingFooter() {
@@ -39,6 +46,24 @@ function LandingFooter() {
   const pointerRef = useRef({ x: 0.5, y: 0.45, active: false });
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
+  const [settings, setSettings] = useState(() => getCmsSiteSettings());
+
+  useEffect(() => {
+    const reload = () => setSettings(getCmsSiteSettings());
+    reload();
+    window.addEventListener("carelink-store-updated", reload);
+    return () => window.removeEventListener("carelink-store-updated", reload);
+  }, []);
+
+  const resolvedSocial = socialLinks.map((link) => {
+    if (link.key === "web") {
+      return { ...link, to: settings.socialWeb || "/", external: Boolean(settings.socialWeb && settings.socialWeb.startsWith("http")) };
+    }
+    if (link.key === "whatsapp") {
+      return { ...link, to: settings.socialWhatsapp || link.to };
+    }
+    return link;
+  });
 
   useEffect(() => {
     const footer = footerRef.current;
@@ -227,16 +252,29 @@ function LandingFooter() {
             تجربة واحدة واضحة.
           </p>
           <div className="mt-6 flex gap-2.5">
-            {socialLinks.map(({ icon: Icon, label }) => (
-              <a
-                key={label}
-                href="#social"
-                aria-label={label}
-                className="landing-footer-social"
-              >
-                <Icon size={16} />
-              </a>
-            ))}
+            {resolvedSocial.map(({ icon: Icon, label, to, external }) =>
+              external ? (
+                <a
+                  key={label}
+                  href={to}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={label}
+                  className="landing-footer-social"
+                >
+                  <Icon size={16} />
+                </a>
+              ) : (
+                <Link
+                  key={label}
+                  to={to}
+                  aria-label={label}
+                  className="landing-footer-social"
+                >
+                  <Icon size={16} />
+                </Link>
+              )
+            )}
           </div>
         </div>
 
@@ -253,11 +291,13 @@ function LandingFooter() {
 
         <div>
           <h3 className="landing-footer-title">خدماتنا الطبية</h3>
-          <ul className="mt-5 space-y-3 text-sm text-slate-400">
+          <ul className="mt-5 space-y-3 text-sm">
             {services.map((service) => (
-              <li key={service} className="landing-footer-service-item">
-                <span className="landing-footer-dot" aria-hidden="true" />
-                {service}
+              <li key={service.label}>
+                <Link to={service.to} className="landing-footer-service-item">
+                  <span className="landing-footer-dot" aria-hidden="true" />
+                  {service.label}
+                </Link>
               </li>
             ))}
           </ul>
@@ -286,28 +326,28 @@ function LandingFooter() {
           )}
           <div className="mt-5 space-y-2.5 text-xs text-slate-400">
             <a
-              href="mailto:info@carelink.com"
+              href={`mailto:${settings.supportEmail || "support@carelink.com"}`}
               className="landing-footer-contact"
               dir="ltr"
             >
-              <Mail size={14} /> info@carelink.com
+              <Mail size={14} /> {settings.supportEmail || "support@carelink.com"}
             </a>
             <a
-              href="tel:+970591234567"
+              href={`tel:${(settings.supportPhone || "").replace(/\s+/g, "")}`}
               className="landing-footer-contact"
               dir="ltr"
             >
-              <Phone size={14} /> +970 59 123 4567
+              <Phone size={14} /> {settings.supportPhone || "+970 59 123 4567"}
             </a>
             <p className="landing-footer-contact">
-              <MapPin size={14} /> فلسطين، قطاع غزة
+              <MapPin size={14} /> {settings.address || "فلسطين، قطاع غزة"}
             </p>
           </div>
         </div>
       </div>
 
       <div className="relative border-t border-white/10 px-5 py-5 text-center text-xs text-slate-500">
-        © 2026 CareLink Health System. جميع الحقوق محفوظة.
+        © 2026 {settings.platformName || "CareLink"} Health System. جميع الحقوق محفوظة.
       </div>
     </footer>
   );

@@ -1,8 +1,14 @@
 ﻿import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 
-function FaqAccordion({ items, initialOpen = 0 }) {
-  const [openIndex, setOpenIndex] = useState(initialOpen);
+function FaqAccordion({ items, focusQuestion = null }) {
+  const initialIndex = focusQuestion
+    ? Math.max(
+        0,
+        items.findIndex((item) => item.question === focusQuestion)
+      )
+    : 0;
+  const [openIndex, setOpenIndex] = useState(initialIndex);
 
   return (
     <div className="space-y-3">

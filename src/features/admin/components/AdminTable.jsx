@@ -41,9 +41,9 @@ export function AdminTableRow({ children, className = "", style }) {
   );
 }
 
-export function AdminTableCell({ children, className = "" }) {
+export function AdminTableCell({ children, className = "", ...props }) {
   return (
-    <td className={`px-4 py-3.5 align-middle text-slate-700 ${className}`}>
+    <td className={`px-4 py-3.5 align-middle text-slate-700 ${className}`} {...props}>
       {children}
     </td>
   );

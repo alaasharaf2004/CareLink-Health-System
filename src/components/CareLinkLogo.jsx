@@ -95,23 +95,16 @@ function CareLinkLogo({
     : "text-[13px] font-extrabold leading-none";
 
   const titleStyle = onDark
-    ? { color: "#ffffff", textShadow: "0 0 18px rgba(255,255,255,0.28)" }
-    : isForm
-      ? { color: NAVY }
-      : { color: NAVY, textShadow: "0 2px 14px rgba(255,255,255,0.45)" };
+    ? { color: "#ffffff" }
+    : { color: NAVY };
 
   const subtitleStyle = onDark
-    ? { color: "rgba(255,255,255,0.92)" }
-    : isForm
-      ? { color: SUBTITLE_GREEN }
-      : {
-          color: SUBTITLE_GREEN,
-          textShadow: "0 1px 5px rgba(0,0,0,0.45), 0 0 14px rgba(0,0,0,0.18)",
-        };
+    ? { color: "rgba(255, 255, 255, 0.92)" }
+    : { color: SUBTITLE_GREEN };
 
   const containerClass = isForm
     ? `flex items-center gap-3 ${alignClass} animate-[logoReveal_0.8s_ease_forwards]`
-    : "flex items-center gap-3 drop-shadow-[0_2px_10px_rgba(0,0,0,0.18)]";
+    : "flex items-center gap-3";
 
   const iconSize = isForm ? size : size + 4;
 
