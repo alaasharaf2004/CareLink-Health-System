@@ -1,25 +1,33 @@
 import { useEffect, useState } from "react";
-
+import { Loader2 } from "lucide-react";
 import AdminPageHeader from "../components/AdminPageHeader";
 import Toast from "../components/Toast";
 import { useToast } from "../hooks/useToast";
-import { careSystemStore } from "../../care-system/data/careSystemStore";
+import apiClient from "../../../lib/api/client";
 
 function SiteSettingsPage() {
-  const [form, setForm] = useState(careSystemStore.getSiteSettings());
+  const [form, setForm] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
   const { toast, showToast, hideToast } = useToast();
 
   useEffect(() => {
-    const reload = () => setForm(careSystemStore.getSiteSettings());
-    window.addEventListener("carelink-store-updated", reload);
-    return () => window.removeEventListener("carelink-store-updated", reload);
+    apiClient.get("/admin/settings").then(res => {
+      setForm(res.data);
+      setIsLoading(false);
+    });
   }, []);
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    careSystemStore.saveSiteSettings(form);
-    showToast("تم حفظ إعدادات الموقع", "success");
+    try {
+      await apiClient.post("/admin/settings", form);
+      showToast("تم حفظ إعدادات الموقع", "success");
+    } catch {
+      showToast("خطأ في الحفظ", "error");
+    }
   };
+
+  if (isLoading) return <div className="flex justify-center py-10"><Loader2 className="animate-spin" /></div>;
 
   const field = (key, label, type = "text") => (
     <label className="block text-sm font-bold text-slate-700">
@@ -36,16 +44,9 @@ function SiteSettingsPage() {
   return (
     <div>
       <Toast toast={toast} onClose={hideToast} />
-      <AdminPageHeader
-        title="إعدادات الموقع"
-        description="التحكم بمعلومات التواصل وأقسام اللاندينغ العامة."
-      />
+      <AdminPageHeader title="إعدادات الموقع" description="التحكم بمعلومات التواصل." />
 
-      <form
-        onSubmit={handleSubmit}
-        className="max-w-3xl space-y-4 rounded-2xl border border-slate-200 bg-white p-6"
-        dir="rtl"
-      >
+      <form onSubmit={handleSubmit} className="max-w-3xl space-y-4 rounded-2xl border border-slate-200 bg-white p-6" dir="rtl">
         <div className="grid gap-4 sm:grid-cols-2">
           {field("platformName", "اسم المنصة")}
           {field("supportPhone", "هاتف الدعم")}
@@ -56,29 +57,19 @@ function SiteSettingsPage() {
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2">
-          {[
-            ["showBlog", "إظهار المدونة"],
-            ["showOffers", "إظهار العروض"],
-            ["showDoctors", "إظهار الأطباء"],
-            ["showFaq", "إظهار الأسئلة الشائعة"],
-          ].map(([key, label]) => (
+          {["showBlog", "showOffers", "showDoctors", "showFaq"].map((key) => (
             <label key={key} className="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-3 text-sm font-bold text-slate-700">
               <input
                 type="checkbox"
-                checked={Boolean(form[key])}
+                checked={form[key] === "true" || form[key] === true}
                 onChange={(e) => setForm({ ...form, [key]: e.target.checked })}
               />
-              {label}
+              {key}
             </label>
           ))}
         </div>
 
-        <button
-          type="submit"
-          className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white hover:bg-blue-700"
-        >
-          حفظ الإعدادات
-        </button>
+        <button type="submit" className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white">حفظ الإعدادات</button>
       </form>
     </div>
   );
