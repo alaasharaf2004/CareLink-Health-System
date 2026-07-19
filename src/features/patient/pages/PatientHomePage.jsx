@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+import apiClient from "../../../lib/api/client";
 import { Link } from "react-router-dom";
 import {
   ArrowLeft,
@@ -59,7 +61,36 @@ const STATS = [
 ];
 
 function PatientHomePage() {
-  const myAppointments = [];
+  const [myAppointments, setMyAppointments] = useState([]);
+  const [patient, setPatient] = useState(null);
+  const [medicalProfile, setMedicalProfile] = useState(null);
+  useEffect(() => {
+  const loadAppointments = async () => {
+    try {
+      const response = await apiClient.get("/patient/appointments");
+
+      console.log(response.data);
+
+      setMyAppointments(response.data.data);
+      const profileResponse = await apiClient.get("/patient/profile");
+
+      
+      setPatient(profileResponse.data.user);
+      const medicalResponse = await apiClient.get("/patient/medical-profile");
+
+      setMedicalProfile(medicalResponse.data.data);
+      console.log("Medical:", medicalResponse.data.data);
+      console.log(profileResponse.data.user);
+      
+
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  loadAppointments();
+}, []);
+
   const pending = myAppointments.filter((a) => a.status === "pending");
   const confirmed = myAppointments.filter((a) => a.status === "confirmed");
   const today = myAppointments.filter((a) =>
@@ -79,7 +110,10 @@ function PatientHomePage() {
   return (
     <div className="space-y-8">
       <div className="opacity-0 animate-[formFadeUp_0.55s_cubic-bezier(0.22,1,0.36,1)_forwards]">
-        <PatientWelcomeHero />
+        <PatientWelcomeHero
+            patient={patient}
+            medicalProfile={medicalProfile}
+        />
       </div>
 
       <section>

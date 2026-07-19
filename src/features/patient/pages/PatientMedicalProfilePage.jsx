@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Download, Save } from "lucide-react";
 
+import apiClient from "../../../lib/api/client";
+
 import Toast from "../../admin/components/Toast";
 import { useToast } from "../../admin/hooks/useToast";
 import { useAuth } from "../../authentication/context/AuthContext";
@@ -54,30 +56,43 @@ function PatientMedicalProfilePage() {
   const [patientName, setPatientName] = useState("المريض");
   const { toast, showToast, hideToast } = useToast();
 
-  const patientId =
-    authProfile?.patientId ||
-    careSystemStore.listPatients().find((p) => p.email === authProfile?.email)?.id ||
-    "pat-1";
-
   useEffect(() => {
-    const patient = careSystemStore.getPatient(patientId);
-    setPatientName(patient?.name || authProfile?.name || "المريض");
+      const loadMedicalProfile = async () => {
+        console.log("loadMedicalProfile started");
+        try {
+          console.log("before profile request");
+          // بيانات المستخدم
+          const profileResponse = await apiClient.get("/patient/profile");
+          setPatientName(profileResponse.data.user.name);
 
-    const saved = careSystemStore.getMedicalProfile(patientId);
-    if (saved) {
-      setForm({
-        ...EMPTY_MEDICAL_PROFILE,
-        ...saved,
-        patient_id: saved.patient_id || patientId,
-      });
-      return;
-    }
+          console.log("before medical request");
 
-    setForm({
-      ...EMPTY_MEDICAL_PROFILE,
-      patient_id: patientId,
-    });
-  }, [patientId, authProfile?.name, authProfile?.email]);
+          // بيانات الملف الطبي
+          const medicalResponse = await apiClient.get("/patient/medical-profile");
+          console.log("medical response:", medicalResponse.data);
+
+          const profile = medicalResponse.data.data;
+          console.log(JSON.stringify(profile, null, 2));
+
+
+          setForm({
+            ...EMPTY_MEDICAL_PROFILE,
+            ...Object.fromEntries(
+              Object.entries(profile).map(([key, value]) => [
+                key,
+                value ?? EMPTY_MEDICAL_PROFILE[key] ?? "",
+              ])
+            ),
+          });
+        } catch (error) {
+          console.error(error);
+        }
+      };
+
+      loadMedicalProfile();
+    }, []);
+
+
 
   const updateField = (key, value) => {
     setForm((current) => ({ ...current, [key]: value }));
@@ -118,10 +133,10 @@ function PatientMedicalProfilePage() {
     return Object.keys(nextErrors).length === 0;
   };
 
-  const persistAndDownload = () => {
+  const persistAndDownload = async () => {
     const payload = {
       ...form,
-      patient_id: form.patient_id || patientId,
+      patient_id: form.patient_id,
       weight_kg: String(form.weight_kg).trim(),
       height_cm: String(form.height_cm).trim(),
       blood_type: String(form.blood_type).trim(),
@@ -131,8 +146,7 @@ function PatientMedicalProfilePage() {
       emergency_contact_name: String(form.emergency_contact_name).trim(),
       emergency_contact_phone: String(form.emergency_contact_phone).trim(),
     };
-
-    careSystemStore.saveMedicalProfile(patientId, payload);
+    await apiClient.patch("/patient/profile", payload);
     setForm(payload);
 
     const downloaded = downloadMedicalProfilePdf({
@@ -148,21 +162,21 @@ function PatientMedicalProfilePage() {
     showToast("تم حفظ الملف الطبي وتحميل PDF", "success");
   };
 
-  const handleExport = () => {
+  const handleExport = async () => {
     if (!validate()) {
       showToast("أكمل جميع الحقول المطلوبة قبل التصدير", "error");
       return;
     }
-    persistAndDownload();
+    await persistAndDownload();
   };
 
-  const handleSave = (event) => {
+  const handleSave = async (event) => {
     event.preventDefault();
     if (!validate()) {
       showToast("لا يمكن الحفظ: يوجد حقول فارغة أو غير صحيحة", "error");
       return;
     }
-    persistAndDownload();
+    await persistAndDownload();
   };
 
   const fieldClass = (key) => (errors[key] ? inputErrorClass : inputClass);

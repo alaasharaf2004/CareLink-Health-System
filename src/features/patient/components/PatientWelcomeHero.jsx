@@ -3,8 +3,7 @@ import { ArrowLeft, CalendarPlus, Sparkles } from "lucide-react";
 
 import ProfileAvatar from "./ProfileAvatar";
 
-function PatientWelcomeHero() {
-  return (
+function PatientWelcomeHero({ patient, medicalProfile }) {  return (
     <section className="patient-hero relative overflow-hidden rounded-3xl">
       <div className="patient-hero-bg" aria-hidden="true" />
       <div className="patient-hero-shine" aria-hidden="true" />
@@ -18,9 +17,9 @@ function PatientWelcomeHero() {
 
           <h2 className="mt-4 text-3xl font-extrabold leading-tight text-[#101860] sm:text-4xl">
             مرحباً بعودتك،{" "}
-            <span className="bg-gradient-to-l from-[#40c0a0] to-blue-600 bg-clip-text text-transparent">
-              المريض
-            </span>
+              <span className="bg-gradient-to-l from-[#40c0a0] to-blue-600 bg-clip-text text-transparent">
+                {patient?.name}
+              </span>
           </h2>
 
           <p className="mt-3 max-w-lg text-sm leading-7 text-slate-600 sm:text-base">
@@ -47,9 +46,18 @@ function PatientWelcomeHero() {
 
           <div className="mt-8 flex flex-wrap gap-4 border-t border-white/60 pt-6">
             {[
-              { label: "فصيلة الدم", value: "—" },
-              { label: "الملف", value: "—" },
-              { label: "الحالة", value: "—" },
+              {
+                label: "فصيلة الدم",
+                value: medicalProfile?.blood_type ?? "—",
+              },
+              {
+                label: "الملف",
+                value: medicalProfile ? "مكتمل" : "—",
+              },
+              {
+                label: "الحالة",
+                value: medicalProfile?.status ?? "—",
+              },
             ].map((item) => (
               <div key={item.label}>
                 <p className="text-[11px] font-medium text-slate-400">{item.label}</p>
@@ -65,7 +73,7 @@ function PatientWelcomeHero() {
             <div className="patient-hero-ring patient-hero-ring--delay" aria-hidden="true" />
             <ProfileAvatar
               src=""
-              name="المريض"
+              name={patient?.name}
               size="xl"
               className="relative z-10 !h-44 !w-44 border-4 border-white shadow-2xl shadow-blue-900/15 sm:!h-52 sm:!w-52"
             />

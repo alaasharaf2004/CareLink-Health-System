@@ -150,12 +150,12 @@ function LoginPage() {
     setLoginHint("");
     setSuccessMessage("");
 
-    const demo = tryDemoLogin(email, password, selectedRole);
-    if (demo) {
-      finishLogin(demo);
-      setIsSubmitting(false);
-      return;
-    }
+    // const demo = tryDemoLogin(email, password, selectedRole);
+    // if (demo) {
+    //   finishLogin(demo);
+    //   setIsSubmitting(false);
+    //   return;
+    // }
 
     if (STAFF_ROLES.includes(selectedRole)) {
       setErrorMessage("استخدم الحساب التجريبي الظاهر أسفل النموذج لهذا الدور حالياً.");
