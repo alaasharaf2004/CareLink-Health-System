@@ -1,66 +1,86 @@
 import { useEffect, useState } from "react";
-import { CalendarDays } from "lucide-react";
-
+import { CalendarDays, Loader2 } from "lucide-react";
 import AdminPageHeader from "../components/AdminPageHeader";
 import AdminTable, { AdminTableCell, AdminTableRow } from "../components/AdminTable";
 import EmptyState from "../components/EmptyState";
-import {
-  APPOINTMENT_STATUS_LABELS,
-  careSystemStore,
-} from "../../care-system/data/careSystemStore";
+import Toast from "../components/Toast";
+import { useToast } from "../hooks/useToast";
+import apiClient from "../../../lib/api/client";
 
 const COLUMNS = [
   { key: "patient", label: "المريض" },
-  { key: "doctor", label: "الطبيب" },
-  { key: "datetime", label: "الموعد" },
+  { key: "datetime", label: "تاريخ ووقت الموعد" },
   { key: "type", label: "النوع" },
   { key: "status", label: "الحالة" },
-  { key: "source", label: "المصدر" },
 ];
 
 function AppointmentsMonitorPage() {
-  const [rows, setRows] = useState([]);
+  const [appointments, setAppointments] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { toast, showToast, hideToast } = useToast();
+
+  const fetchAppointments = async () => {
+    try {
+      setIsLoading(true);
+      // رابط الـ API الخاص بك
+      const res = await apiClient.get("/admin/appointments");
+      setAppointments(res.data.data || []);
+    } catch (error) {
+      showToast("خطأ في جلب بيانات المواعيد", "error");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const reload = () => {
-      const { patientName, doctorName } = careSystemStore.resolveNames();
-      setRows(
-        careSystemStore.listAppointments().map((apt) => ({
-          ...apt,
-          patient: patientName(apt.patientId),
-          doctor: doctorName(apt.doctorId),
-        }))
-      );
-    };
-    reload();
-    window.addEventListener("carelink-store-updated", reload);
-    return () => window.removeEventListener("carelink-store-updated", reload);
+    fetchAppointments();
   }, []);
+
+  // دالة مساعدة لتنسيق التاريخ
+  const formatDateTime = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleString('ar-EG', { 
+        year: 'numeric', month: 'short', day: 'numeric', 
+        hour: '2-digit', minute: '2-digit' 
+    });
+  };
 
   return (
     <div>
+      <Toast toast={toast} onClose={hideToast} />
       <AdminPageHeader
         title="المواعيد"
-        description="عرض جميع مواعيد النظام (قراءة فقط)."
+        description="عرض جميع مواعيد النظام."
       />
 
-      {rows.length === 0 ? (
+      {isLoading ? (
+        <div className="flex justify-center py-10">
+          <Loader2 className="animate-spin text-blue-600" size={32} />
+        </div>
+      ) : appointments.length === 0 ? (
         <EmptyState icon={CalendarDays} title="لا توجد مواعيد" description="ستظهر المواعيد هنا بعد إنشائها." />
       ) : (
         <AdminTable columns={COLUMNS}>
-          {rows.map((apt) => (
+          {appointments.map((apt) => (
             <AdminTableRow key={apt.id}>
-              <AdminTableCell className="font-bold text-blue-950">{apt.patient}</AdminTableCell>
-              <AdminTableCell>{apt.doctor}</AdminTableCell>
-              <AdminTableCell>
-                {apt.date} — {apt.time}
+              {/* الوصول لاسم المريض من داخل كائن patient */}
+              <AdminTableCell className="font-bold text-blue-950">
+                {apt.patient?.full_name || "غير محدد"}
               </AdminTableCell>
-              <AdminTableCell>{apt.type}</AdminTableCell>
-              <AdminTableCell>
-                {APPOINTMENT_STATUS_LABELS[apt.status] || apt.status}
+              
+              {/* تنسيق الوقت المدمج */}
+              <AdminTableCell dir="">
+                {formatDateTime(apt.scheduled_at)}
               </AdminTableCell>
+              
               <AdminTableCell>
-                {apt.createdBy === "reception" ? "استقبال" : "مريض"}
+                {apt.type === 'in_person' ? 'حضور شخصي' : 'عن بعد'}
+              </AdminTableCell>
+              
+              <AdminTableCell>
+                <span className={`px-2 py-1 rounded-full text-xs ${apt.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+                  {apt.status === 'confirmed' ? 'مؤكد' : apt.status}
+                </span>
               </AdminTableCell>
             </AdminTableRow>
           ))}
