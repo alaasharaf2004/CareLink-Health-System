@@ -12,17 +12,22 @@ function AdFormModal({ ad, onSubmit, onClose }) {
 
   const updateField = (field, value) =>
     setForm((current) => ({ ...current, [field]: value }));
+// داخل AdFormModal.js
+const handleSubmit = (event) => {
+  event.preventDefault();
+  
+  if (!form.title.trim()) {
+    setError("عنوان الإعلان مطلوب");
+    return;
+  }
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
-
-    if (!form.title.trim()) {
-      setError("عنوان الإعلان مطلوب");
-      return;
-    }
-
-    onSubmit({ ...form, title: form.title.trim(), link: form.link.trim() });
-  };
+  // نرسل الـ form كما هو، وهو الآن يحتوي على الـ image كـ File Object
+  onSubmit({ 
+    ...form, 
+    title: form.title.trim(), 
+    link: form.link.trim() 
+  });
+};
 
   return (
     <Modal
@@ -33,7 +38,12 @@ function AdFormModal({ ad, onSubmit, onClose }) {
         <ImageUploadField
           label="صورة الإعلان"
           value={form.image}
-          onChange={(preview) => updateField("image", preview)}
+          onChange={(previewUrl, file) => {
+            // نحفظ الملف في الـ form ليتم إرساله لاحقاً
+            updateField("image", file); 
+            // نحفظ الـ preview لعرضها في الواجهة
+            updateField("imagePreview", previewUrl); 
+          }}
         />
 
         <div>
