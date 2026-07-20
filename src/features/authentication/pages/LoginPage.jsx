@@ -66,8 +66,6 @@ const ROLE_LABELS = {
   admin: "الإدارة",
 };
 
-const STAFF_ROLES = ["reception", "laboratory", "pharmacy"];
-
 function resolveCategoryFromRole(role) {
   return CATEGORIES.find((category) =>
     category.roles.some((item) => item.value === role)
@@ -150,15 +148,10 @@ function LoginPage() {
     setLoginHint("");
     setSuccessMessage("");
 
+    // إبقاء الدخول التجريبي كخيار احتياطي إذا رغبت
     const demo = tryDemoLogin(email, password, selectedRole);
     if (demo) {
       finishLogin(demo);
-      setIsSubmitting(false);
-      return;
-    }
-
-    if (STAFF_ROLES.includes(selectedRole)) {
-      setErrorMessage("استخدم الحساب التجريبي الظاهر أسفل النموذج لهذا الدور حالياً.");
       setIsSubmitting(false);
       return;
     }
@@ -172,8 +165,19 @@ function LoginPage() {
       const token =
         data?.access_token ?? data?.token ?? data?.data?.access_token ?? data?.data?.token;
 
+      const user = data?.user ?? data?.admin ?? data?.data?.user ?? {};
+
       if (token) {
-        setSession({ token, role: selectedRole });
+        setSession({
+          token,
+          role: selectedRole,
+          profile: {
+            email: user.email || email,
+            name: user.name || "مستخدم",
+            staffId: user.id || null,
+            patientId: null,
+          },
+        });
         navigate(getDashboardPath(selectedRole), { replace: true });
         return;
       }

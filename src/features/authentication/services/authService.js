@@ -12,10 +12,22 @@ function buildFormData(fields) {
 }
 
 /**
- * تسجيل الدخول حسب الدور: patient | doctor | admin
- * POST /api/auth/{role}/login
+ * تسجيل الدخول حسب الدور: patient | doctor | admin | reception | laboratory | pharmacy
+ */
+/**
+ * تسجيل الدخول حسب الدور: patient | doctor | admin | reception | laboratory | pharmacy
  */
 export async function login(role, { email, password }) {
+  // إذا كان الدور أحد أدوار طاقم العيادة، نوجهه للمسار الخاص به في الباك إند
+  if (["reception", "laboratory", "pharmacy"].includes(role)) {
+    const response = await apiClient.post(
+      `/auth/staff/login`,
+      buildFormData({ email, password, role })
+    );
+    return response.data;
+  }
+
+  // للأدوار الأخرى (patient, doctor)
   const response = await apiClient.post(
     `/auth/${role}/login`,
     buildFormData({ email, password })
@@ -23,6 +35,14 @@ export async function login(role, { email, password }) {
 
   return response.data;
 }
+// export async function login(role, { email, password }) {
+//   const response = await apiClient.post(
+//     `/auth/${role}/login`,
+//     buildFormData({ email, password })
+//   );
+
+//   return response.data;
+// }
 
 export function formatPhoneForApi(countryCode, phone) {
   const digits = phone.replace(/\D/g, "");
@@ -63,7 +83,7 @@ export async function registerPatient({
       national_id: nationalId,
       address,
       gender,
-    })
+    }),
   );
 
   return response.data;
@@ -115,7 +135,7 @@ export async function registerDoctor({
 export async function forgotPassword(role, { email }) {
   const response = await apiClient.post(
     `/auth/${role}/forgot-password`,
-    buildFormData({ email })
+    buildFormData({ email }),
   );
 
   return response.data;
@@ -127,7 +147,7 @@ export async function forgotPassword(role, { email }) {
  */
 export async function resetPassword(
   role,
-  { email, code, password, passwordConfirmation }
+  { email, code, password, passwordConfirmation },
 ) {
   const response = await apiClient.post(
     `/auth/${role}/reset-password`,
@@ -136,7 +156,7 @@ export async function resetPassword(
       code,
       password,
       password_confirmation: passwordConfirmation,
-    })
+    }),
   );
 
   return response.data;

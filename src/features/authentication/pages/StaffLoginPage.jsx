@@ -19,7 +19,7 @@ import { DEMO_ACCOUNTS, tryDemoLogin } from "../../care-system/data/careSystemSt
 
 const STAFF_ROLES = [
   { value: "reception", label: "استقبال", icon: Users },
-  { value: "laboratory", label: "مختبر", icon: FlaskConical },
+  { value: "laboratory", label: "المختبر", icon: FlaskConical },
   { value: "pharmacy", label: "صيدلية", icon: Pill },
 ];
 
