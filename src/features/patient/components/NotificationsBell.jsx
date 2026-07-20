@@ -5,6 +5,8 @@ import { Bell, CalendarDays, CheckCheck, FileHeart, X } from "lucide-react";
 const ICON_MAP = {
   appointment: CalendarDays,
   record: FileHeart,
+  broadcast: Bell,
+  pharmacy: Bell,
   default: Bell,
 };
 
@@ -17,10 +19,19 @@ function NotificationsBell({ notifications: initialNotifications = [] }) {
   const panelRef = useRef(null);
   const [isOpen, setIsOpen] = useState(false);
   const [items, setItems] = useState(initialNotifications);
+  const signature = initialNotifications.map((item) => item.id).join("|");
 
   useEffect(() => {
-    setItems(initialNotifications);
-  }, [initialNotifications]);
+    setItems((current) => {
+      const readIds = new Set(current.filter((item) => item.read).map((item) => item.id));
+      return initialNotifications.map((item) => ({
+        ...item,
+        read: readIds.has(item.id) ? true : Boolean(item.read),
+      }));
+    });
+    // نعتمد signature حتى لا نمسح حالة "مقروء" مع كل render
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [signature]);
 
   useEffect(() => {
     if (!isOpen) return undefined;

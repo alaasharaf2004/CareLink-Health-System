@@ -4,6 +4,16 @@ import {
   blogHeroArticle,
   getArticleBySlug as getRichArticleBySlug,
 } from "./landingMockData";
+import {
+  fetchLandingAds,
+  fetchLandingArticleBySlug,
+  fetchLandingArticles,
+  fetchLandingDoctors,
+  fetchLandingSettings,
+  getBlogHeroFromArticles,
+  mapApiAd,
+  mapApiArticle,
+} from "../services/landingApi";
 
 function formatDisplayDate(isoDate) {
   if (!isoDate) return "";
@@ -23,37 +33,31 @@ function enrichArticle(storeArticle) {
     richArticles.find((item) => item.slug === storeArticle.slug) ||
     (blogHeroArticle.slug === storeArticle.slug ? blogHeroArticle : null);
 
-  return {
+  return mapApiArticle({
     ...rich,
     ...storeArticle,
     date: formatDisplayDate(storeArticle.date) || rich?.date || storeArticle.date,
-    excerpt: storeArticle.excerpt || rich?.excerpt || "",
-    image: storeArticle.image || rich?.image || "/images/carelink-blog-family.png",
-    content:
-      storeArticle.content ||
-      rich?.content || [
-        {
-          type: "p",
-          text: storeArticle.excerpt || "محتوى المقال قيد الإعداد.",
-        },
-      ],
-    readTime: rich?.readTime || "5 دقائق قراءة",
-    initials: rich?.initials || (storeArticle.author || "CL").slice(0, 2),
-    likes: rich?.likes ?? 0,
-    comments: rich?.comments ?? 0,
-    featured: Boolean(rich?.featured) || storeArticle.id === 1,
-  };
+    image: storeArticle.image || rich?.image,
+    content: storeArticle.content || rich?.content,
+  });
 }
 
+/** Sync fallback used before API resolves (local store / mock). */
 export function listPublishedArticles() {
-  return careSystemStore
+  const fromStore = careSystemStore
     .listArticles()
     .filter((article) => (article.status || "published") === "published")
     .map(enrichArticle);
+
+  if (fromStore.length) return fromStore;
+  return richArticles.map((article) => mapApiArticle(article));
 }
 
 export function getCmsArticleBySlug(slug) {
   if (!slug) return null;
+  if (blogHeroArticle.slug === slug || String(blogHeroArticle.id) === String(slug)) {
+    return blogHeroArticle;
+  }
 
   const fromStore = careSystemStore
     .listArticles()
@@ -70,15 +74,25 @@ export function getCmsArticleBySlug(slug) {
 }
 
 export function getBlogHeroArticle() {
-  const published = listPublishedArticles();
-  const featured = published.find((article) => article.featured);
-  return featured || published[0] || blogHeroArticle;
+  return blogHeroArticle;
 }
 
 export function listCmsAds() {
-  return careSystemStore.listAds();
+  const storeAds = careSystemStore.listAds();
+  if (storeAds.length) return storeAds.map(mapApiAd);
+  return [];
 }
 
 export function getCmsSiteSettings() {
   return careSystemStore.getSiteSettings();
 }
+
+/** Async API-backed loaders (Nabil admin CMS → public landing). */
+export {
+  fetchLandingAds,
+  fetchLandingArticleBySlug,
+  fetchLandingArticles,
+  fetchLandingDoctors,
+  fetchLandingSettings,
+  getBlogHeroFromArticles,
+};

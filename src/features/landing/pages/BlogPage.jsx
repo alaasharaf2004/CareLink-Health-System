@@ -6,26 +6,33 @@ import AnimatedSection from "../components/AnimatedSection";
 import { ArticleCard } from "../components/LandingCards";
 import MedicalBackdropIcons from "../components/MedicalBackdropIcons";
 import {
-  getBlogHeroArticle,
-  listPublishedArticles,
+  fetchLandingArticles,
 } from "../data/cmsContent";
+import { blogHeroArticle } from "../data/landingMockData";
 
 const categories = ["الكل", "تغذية", "صحة نفسية", "صحة عامة", "أخبار", "تكنولوجيا"];
 
 function BlogPage() {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("الكل");
-  const [articles, setArticles] = useState(() => listPublishedArticles());
-  const [blogHeroArticle, setBlogHeroArticle] = useState(() => getBlogHeroArticle());
+  const [articles, setArticles] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const reload = () => {
-      setArticles(listPublishedArticles());
-      setBlogHeroArticle(getBlogHeroArticle());
+    let active = true;
+
+    const load = async () => {
+      setIsLoading(true);
+      const list = await fetchLandingArticles();
+      if (!active) return;
+      setArticles(list);
+      setIsLoading(false);
     };
-    reload();
-    window.addEventListener("carelink-store-updated", reload);
-    return () => window.removeEventListener("carelink-store-updated", reload);
+
+    load();
+    return () => {
+      active = false;
+    };
   }, []);
 
   const filteredArticles = useMemo(
@@ -122,14 +129,14 @@ function BlogPage() {
             </div>
           </div>
 
-          {orderedArticles.length > 0 ? (
+          {isLoading ? (
+            <div className="mt-10 rounded-2xl border border-slate-200 bg-white py-16 text-center text-sm font-bold text-slate-500">
+              جاري تحميل المقالات...
+            </div>
+          ) : orderedArticles.length > 0 ? (
             <div className="landing-blog-grid" key={`${category}-${query}`}>
               {orderedArticles.map((article, index) => (
-                <ArticleCard
-                  key={article.id}
-                  article={article}
-                  index={index}
-                />
+                <ArticleCard key={article.id} article={article} index={index} />
               ))}
             </div>
           ) : (

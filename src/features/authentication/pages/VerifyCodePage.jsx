@@ -8,8 +8,13 @@ import OTPInput from "../components/OTPInput";
 import ResendTimer from "../components/ResendTimer";
 import {
   AUTH_CLICKABLE,
+  AUTH_BODY_ANIM,
+  AUTH_FORM_ALIGN,
   AUTH_FORM_CARD_CLASS,
   AUTH_HERO_ALIGN,
+  AUTH_HERO_NUDGE,
+  AUTH_LOGO_ANIM,
+  AUTH_STEP_ANIM,
 } from "../constants/authForm";
 import {
   maskEmail,
@@ -99,17 +104,18 @@ function VerifyCodePage() {
   }
 
   return (
-    <AuthLayout heroAlign={AUTH_HERO_ALIGN.simple}>
+    <AuthLayout
+      heroAlign={AUTH_HERO_ALIGN.simple}
+      heroNudgeClass={AUTH_HERO_NUDGE.admin}
+      formAlign={AUTH_FORM_ALIGN.end}
+    >
       <AuthCard className={AUTH_FORM_CARD_CLASS}>
-        <div className="mb-6 flex justify-center opacity-0 animate-[formFadeUp_0.7s_ease_0.1s_forwards]">
-          <CareLinkLogo size={42} showText layout="form" align="center" />
+        <div className={`mb-6 flex justify-center ${AUTH_LOGO_ANIM}`}>
+          <CareLinkLogo size={44} showText layout="form" align="center" />
         </div>
 
-        <div
-          className="mb-6 text-center opacity-0 animate-[formFadeUp_0.7s_ease_0.15s_forwards]"
-          dir="rtl"
-        >
-          <h1 className="text-2xl font-extrabold text-blue-950">
+        <div className={`mb-6 text-center ${AUTH_STEP_ANIM}`} dir="rtl">
+          <h1 className="text-2xl font-extrabold text-[#101860]">
             التحقق من الرمز
           </h1>
           <p className="mx-auto mt-2 max-w-sm text-sm leading-7 text-slate-500">
@@ -121,7 +127,7 @@ function VerifyCodePage() {
         </div>
 
         <form
-          className="space-y-5 opacity-0 animate-[formFadeUp_0.7s_ease_0.25s_forwards]"
+          className={`space-y-5 ${AUTH_BODY_ANIM}`}
           dir="rtl"
           onSubmit={handleSubmit}
         >
@@ -165,7 +171,7 @@ function VerifyCodePage() {
         </form>
 
         <p
-          className="mt-6 text-center text-sm text-slate-500 opacity-0 animate-[formFadeUp_0.7s_ease_0.35s_forwards]"
+          className={`mt-6 text-center text-sm text-slate-500 ${AUTH_BODY_ANIM}`}
           dir="rtl"
         >
           <Link

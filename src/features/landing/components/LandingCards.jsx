@@ -30,6 +30,14 @@ export function SectionHeading({ eyebrow, title, description, action, centered =
 }
 
 export function DoctorCard({ doctor, index = 0 }) {
+  const image = doctor.image || "/images/carelink-team-ceo.png";
+  const rating =
+    doctor.rating != null && !Number.isNaN(Number(doctor.rating))
+      ? Number(doctor.rating).toFixed(1)
+      : "—";
+  const fee = doctor.fee != null ? doctor.fee : "—";
+  const reviews = doctor.reviews != null ? doctor.reviews : 0;
+
   return (
     <article
       className="landing-card landing-card--doctor group"
@@ -37,7 +45,7 @@ export function DoctorCard({ doctor, index = 0 }) {
     >
       <div className="landing-card-doctor-top">
         <div className="landing-card-doctor-avatar">
-          <img src={doctor.image} alt="" loading="lazy" />
+          <img src={image} alt="" loading="lazy" />
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
@@ -47,7 +55,7 @@ export function DoctorCard({ doctor, index = 0 }) {
             </div>
             <span className="landing-rating">
               <Star size={13} className="fill-amber-400 text-amber-400" />
-              {doctor.rating}
+              {rating}
             </span>
           </div>
           <div className="mt-3 flex flex-wrap gap-1.5">
@@ -60,8 +68,8 @@ export function DoctorCard({ doctor, index = 0 }) {
         </div>
       </div>
       <div className="mt-4 flex items-center justify-between border-t border-slate-100/80 pt-4 text-xs text-slate-500">
-        <span>{doctor.reviews} تقييم</span>
-        <span className="font-extrabold text-[#101860]">{doctor.fee} ر.س</span>
+        <span>{reviews} تقييم</span>
+        <span className="font-extrabold text-[#101860]">{fee} ₪</span>
       </div>
       <Link to="/login" className="landing-btn-primary mt-4 w-full justify-center py-3 text-sm">
         <CalendarDays size={16} />

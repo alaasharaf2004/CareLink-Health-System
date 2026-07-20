@@ -7,6 +7,7 @@ import {
   Megaphone,
   Menu,
   Newspaper,
+  Radio,
   Settings,
   User,
   UserCheck,
@@ -22,6 +23,7 @@ const NAV_ITEMS = [
   { to: "/admin/doctors", label: "طلبات الأطباء", icon: UserCheck },
   { to: "/admin/articles", label: "المقالات", icon: BookOpen },
   { to: "/admin/ads", label: "الإعلانات", icon: Megaphone },
+  { to: "/admin/broadcasts", label: "نظام البث", icon: Radio },
   { to: "/admin/posts", label: "المنشورات", icon: Newspaper },
   { to: "/admin/patients", label: "المرضى", icon: Users },
   { to: "/admin/appointments", label: "المواعيد", icon: CalendarDays },
@@ -31,11 +33,11 @@ const NAV_ITEMS = [
 
 function AdminLayout() {
   const navigate = useNavigate();
-  const { clearSession } = useAuth();
+  const { clearSession, profile } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const adminName = "المسؤول";
-  const adminInitial = adminName.charAt(0).toUpperCase();
+  const adminName = profile?.name || "المسؤول";
+  const adminInitial = adminName.replace(/^ال/, "").charAt(0) || "م";
 
   const handleLogout = () => {
     clearSession();
@@ -61,10 +63,7 @@ function AdminLayout() {
           <X size={20} />
         </button>
 
-        <Link
-          to="/admin/staff"
-          className="transition-opacity hover:opacity-90"
-        >
+        <Link to="/admin/staff" className="transition-opacity hover:opacity-90">
           <CareLinkLogo
             size={48}
             showText
@@ -119,42 +118,66 @@ function AdminLayout() {
       )}
 
       <div className="lg:mr-72">
-        <header className="sticky top-0 z-20 flex items-center justify-between gap-4 border-b border-slate-200/80 bg-white/90 px-5 py-3 backdrop-blur-md lg:px-8">
-          <button
-            type="button"
-            onClick={() => setIsSidebarOpen(true)}
-            className="cursor-pointer rounded-xl border border-slate-200 p-2 text-slate-600 transition-colors hover:bg-slate-50 lg:hidden"
-            aria-label="فتح القائمة"
-          >
-            <Menu size={22} />
-          </button>
+        <header className="sticky top-0 z-20 flex items-center justify-between gap-4 border-b border-slate-200/80 bg-white/95 px-5 py-3.5 shadow-sm backdrop-blur-md lg:px-8">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setIsSidebarOpen(true)}
+              className="shrink-0 cursor-pointer rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 lg:hidden"
+              aria-label="فتح القائمة"
+            >
+              <Menu size={22} />
+            </button>
+            <div className="min-w-0">
+              <h1 className="whitespace-nowrap text-base font-extrabold leading-tight text-[#101860] sm:text-xl">
+                لوحة تحكم الإدارة
+              </h1>
+              <p className="mt-0.5 hidden text-sm font-semibold tracking-wide text-[#40c0a0] sm:block">
+                CareLink Health
+              </p>
+            </div>
+          </div>
 
-          <Link
-            to="/admin/profile"
-            className="group ms-auto flex cursor-pointer items-center gap-0 overflow-hidden rounded-2xl border border-slate-200/80 bg-white py-1.5 pe-4 ps-1.5 shadow-[0_1px_8px_rgba(15,23,42,0.05)] transition-all duration-200 hover:border-blue-200/80 hover:shadow-[0_6px_24px_rgba(37,99,235,0.1)] lg:ms-0 lg:me-auto"
-          >
-            <div className="relative ms-0.5 shrink-0">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#101860] via-[#1a2878] to-blue-600 text-[13px] font-extrabold text-white shadow-[0_3px_12px_rgba(16,24,96,0.28)] ring-[2.5px] ring-slate-100 transition-transform duration-200 group-hover:scale-[1.04]">
-                {adminInitial}
+          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+            <Link
+              to="/admin/ads"
+              className="relative flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-blue-50 hover:text-blue-700"
+              aria-label="الإعلانات"
+              title="الإعلانات"
+            >
+              <Megaphone size={20} />
+            </Link>
+
+            <Link
+              to="/admin/profile"
+              className="group flex cursor-pointer items-center gap-0 overflow-hidden rounded-2xl border border-slate-200/80 bg-white py-1.5 pe-3 ps-1.5 shadow-sm transition-all duration-200 hover:border-[#40c0a0]/40 hover:shadow-md sm:pe-4"
+            >
+              <div className="relative shrink-0">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#101860] via-[#1a2878] to-blue-600 text-[13px] font-extrabold text-white shadow-[0_3px_12px_rgba(16,24,96,0.28)] ring-[2.5px] ring-slate-100 transition-transform duration-200 group-hover:scale-[1.04]">
+                  {adminInitial}
+                </div>
+                <span
+                  className="absolute bottom-0 end-0 h-2.5 w-2.5 rounded-full border-[2px] border-white bg-emerald-500 shadow-sm"
+                  aria-hidden="true"
+                />
               </div>
-              <span
-                className="absolute bottom-0 end-0 h-2.5 w-2.5 rounded-full border-[2px] border-white bg-emerald-500 shadow-sm"
+
+              <div
+                className="mx-2.5 hidden h-9 w-px shrink-0 bg-slate-200/90 sm:block"
                 aria-hidden="true"
               />
-            </div>
 
-            <div className="mx-3 h-9 w-px shrink-0 bg-slate-200/90" aria-hidden="true" />
-
-            <div className="min-w-0 py-0.5 text-right">
-              <p className="text-[13px] leading-5">
-                <span className="font-bold text-[#40C0A0]">أهلاً بك، </span>
-                <span className="font-extrabold text-[#101860]">{adminName}</span>
-              </p>
-              <p className="mt-0.5 text-[11px] font-medium text-slate-400">
-                مسؤول النظام · CareLink
-              </p>
-            </div>
-          </Link>
+              <div className="hidden min-w-0 py-0.5 text-right sm:block">
+                <p className="text-[13px] leading-5">
+                  <span className="font-bold text-[#40C0A0]">أهلاً بك، </span>
+                  <span className="font-extrabold text-[#101860]">{adminName}</span>
+                </p>
+                <p className="mt-0.5 text-[11px] font-medium text-slate-400">
+                  مسؤول النظام · CareLink
+                </p>
+              </div>
+            </Link>
+          </div>
         </header>
 
         <main className="px-5 py-6 lg:px-8 lg:py-8">

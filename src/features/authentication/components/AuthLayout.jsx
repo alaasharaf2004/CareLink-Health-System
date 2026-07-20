@@ -71,7 +71,7 @@ function AuthLayout({
           <div
             className={`flex w-full flex-col opacity-0 animate-[fadeInRight_0.85s_ease_0.25s_forwards] lg:shrink-0 ${formColumnWidth} ${formAlign}`}
           >
-            <div className="w-full animate-[authCardReveal_0.9s_cubic-bezier(0.22,1,0.36,1)_forwards]">
+            <div className="w-full animate-[authCardReveal_0.95s_cubic-bezier(0.22,1,0.36,1)_forwards]">
               {children}
             </div>
           </div>

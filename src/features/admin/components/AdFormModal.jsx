@@ -37,12 +37,13 @@ const handleSubmit = (event) => {
       <form onSubmit={handleSubmit} className="space-y-4">
         <ImageUploadField
           label="صورة الإعلان"
-          value={form.image}
+          value={
+            form.imagePreview ||
+            (typeof form.image === "string" ? form.image : "")
+          }
           onChange={(previewUrl, file) => {
-            // نحفظ الملف في الـ form ليتم إرساله لاحقاً
-            updateField("image", file); 
-            // نحفظ الـ preview لعرضها في الواجهة
-            updateField("imagePreview", previewUrl); 
+            updateField("image", file);
+            updateField("imagePreview", previewUrl);
           }}
         />
 

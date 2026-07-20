@@ -16,6 +16,7 @@ const ROLE_TABS = [
   { value: "reception", label: "الاستقبال" },
   { value: "laboratory", label: "المختبر" },
   { value: "pharmacy", label: "الصيدلية" },
+  { value: "radiology", label: "الأشعة" },
 ];
 
 const COLUMNS = [

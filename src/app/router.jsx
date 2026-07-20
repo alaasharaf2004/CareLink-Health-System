@@ -7,6 +7,7 @@ import { laboratoryRoutes } from "../features/laboratory/laboratoryRoutes";
 import { landingRoutes } from "../features/landing/landingRoutes";
 import { patientRoutes } from "../features/patient/patientRoutes";
 import { pharmacyRoutes } from "../features/pharmacy/pharmacyRoutes";
+import { radiologyRoutes } from "../features/radiology/radiologyRoutes";
 import { receptionRoutes } from "../features/reception/receptionRoutes";
 
 const router = createBrowserRouter([
@@ -18,6 +19,7 @@ const router = createBrowserRouter([
   ...receptionRoutes,
   ...laboratoryRoutes,
   ...pharmacyRoutes,
+  ...radiologyRoutes,
 ]);
 
 function AppRouter() {

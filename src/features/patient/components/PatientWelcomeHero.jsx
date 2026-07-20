@@ -3,7 +3,8 @@ import { ArrowLeft, CalendarPlus, Sparkles } from "lucide-react";
 
 import ProfileAvatar from "./ProfileAvatar";
 
-function PatientWelcomeHero({ patient, medicalProfile }) {  return (
+function PatientWelcomeHero({ patient, medicalProfile }) {
+  return (
     <section className="patient-hero relative overflow-hidden rounded-3xl">
       <div className="patient-hero-bg" aria-hidden="true" />
       <div className="patient-hero-shine" aria-hidden="true" />
@@ -30,14 +31,14 @@ function PatientWelcomeHero({ patient, medicalProfile }) {  return (
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
               to="/patient/appointments"
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-l from-[#101860] to-blue-700 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-blue-900/20 transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-xl"
+              className="workspace-btn-press inline-flex items-center gap-2 rounded-xl bg-gradient-to-l from-[#101860] to-blue-700 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-blue-900/20 hover:shadow-xl"
             >
               <CalendarPlus size={17} />
               احجز موعداً الآن
             </Link>
             <Link
               to="/patient/medical-profile"
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white/80 px-5 py-3 text-sm font-bold text-slate-700 backdrop-blur-sm transition-colors hover:border-[#40c0a0]/40 hover:text-[#101860]"
+              className="workspace-btn-press inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white/80 px-5 py-3 text-sm font-bold text-slate-700 backdrop-blur-sm hover:border-[#40c0a0]/40 hover:text-[#101860]"
             >
               ملفي الطبي
               <ArrowLeft size={15} />

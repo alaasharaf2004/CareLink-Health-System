@@ -8,6 +8,7 @@ import {
   Lock,
   Mail,
   Pill,
+  Scan,
   ShieldCheck,
   Stethoscope,
   User,
@@ -40,12 +41,13 @@ const CATEGORIES = [
   {
     id: "staff",
     title: "طاقم العيادة",
-    description: "استقبال، مختبر، وصيدلية",
+    description: "استقبال، مختبر، صيدلية، وأشعة",
     icon: Users,
     roles: [
-      { value: "reception", label: "استقبال", icon: Users },
-      { value: "laboratory", label: "مختبر", icon: FlaskConical },
-      { value: "pharmacy", label: "صيدلية", icon: Pill },
+      { value: "reception", label: "موظف استقبال", icon: Users },
+      { value: "laboratory", label: "فني مختبر", icon: FlaskConical },
+      { value: "pharmacy", label: "صيدلي", icon: Pill },
+      { value: "radiology", label: "فني أشعة", icon: Scan },
     ],
   },
   {
@@ -60,11 +62,14 @@ const CATEGORIES = [
 const ROLE_LABELS = {
   patient: "المريض",
   doctor: "الطبيب",
-  reception: "الاستقبال",
-  laboratory: "المختبر",
-  pharmacy: "الصيدلية",
+  reception: "موظف الاستقبال",
+  laboratory: "فني المختبر",
+  pharmacy: "الصيدلي",
+  radiology: "فني الأشعة",
   admin: "الإدارة",
 };
+
+const STAFF_ROLES = ["reception", "laboratory", "pharmacy", "radiology"];
 
 function resolveCategoryFromRole(role) {
   return CATEGORIES.find((category) =>
@@ -134,8 +139,15 @@ function LoginPage() {
         name: account.name,
         staffId: account.staffId,
         patientId: account.patientId,
+        mustChangePassword: Boolean(account.mustChangePassword),
       },
     });
+
+    if (account.mustChangePassword) {
+      navigate("/change-password", { replace: true });
+      return;
+    }
+
     navigate(getDashboardPath(account.role), { replace: true });
   };
 
@@ -148,15 +160,20 @@ function LoginPage() {
     setLoginHint("");
     setSuccessMessage("");
 
-    // إبقاء الدخول التجريبي كخيار احتياطي إذا رغبت
-    const demo = tryDemoLogin(email, password, selectedRole);
-    if (demo) {
-      finishLogin(demo);
-      setIsSubmitting(false);
-      return;
-    }
-
     try {
+      const demo = tryDemoLogin(email, password, selectedRole);
+      if (demo) {
+        finishLogin(demo);
+        return;
+      }
+
+      if (STAFF_ROLES.includes(selectedRole)) {
+        setErrorMessage(
+          "الحساب غير موجود أو كلمة المرور خاطئة. تأكد أن الأدمن أنشأ لك حساباً أو استخدم الحساب التجريبي."
+        );
+        return;
+      }
+
       const data =
         selectedRole === "admin"
           ? await loginAdmin({ email: email.trim(), password })
@@ -185,7 +202,8 @@ function LoginPage() {
       setSuccessMessage(data?.message ?? "تم تسجيل الدخول بنجاح.");
     } catch (error) {
       setErrorMessage(
-        getApiErrorMessage(error, "تعذر تسجيل الدخول. تحقق من البيانات وحاول مرة أخرى.")
+        error?.message ||
+          getApiErrorMessage(error, "تعذر تسجيل الدخول. تحقق من البيانات وحاول مرة أخرى.")
       );
 
       if (selectedRole === "doctor" && error?.response?.status === 401) {
@@ -202,44 +220,47 @@ function LoginPage() {
     <AuthLayout
       heroAlign={AUTH_HERO_ALIGN.simple}
       heroNudgeClass={AUTH_HERO_NUDGE.admin}
-      formAlign={AUTH_FORM_ALIGN.center}
+      formAlign={AUTH_FORM_ALIGN.end}
     >
       <AuthCard className={AUTH_FORM_CARD_CLASS}>
-        <div className="mb-6 flex justify-center opacity-0 animate-[formFadeUp_0.7s_ease_0.1s_forwards]">
-          <CareLinkLogo size={42} showText layout="form" align="center" />
+        <div className="mb-6 flex justify-center opacity-0 animate-[logoReveal_0.75s_cubic-bezier(0.22,1,0.36,1)_0.05s_forwards]">
+          <CareLinkLogo size={44} showText layout="form" align="center" />
         </div>
 
         {step === "category" ? (
-          <div dir="rtl" className="opacity-0 animate-[formFadeUp_0.7s_ease_0.15s_forwards]">
+          <div dir="rtl" key="category" className="opacity-0 animate-[loginStepIn_0.55s_cubic-bezier(0.22,1,0.36,1)_0.12s_forwards]">
             <div className="mb-6 text-center">
-              <h1 className="text-2xl font-extrabold text-blue-950">تسجيل الدخول</h1>
-              <p className="mx-auto mt-2 max-w-sm text-sm leading-7 text-slate-500">
+              <h1 className="text-2xl font-extrabold tracking-tight text-blue-950">
+                تسجيل الدخول
+              </h1>
+              <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-slate-500">
                 اختر فئة الدخول المناسبة، ثم أكمل بيانات الحساب.
               </p>
             </div>
 
             <div className="space-y-3">
-              {CATEGORIES.map((item) => {
+              {CATEGORIES.map((item, index) => {
                 const Icon = item.icon;
                 return (
                   <button
                     key={item.id}
                     type="button"
                     onClick={() => openCategory(item)}
-                    className="group flex w-full cursor-pointer items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-right transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-200 hover:bg-blue-50/40 hover:shadow-sm hover:shadow-blue-100/70"
+                    style={{ animationDelay: `${0.18 + index * 0.09}s` }}
+                    className="group flex w-full cursor-pointer items-center gap-3 rounded-2xl border border-slate-200/90 bg-gradient-to-l from-white to-slate-50/80 px-4 py-4 text-right opacity-0 shadow-[0_1px_0_rgba(15,23,42,0.03)] animate-[loginCategoryIn_0.65s_cubic-bezier(0.22,1,0.36,1)_forwards] transition-all duration-300 hover:-translate-y-1 hover:border-[#40C0A0]/45 hover:from-white hover:to-[#40C0A0]/8 hover:shadow-[0_12px_28px_rgba(16,24,96,0.08)]"
                   >
-                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 transition-colors group-hover:bg-blue-100">
-                      <Icon size={20} />
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#101860]/6 text-[#101860] transition-all duration-300 group-hover:scale-105 group-hover:bg-[#40C0A0]/15 group-hover:text-[#101860]">
+                      <Icon size={20} aria-hidden="true" />
                     </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-sm font-extrabold text-blue-950">
+                    <span className="min-w-0 flex-1 overflow-hidden">
+                      <span className="block truncate text-sm font-extrabold text-[#101860]">
                         {item.title}
                       </span>
-                      <span className="mt-0.5 block text-xs leading-5 text-slate-500">
+                      <span className="mt-0.5 block truncate text-xs leading-5 text-slate-500 transition-colors group-hover:text-slate-600">
                         {item.description}
                       </span>
                     </span>
-                    <span className="rounded-lg border border-blue-200 px-3 py-1.5 text-xs font-bold text-blue-600 transition-colors group-hover:border-blue-600 group-hover:bg-blue-600 group-hover:text-white">
+                    <span className="inline-flex h-9 w-[4.25rem] shrink-0 items-center justify-center rounded-lg border border-blue-200/90 bg-white text-xs font-bold text-blue-600 transition-all duration-300 group-hover:border-[#101860] group-hover:bg-[#101860] group-hover:text-white group-hover:shadow-sm">
                       دخول
                     </span>
                   </button>
@@ -247,7 +268,7 @@ function LoginPage() {
               })}
             </div>
 
-            <p className="mt-6 text-center text-sm text-slate-500">
+            <p className="mt-6 text-center text-sm leading-6 text-slate-500 opacity-0 animate-[formFadeUp_0.6s_ease_0.55s_forwards]">
               ليس لديك حساب مريض/طبيب؟{" "}
               <Link to="/register" className={AUTH_CLICKABLE.underlineLink}>
                 إنشاء حساب جديد
@@ -255,11 +276,8 @@ function LoginPage() {
             </p>
           </div>
         ) : (
-          <>
-            <div
-              className="mb-5 text-center opacity-0 animate-[formFadeUp_0.7s_ease_0.15s_forwards]"
-              dir="rtl"
-            >
+          <div key="form" className="opacity-0 animate-[loginStepIn_0.55s_cubic-bezier(0.22,1,0.36,1)_forwards]">
+            <div className="mb-5 text-center" dir="rtl">
               <button
                 type="button"
                 onClick={backToCategories}
@@ -278,8 +296,12 @@ function LoginPage() {
 
             {showRoleTabs && (
               <div
-                className={`mb-5 grid gap-1 rounded-2xl border border-slate-200 bg-white p-1.5 opacity-0 animate-[formFadeUp_0.7s_ease_0.2s_forwards] ${
-                  category.roles.length === 3 ? "grid-cols-3" : "grid-cols-2"
+                className={`mb-5 grid gap-1.5 rounded-2xl border border-slate-200 bg-slate-50/80 p-1.5 ${
+                  category.roles.length >= 4
+                    ? "grid-cols-2"
+                    : category.roles.length === 3
+                      ? "grid-cols-3"
+                      : "grid-cols-2"
                 }`}
               >
                 {category.roles.map(({ value, label, icon: Icon }) => {
@@ -293,10 +315,10 @@ function LoginPage() {
                         setErrorMessage("");
                         setLoginHint("");
                       }}
-                      className={`flex h-11 cursor-pointer items-center justify-center gap-2 rounded-xl text-sm font-bold transition-all duration-200 ${
+                      className={`flex h-11 cursor-pointer items-center justify-center gap-1.5 rounded-xl px-2 text-[11px] font-bold transition-all duration-300 sm:gap-2 sm:text-sm ${
                         isActive
                           ? "bg-blue-600 text-white shadow-sm shadow-blue-200/70"
-                          : "bg-transparent text-blue-950 hover:bg-blue-50 hover:text-blue-700"
+                          : "bg-transparent text-slate-600 hover:bg-white hover:text-blue-700"
                       }`}
                     >
                       <Icon size={15} />
@@ -307,11 +329,7 @@ function LoginPage() {
               </div>
             )}
 
-            <form
-              className="space-y-4 opacity-0 animate-[formFadeUp_0.7s_ease_0.25s_forwards]"
-              dir="rtl"
-              onSubmit={handleSubmit}
-            >
+            <form className="space-y-4" dir="rtl" onSubmit={handleSubmit}>
               <div>
                 <label className="mb-2 block text-sm font-bold text-slate-800">
                   البريد الإلكتروني
@@ -326,7 +344,7 @@ function LoginPage() {
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
                     placeholder="أدخل بريدك الإلكتروني"
-                    className="h-11 w-full rounded-xl border border-slate-200 bg-white pr-10 pl-4 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                    className="h-11 w-full rounded-xl border border-slate-200 bg-white pr-10 pl-4 text-sm text-slate-700 outline-none transition duration-300 placeholder:text-slate-400 focus:border-[#40C0A0] focus:ring-4 focus:ring-[#40C0A0]/15"
                   />
                 </div>
               </div>
@@ -345,7 +363,7 @@ function LoginPage() {
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
                     placeholder="أدخل كلمة المرور"
-                    className="h-11 w-full rounded-xl border border-slate-200 bg-white pr-10 pl-10 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                    className="h-11 w-full rounded-xl border border-slate-200 bg-white pr-10 pl-10 text-sm text-slate-700 outline-none transition duration-300 placeholder:text-slate-400 focus:border-[#40C0A0] focus:ring-4 focus:ring-[#40C0A0]/15"
                   />
                   <button
                     type="button"
@@ -360,7 +378,7 @@ function LoginPage() {
               {(selectedRole === "patient" || selectedRole === "doctor") && (
                 <div className="flex items-center justify-between text-sm">
                   <label className="flex cursor-pointer items-center gap-2 font-semibold text-slate-700">
-                    <input type="checkbox" defaultChecked className="h-4 w-4 accent-blue-600" />
+                    <input type="checkbox" defaultChecked className="h-4 w-4 accent-[#101860]" />
                     تذكرني
                   </label>
                   <Link
@@ -403,7 +421,7 @@ function LoginPage() {
                 <button
                   type="button"
                   onClick={() => finishLogin(demoAccount)}
-                  className={`${AUTH_CLICKABLE.roleTabBase} mt-3 w-full border border-dashed border-blue-200 bg-blue-50/70 text-blue-700 hover:bg-blue-50`}
+                  className={`${AUTH_CLICKABLE.roleTabBase} mt-3 w-full border border-dashed border-[#40C0A0]/50 bg-[#40C0A0]/10 text-[#101860] hover:bg-[#40C0A0]/18`}
                 >
                   دخول تجريبي — {ROLE_LABELS[selectedRole]}
                 </button>
@@ -429,7 +447,7 @@ function LoginPage() {
                 </p>
               </>
             )}
-          </>
+          </div>
         )}
       </AuthCard>
     </AuthLayout>

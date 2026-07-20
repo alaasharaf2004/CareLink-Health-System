@@ -5,9 +5,9 @@ import { Search, ShieldCheck, Star, X } from "lucide-react";
 import AnimatedSection from "../components/AnimatedSection";
 import { DoctorCard, SectionHeading } from "../components/LandingCards";
 import MedicalBackdropIcons from "../components/MedicalBackdropIcons";
-import { doctors } from "../data/landingMockData";
+import { fetchLandingDoctors } from "../data/cmsContent";
 
-const specialties = [
+const FALLBACK_SPECIALTIES = [
   "الكل",
   "القلب",
   "الأطفال",
@@ -53,8 +53,33 @@ function DoctorsPage() {
   const [query, setQuery] = useState("");
   const [specialty, setSpecialty] = useState("الكل");
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [doctors, setDoctors] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const searchWrapRef = useRef(null);
   const resultsRef = useRef(null);
+
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      setIsLoading(true);
+      const list = await fetchLandingDoctors();
+      if (!active) return;
+      setDoctors(list);
+      setIsLoading(false);
+    };
+    load();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const specialties = useMemo(() => {
+    const tags = new Set(
+      doctors.map((doctor) => doctor.specialtyTag).filter(Boolean)
+    );
+    if (!tags.size) return FALLBACK_SPECIALTIES;
+    return ["الكل", ...Array.from(tags)];
+  }, [doctors]);
 
   const normalizedQuery = useMemo(
     () => normalizeArabic(query),
@@ -70,14 +95,14 @@ function DoctorsPage() {
         doctor.specialty.includes(specialty);
       return matchesQuery && matchesSpecialty;
     });
-  }, [normalizedQuery, specialty]);
+  }, [doctors, normalizedQuery, specialty]);
 
   const suggestions = useMemo(() => {
     if (!normalizedQuery) return [];
     return doctors
       .filter((doctor) => matchesDoctorSearch(doctor, normalizedQuery))
       .slice(0, 6);
-  }, [normalizedQuery]);
+  }, [doctors, normalizedQuery]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -266,7 +291,11 @@ function DoctorsPage() {
                 : `${filteredDoctors.length} أطباء متاحون للحجز`
             }
           />
-          {filteredDoctors.length > 0 ? (
+          {isLoading ? (
+            <div className="rounded-2xl border border-slate-200 bg-white py-16 text-center text-sm font-bold text-slate-500">
+              جاري تحميل الأطباء من النظام...
+            </div>
+          ) : filteredDoctors.length > 0 ? (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {filteredDoctors.map((doctor, index) => (
                 <DoctorCard key={doctor.id} doctor={doctor} index={index} />

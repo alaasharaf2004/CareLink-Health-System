@@ -24,7 +24,7 @@ import AuthCard from "../components/AuthCard";
 import GoogleAuthButton from "../components/GoogleAuthButton";
 import GirlUserIcon from "../components/icons/GirlUserIcon";
 import { useAuth } from "../context/AuthContext";
-import { AUTH_CLICKABLE, AUTH_FORM_CARD_CLASS, AUTH_HERO_ALIGN } from "../constants/authForm";
+import { AUTH_CLICKABLE, AUTH_BODY_ANIM, AUTH_FORM_CARD_CLASS, AUTH_HERO_ALIGN, AUTH_LOGO_ANIM, AUTH_STEP_ANIM } from "../constants/authForm";
 import { getDashboardPath } from "../constants/authRoutes";
 import {
   formatPhoneForApi,
@@ -169,15 +169,15 @@ function RegisterPage() {
       }
     >
       <AuthCard className={AUTH_FORM_CARD_CLASS}>
-        <div className="mb-6 flex justify-center opacity-0 animate-[formFadeUp_0.7s_ease_0.1s_forwards]">
-          <CareLinkLogo size={42} showText layout="form" align="center" />
+        <div className={`mb-6 flex justify-center ${AUTH_LOGO_ANIM}`}>
+          <CareLinkLogo size={44} showText layout="form" align="center" />
         </div>
 
         <div
-          className="mb-6 text-center opacity-0 animate-[formFadeUp_0.7s_ease_0.15s_forwards]"
+          className={`mb-6 text-center ${AUTH_STEP_ANIM}`}
           dir="rtl"
         >
-          <h1 className="text-2xl font-extrabold text-blue-950">إنشاء حساب جديد</h1>
+          <h1 className="text-2xl font-extrabold text-[#101860]">إنشاء حساب جديد</h1>
           <p className="mx-auto mt-2 max-w-sm text-sm leading-7 text-slate-500">
             {isDoctor
               ? "أنشئ حسابك كطبيب وأرسل بياناتك وشهادتك للمراجعة من الإدارة"
@@ -188,13 +188,13 @@ function RegisterPage() {
         {isDoctor && (
           <div
             dir="rtl"
-            className="mb-5 rounded-xl border border-amber-100 bg-amber-50 px-4 py-3 text-right text-sm leading-6 text-amber-900 opacity-0 animate-[formFadeUp_0.7s_ease_0.18s_forwards]"
+            className={`mb-5 rounded-xl border border-amber-100 bg-amber-50 px-4 py-3 text-right text-sm leading-6 text-amber-900 ${AUTH_BODY_ANIM}`}
           >
             بعد التسجيل، قد يتطلب تسجيل الدخول موافقة الإدارة على طلبك.
           </div>
         )}
 
-        <div className="mb-5 grid grid-cols-2 rounded-xl border border-slate-200 bg-slate-50 p-1 opacity-0 animate-[formFadeUp_0.7s_ease_0.2s_forwards]">
+        <div className={`mb-5 grid grid-cols-2 gap-1.5 rounded-xl border border-slate-200 bg-slate-50/80 p-1.5 ${AUTH_BODY_ANIM}`}>
           <button
             type="button"
             onClick={() => setSelectedRole("doctor")}
@@ -222,7 +222,7 @@ function RegisterPage() {
         </div>
 
         <form
-          className="space-y-4 opacity-0 animate-[formFadeUp_0.7s_ease_0.3s_forwards]"
+          className={`space-y-4 ${AUTH_BODY_ANIM}`}
           dir="rtl"
           onSubmit={handleSubmit}
         >
@@ -617,18 +617,18 @@ function RegisterPage() {
           </button>
         </form>
 
-        <div className="my-5 flex items-center gap-4 opacity-0 animate-[formFadeUp_0.7s_ease_0.4s_forwards]">
+        <div className={`my-5 flex items-center gap-4 ${AUTH_BODY_ANIM}`}>
           <div className="h-px flex-1 bg-slate-200" />
           <span className="text-sm text-slate-400">أو</span>
           <div className="h-px flex-1 bg-slate-200" />
         </div>
 
-        <div className="opacity-0 animate-[formFadeUp_0.7s_ease_0.45s_forwards]">
+        <div className={AUTH_BODY_ANIM}>
           <GoogleAuthButton label="المتابعة بـ Google" />
         </div>
 
         <p
-          className="mt-5 text-center text-sm text-slate-500 opacity-0 animate-[formFadeUp_0.7s_ease_0.5s_forwards]"
+          className={`mt-5 text-center text-sm text-slate-500 ${AUTH_BODY_ANIM}`}
           dir="rtl"
         >
           لديك حساب بالفعل؟{" "}

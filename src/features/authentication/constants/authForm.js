@@ -1,5 +1,15 @@
 export const AUTH_FORM_CARD_CLASS =
-  "mx-auto w-full max-w-[540px] px-8 py-8";
+  "mx-auto w-full max-w-[520px] !py-9 sm:!py-10";
+
+/** أنيميشن مشترك لصفحات المصادقة */
+export const AUTH_LOGO_ANIM =
+  "opacity-0 animate-[logoReveal_0.75s_cubic-bezier(0.22,1,0.36,1)_0.05s_forwards]";
+
+export const AUTH_STEP_ANIM =
+  "opacity-0 animate-[loginStepIn_0.55s_cubic-bezier(0.22,1,0.36,1)_0.12s_forwards]";
+
+export const AUTH_BODY_ANIM =
+  "opacity-0 animate-[formFadeUp_0.65s_cubic-bezier(0.22,1,0.36,1)_0.22s_forwards]";
 
 /** محاذاة عنوان الهيرو مع صف مريض/طبيب في الفورم */
 export const AUTH_HERO_ALIGN = {
@@ -38,6 +48,8 @@ export const AUTH_FEATURE_CARD = {
 export const AUTH_FORM_ALIGN = {
   start: "justify-start",
   center: "justify-center",
+  /** أسفل العمود — بمحاذاة صف الميزات على الشاشات الكبيرة */
+  end: "justify-center lg:justify-end",
 };
 
 /** hover و cursor للعناصر القابلة للضغط */

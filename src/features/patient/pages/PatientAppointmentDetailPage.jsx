@@ -11,16 +11,19 @@ import {
   AppointmentStatusBadge,
   AppointmentTypeBadge,
 } from "../components/AppointmentBadges";
+import AppointmentChatBox from "../../care-system/components/AppointmentChatBox";
 
 function PatientAppointmentDetailPage() {
   const { id } = useParams();
   const [appointment, setAppointment] = useState(null);
   const [doctor, setDoctor] = useState(null);
   const [labs, setLabs] = useState([]);
+  const [imaging, setImaging] = useState([]);
   const [prescriptions, setPrescriptions] = useState([]);
   const [visit, setVisit] = useState(null);
 
   useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
     const reload = () => {
       const apt = careSystemStore.getAppointment(id);
       setAppointment(apt || null);
@@ -29,6 +32,9 @@ function PatientAppointmentDetailPage() {
       setDoctor(staffById(apt.doctorId));
       setVisit(careSystemStore.getVisitByAppointment(apt.id) || null);
       setLabs(careSystemStore.listLabOrders().filter((o) => o.appointmentId === apt.id));
+      setImaging(
+        careSystemStore.listImagingOrders().filter((o) => o.appointmentId === apt.id)
+      );
       setPrescriptions(
         careSystemStore.listPrescriptions().filter((rx) => rx.appointmentId === apt.id)
       );
@@ -99,8 +105,17 @@ function PatientAppointmentDetailPage() {
         </div>
       </FadeUp>
 
+      <FadeUp index={2}>
+        <AppointmentChatBox
+          appointmentId={id}
+          role="patient"
+          peerName={doctor?.name || "الطبيب"}
+          selfName="المريض"
+        />
+      </FadeUp>
+
       {visit?.diagnosis && (
-        <FadeUp index={2}>
+        <FadeUp index={3}>
           <div className="rounded-2xl border border-slate-200 bg-white p-5">
             <h2 className="font-extrabold text-blue-950">التشخيص</h2>
             <p className="mt-2 text-sm text-slate-700">{visit.diagnosis}</p>
@@ -112,7 +127,7 @@ function PatientAppointmentDetailPage() {
       )}
 
       {labs.length > 0 && (
-        <FadeUp index={3}>
+        <FadeUp index={4}>
           <div className="rounded-2xl border border-slate-200 bg-white p-5">
             <h2 className="mb-3 font-extrabold text-blue-950">التحاليل</h2>
             <div className="space-y-2">
@@ -133,8 +148,30 @@ function PatientAppointmentDetailPage() {
         </FadeUp>
       )}
 
+      {imaging.length > 0 && (
+        <FadeUp index={5}>
+          <div className="rounded-2xl border border-slate-200 bg-white p-5">
+            <h2 className="mb-3 font-extrabold text-blue-950">الأشعة</h2>
+            <div className="space-y-2">
+              {imaging.map((order) => (
+                <div key={order.id} className="rounded-xl bg-slate-50 p-3 text-sm">
+                  <p className="font-bold">{order.studies}</p>
+                  <p className="text-slate-500">
+                    {order.status === "completed" ? "تقرير جاهز" : "قيد التنفيذ"}
+                  </p>
+                  {order.resultText && <p className="mt-1">{order.resultText}</p>}
+                  {order.pdfName && (
+                    <p className="mt-1 text-xs font-bold text-blue-600">PDF: {order.pdfName}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </FadeUp>
+      )}
+
       {prescriptions.length > 0 && (
-        <FadeUp index={4}>
+        <FadeUp index={6}>
           <div className="rounded-2xl border border-slate-200 bg-white p-5">
             <h2 className="mb-3 font-extrabold text-blue-950">الوصفات</h2>
             <div className="space-y-2">

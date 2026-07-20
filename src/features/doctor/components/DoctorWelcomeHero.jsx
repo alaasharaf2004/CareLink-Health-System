@@ -31,14 +31,14 @@ function DoctorWelcomeHero() {
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
               to="/doctor/appointments"
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-l from-[#101860] to-blue-700 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-blue-900/20 transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-xl"
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-l from-[#101860] to-blue-700 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-blue-900/20 workspace-btn-press hover:shadow-xl"
             >
               <CalendarDays size={17} />
               عرض المواعيد
             </Link>
             <Link
               to="/doctor/patients"
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white/80 px-5 py-3 text-sm font-bold text-slate-700 backdrop-blur-sm transition-colors hover:border-[#40c0a0]/40 hover:text-[#101860]"
+              className="workspace-btn-press inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white/80 px-5 py-3 text-sm font-bold text-slate-700 backdrop-blur-sm hover:border-[#40c0a0]/40 hover:text-[#101860]"
             >
               ملفات المرضى
               <ArrowLeft size={15} />

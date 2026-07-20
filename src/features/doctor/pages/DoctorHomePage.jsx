@@ -136,11 +136,11 @@ function DoctorHomePage() {
               <Link
                 key={label}
                 to={to}
-                className={`group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-gradient-to-br ${gradient} p-5 shadow-sm opacity-0 transition-all duration-300 animate-[formFadeUp_0.5s_ease_forwards] hover:-translate-y-1 hover:border-[#40c0a0]/30 hover:shadow-lg`}
+                className={`workspace-quick-tile group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-gradient-to-br ${gradient} p-5 shadow-sm opacity-0 transition-all duration-300 animate-[formFadeUp_0.5s_ease_forwards] hover:-translate-y-1 hover:border-[#40c0a0]/30 hover:shadow-lg`}
                 style={{ animationDelay: staggerDelay(index, 0.07, 0.1) }}
               >
                 <div
-                  className={`mb-4 flex h-12 w-12 items-center justify-center rounded-2xl shadow-md transition-transform duration-300 group-hover:scale-110 ${iconClass}`}
+                  className={`mb-4 flex h-12 w-12 items-center justify-center rounded-2xl shadow-md transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3 ${iconClass}`}
                 >
                   <Icon size={22} />
                 </div>
@@ -197,7 +197,7 @@ function DoctorHomePage() {
                 </div>
                 <Link
                   to={`/doctor/appointments/${nextAppointment.id}`}
-                  className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[#101860] py-3 text-sm font-bold text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-blue-900"
+                  className="workspace-btn-press mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[#101860] py-3 text-sm font-bold text-white hover:bg-blue-900"
                 >
                   عرض تفاصيل الموعد
                   <ArrowLeft size={16} />
@@ -219,7 +219,7 @@ function DoctorHomePage() {
               {STATS.map(({ key, icon: Icon, label, tone }) => (
                 <div
                   key={key}
-                  className="rounded-xl border border-slate-100 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-200 hover:shadow-sm"
+                  className="workspace-stat-chip rounded-xl border border-slate-100 p-4 hover:border-slate-200"
                 >
                   <div
                     className={`mb-2 flex h-9 w-9 items-center justify-center rounded-lg ${tone}`}
@@ -258,7 +258,7 @@ function DoctorHomePage() {
                   <Link
                     key={appointment.id}
                     to={`/doctor/appointments/${appointment.id}`}
-                    className="flex items-center gap-4 px-6 py-4 opacity-0 transition-colors animate-[patientSlideIn_0.45s_ease_forwards] hover:bg-slate-50/80"
+                    className="workspace-list-row flex items-center gap-4 px-6 py-4 opacity-0 animate-[patientSlideIn_0.45s_ease_forwards]"
                     style={{
                       animationDelay: staggerDelay(index, 0.06, 0.35),
                     }}
@@ -278,7 +278,7 @@ function DoctorHomePage() {
                     </div>
                     <AppointmentTypeBadge type={appointment.type} />
                     <AppointmentStatusBadge status={appointment.status} />
-                    <ArrowLeft size={16} className="shrink-0 text-slate-300" />
+                    <ArrowLeft size={16} className="workspace-row-arrow shrink-0 text-slate-300" />
                   </Link>
                 ))}
               </div>

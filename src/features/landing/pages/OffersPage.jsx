@@ -11,8 +11,8 @@ import {
 
 import AnimatedSection from "../components/AnimatedSection";
 import MedicalBackdropIcons from "../components/MedicalBackdropIcons";
-import { listCmsAds } from "../data/cmsContent";
-import { offers, partnerAds } from "../data/landingMockData";
+import { fetchLandingAds } from "../data/cmsContent";
+import { offers } from "../data/landingMockData";
 
 function getVisibleCount() {
   if (typeof window === "undefined") return 3;
@@ -27,14 +27,20 @@ function OffersPage() {
   const [slidePx, setSlidePx] = useState(0);
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
-  const [cmsAds, setCmsAds] = useState(() => listCmsAds());
+  const [ads, setAds] = useState([]);
   const viewportRef = useRef(null);
 
   useEffect(() => {
-    const reload = () => setCmsAds(listCmsAds());
-    reload();
-    window.addEventListener("carelink-store-updated", reload);
-    return () => window.removeEventListener("carelink-store-updated", reload);
+    let active = true;
+    const load = async () => {
+      const list = await fetchLandingAds();
+      if (!active) return;
+      setAds(list);
+    };
+    load();
+    return () => {
+      active = false;
+    };
   }, []);
 
   const maxIndex = Math.max(0, offers.length - visibleCount);
@@ -261,30 +267,14 @@ function OffersPage() {
         </div>
         <div className="relative z-10 mx-auto max-w-7xl px-5 py-16 lg:px-8">
           <div className="text-center">
-            <h2 className="landing-section-title">إعلانات مميزة من شركائنا</h2>
+            <h2 className="landing-section-title">إعلانات CareLink</h2>
             <p className="landing-section-desc mx-auto mt-3 max-w-2xl">
-              نتعاون مع مراكز طبية مختارة لنقدم لك خدمات أوضح وأقرب.
+              عروض مختارة من لوحة الإدارة تظهر هنا مباشرة بعد الربط بالـ API.
             </p>
           </div>
 
-          {cmsAds.length > 0 && (
-            <div className="mb-10 grid gap-4 md:grid-cols-2">
-              {cmsAds.map((ad) => (
-                <Link
-                  key={ad.id}
-                  to={ad.link || "/doctors"}
-                  className="rounded-2xl border border-[#101860]/10 bg-white/90 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-                >
-                  <p className="text-xs font-bold text-[#40c0a0]">إعلان CareLink</p>
-                  <h3 className="mt-2 text-lg font-extrabold text-[#101860]">{ad.title}</h3>
-                  <p className="mt-1 text-sm text-slate-500">{ad.date}</p>
-                </Link>
-              ))}
-            </div>
-          )}
-
           <div className="landing-offers-partners-grid">
-            {partnerAds.map((ad, index) => (
+            {ads.map((ad, index) => (
               <article
                 key={ad.id}
                 className="landing-partner-card"
@@ -298,10 +288,17 @@ function OffersPage() {
                       <MapPin size={14} />
                       {ad.location}
                     </span>
-                    <Link to="/doctors">
-                      احجز الآن
-                      <ChevronLeft size={15} />
-                    </Link>
+                    {ad.link?.startsWith("http") ? (
+                      <a href={ad.link} target="_blank" rel="noreferrer">
+                        احجز الآن
+                        <ChevronLeft size={15} />
+                      </a>
+                    ) : (
+                      <Link to={ad.link || "/doctors"}>
+                        احجز الآن
+                        <ChevronLeft size={15} />
+                      </Link>
+                    )}
                   </div>
                 </div>
                 <div className="landing-partner-avatar" aria-hidden="true">

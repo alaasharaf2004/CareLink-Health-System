@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>CareLink — سجل التعديلات والإضافات</title>
+  <style>
+    @page { size: A4; margin: 16mm 14mm; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+      color: #0f172a;
+      line-height: 1.75;
+      font-size: 12.5px;
+      margin: 0;
+      padding: 24px;
+      background: #fff;
+    }
+    .cover {
+      border: 2px solid #101860;
+      border-radius: 16px;
+      padding: 28px 24px;
+      margin-bottom: 28px;
+      background: linear-gradient(135deg, #f8fafc 0%, #ecfdf8 55%, #eff6ff 100%);
+    }
+    .brand {
+      color: #40c0a0;
+      font-weight: 800;
+      font-size: 14px;
+      letter-spacing: 0.04em;
+      margin: 0 0 8px;
+    }
+    h1 {
+      color: #101860;
+      font-size: 26px;
+      margin: 0 0 10px;
+    }
+    .meta {
+      color: #64748b;
+      font-size: 13px;
+      margin: 0;
+    }
+    h2 {
+      color: #101860;
+      font-size: 16px;
+      margin: 26px 0 10px;
+      padding: 8px 12px;
+      background: #f1f5f9;
+      border-right: 4px solid #40c0a0;
+    }
+    h3 {
+      color: #1e3a8a;
+      font-size: 13.5px;
+      margin: 16px 0 6px;
+    }
+    p, li { margin: 0 0 6px; }
+    ul { margin: 0 0 10px; padding-right: 18px; }
+    .tag {
+      display: inline-block;
+      background: #ecfdf5;
+      color: #047857;
+      border: 1px solid #a7f3d0;
+      border-radius: 999px;
+      padding: 2px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      margin-left: 6px;
+    }
+    .tag.blue {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border-color: #bfdbfe;
+    }
+    .tag.amber {
+      background: #fffbeb;
+      color: #b45309;
+      border-color: #fde68a;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 16px;
+      font-size: 12px;
+    }
+    th, td {
+      border: 1px solid #e2e8f0;
+      padding: 8px 10px;
+      text-align: right;
+      vertical-align: top;
+    }
+    th {
+      background: #101860;
+      color: #fff;
+      font-weight: 700;
+    }
+    tr:nth-child(even) td { background: #f8fafc; }
+    code {
+      font-family: Consolas, "Courier New", monospace;
+      background: #f1f5f9;
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-size: 11.5px;
+      direction: ltr;
+      display: inline-block;
+    }
+    .box {
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin: 10px 0 14px;
+      background: #fff;
+    }
+    .footer {
+      margin-top: 28px;
+      padding-top: 12px;
+      border-top: 2px solid #e2e8f0;
+      color: #64748b;
+      font-size: 11.5px;
+    }
+    .toc li { margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+  <div class="cover">
+    <p class="brand">CareLink Health System</p>
+    <h1>سجل التعديلات والإضافات</h1>
+    <p class="meta">
+      مستند يلخّص كل ما تم تنفيذه على الواجهة الأمامية خلال جلسة التطوير الأخيرة
+      <br />
+      التاريخ: 20–21 يوليو 2026 · المشروع: CareLink Health System (React + Vite)
+    </p>
+  </div>
+
+  <h2>1) فهرس المحتويات</h2>
+  <ol class="toc">
+    <li>إصلاحات وتجربة مستخدم عامة</li>
+    <li>أنيميشن وتفاعل اللوحات</li>
+    <li>صفحة تفاصيل موعد الطبيب</li>
+    <li>دور فني الأشعة (Radiology)</li>
+    <li>تسجيل الدخول لطاقم العيادة</li>
+    <li>ميزات موظف الاستقبال (7 ميزات)</li>
+    <li>شاشة غرفة الانتظار (إعادة تصميم)</li>
+    <li>ملفات ومسارات رئيسية</li>
+    <li>حسابات تجريبية</li>
+  </ol>
+
+  <h2>2) إصلاحات وتجربة مستخدم عامة</h2>
+  <div class="box">
+    <h3>2.1 مشكلة التمرير التلقائي للدردشة <span class="tag">إصلاح</span></h3>
+    <ul>
+      <li>السبب: صندوق الدردشة كان يستدعي <code>scrollIntoView</code> على الصفحة كاملة.</li>
+      <li>الحل: التمرير داخل قائمة الرسائل فقط، وتثبيت الصفحة أعلى عند فتح تفاصيل الموعد.</li>
+      <li>الملفات: <code>AppointmentChatBox.jsx</code>، صفحات تفاصيل الموعد للطبيب والمريض.</li>
+    </ul>
+  </div>
+
+  <h2>3) أنيميشن وتفاعل اللوحات</h2>
+  <p>تم توحيد طبقة حركة للطبيب / المريض / الصيدلي:</p>
+  <ul>
+    <li>ظهور تدريجي لعناصر القائمة الجانبية</li>
+    <li>تفاعل الهيدر وبطاقة الملف الشخصي</li>
+    <li>بطاقات سريعة بلمعان ورفع عند المرور</li>
+    <li>انتقال صفحات عبر <code>DoctorPageShell</code> / <code>PatientPageShell</code> / <code>StaffPageShell</code></li>
+    <li>هيرو ترحيبي للصيدلية <code>PharmacyWelcomeHero</code></li>
+  </ul>
+  <p>ملف الأنماط: <code>src/index.css</code> (كلاسات <code>workspace-*</code>)</p>
+
+  <h2>4) صفحة تفاصيل موعد الطبيب</h2>
+  <table>
+    <thead>
+      <tr><th>العنصر</th><th>التعديل</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>ترتيب الصفحة</td>
+        <td>بيانات المريض → ملخص → تشخيص/تحاليل → وصفة + دردشة جنب بعض → إنهاء الزيارة بالأسفل</td>
+      </tr>
+      <tr>
+        <td>الدردشة</td>
+        <td>بجانب الوصفة الطبية (عمودين) بدل أسفل الصفحة فقط</td>
+      </tr>
+      <tr>
+        <td>إنهاء الزيارة</td>
+        <td>زر فعّال يحدّث الحالة لـ مكتمل + إشعار للمريض + أنيميشن احتفالي</td>
+      </tr>
+      <tr>
+        <td>طلب أشعة</td>
+        <td>قسم جديد «إرسال للأشعة» مع حالة <code>awaiting_radiology</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>5) دور فني الأشعة (Radiology)</h2>
+  <p><span class="tag blue">دور جديد</span> تمت إضافته في كل الأماكن اللازمة:</p>
+  <ul>
+    <li>تسجيل الدخول (طاقم العيادة) + توجيه إلى <code>/radiology/dashboard</code></li>
+    <li>لوحة أشعة: استقبال الطلبات، إدخال تقرير، PDF اختياري، إشعار المريض</li>
+    <li>إدارة الكوادر (تبويب الأشعة)</li>
+    <li>نظام البث (استهداف الأشعة)</li>
+    <li>المتجر المحلي: <code>imagingOrders</code> + حساب تجريبي</li>
+    <li>عرض الأشعة في صفحة المريض</li>
+  </ul>
+  <p>حساب تجريبي: <code>radiology@carelink.com</code> / <code>123456</code></p>
+
+  <h2>6) تسجيل الدخول لطاقم العيادة</h2>
+  <ul>
+    <li>إضافة خيار «فني أشعة» ضمن أدوار الطاقم</li>
+    <li>تصميم اختيار الأدوار: شبكة <strong>2 فوق و 2 تحت</strong> بحجم مضغوط (شكل التبويبات السابقة)</li>
+  </ul>
+
+  <h2>7) ميزات موظف الاستقبال (7 إضافات)</h2>
+  <table>
+    <thead>
+      <tr><th>#</th><th>الميزة</th><th>الوصف</th><th>أين؟</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>شاشة غرفة الانتظار</td>
+        <td>عرض رقم الدور والمريض الحالي والتالي على شاشة TV</td>
+        <td><code>/reception/waiting-display</code></td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>مرضى تابعون</td>
+        <td>ربط طفل/تابع بولي أمر عند التسجيل أو من ملف المرضى</td>
+        <td>تسجيل مريض + ملف المرضى</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>تسليم/تسلّم الوردية</td>
+        <td>ملاحظات تنتقل بين الورديات مع تأكيد الاستلام</td>
+        <td>لوحة اليوم (جانب الطابور)</td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td>أعلام تنبيه</td>
+        <td>حساس / يحتاج وقتاً أطول / غالباً يتأخر + ملاحظة</td>
+        <td>الطابور + ملف المرضى</td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td>حالة التأمين</td>
+        <td>نشط / منتهٍ / بدون / غير محدد + شركة التأمين</td>
+        <td>التسجيل + تنبيه/تأمين</td>
+      </tr>
+      <tr>
+        <td>6</td>
+        <td>ملخص اليوم</td>
+        <td>إجمالي، مكتمل، ملغى، لم يحضر، حضور، عند الطبيب…</td>
+        <td>زر «ملخص اليوم»</td>
+      </tr>
+      <tr>
+        <td>7</td>
+        <td>اختصارات لوحة مفاتيح</td>
+        <td><code>Ctrl+N</code> تسجيل · <code>Ctrl+Shift+S</code> ملخص · <code>Ctrl+Shift+W</code> شاشة انتظار</td>
+        <td>لوحة الاستقبال</td>
+      </tr>
+    </tbody>
+  </table>
+  <p>كذلك: زر <strong>إنهاء زيارة</strong> للاستقبال مع إشعار للمريض.</p>
+
+  <h2>8) شاشة غرفة الانتظار — إعادة التصميم</h2>
+  <ul>
+    <li>خلفية فاتحة بهوية CareLink (بدلاً من الوضع الداكن)</li>
+    <li>شعار CareLink + ساعة وتاريخ</li>
+    <li>مساحة كبيرة: «يُدعى الآن» مع رقم الدور واسم المريض والطبيب</li>
+    <li>قائمة «التالي» على الجانب</li>
+    <li>حركة خفيفة عند تغيّر المريض الحالي</li>
+  </ul>
+
+  <h2>9) ملفات ومسارات رئيسية أُضيفت/عُدّلت</h2>
+  <h3>ملفات جديدة</h3>
+  <ul>
+    <li><code>src/features/radiology/*</code> — لوحة وroutes فني الأشعة</li>
+    <li><code>src/features/care-system/components/StaffPageShell.jsx</code></li>
+    <li><code>src/features/pharmacy/components/PharmacyWelcomeHero.jsx</code></li>
+    <li><code>src/features/reception/pages/ReceptionWaitingDisplayPage.jsx</code></li>
+    <li><code>src/features/reception/components/ReceptionHandoverPanel.jsx</code></li>
+    <li><code>src/features/reception/components/ReceptionDaySummaryModal.jsx</code></li>
+    <li><code>src/features/reception/components/ReceptionPatientMetaModal.jsx</code></li>
+    <li><code>src/features/reception/hooks/useReceptionShortcuts.js</code></li>
+  </ul>
+  <h3>ملفات محورية معدّلة</h3>
+  <ul>
+    <li><code>src/features/care-system/data/careSystemStore.js</code></li>
+    <li><code>src/features/authentication/pages/LoginPage.jsx</code></li>
+    <li><code>src/features/doctor/pages/DoctorAppointmentDetailPage.jsx</code></li>
+    <li><code>src/features/reception/pages/ReceptionHomePage.jsx</code></li>
+    <li><code>src/features/reception/pages/ReceptionPatientsPage.jsx</code></li>
+    <li><code>src/features/reception/receptionRoutes.jsx</code></li>
+    <li><code>src/app/router.jsx</code></li>
+    <li><code>src/index.css</code></li>
+    <li><code>docs/CareLink-شرح-العملية.md</code></li>
+  </ul>
+
+  <h2>10) حسابات تجريبية مفيدة للتجربة</h2>
+  <table>
+    <thead>
+      <tr><th>الدور</th><th>البريد</th><th>كلمة المرور</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>استقبال</td><td><code>reception@carelink.com</code></td><td><code>123456</code></td></tr>
+      <tr><td>طبيب</td><td><code>ahmed.heart@carelink.com</code></td><td><code>123456</code></td></tr>
+      <tr><td>مريض</td><td><code>patient@carelink.com</code></td><td><code>123456</code></td></tr>
+      <tr><td>صيدلية</td><td><code>pharmacy@carelink.com</code></td><td><code>123456</code></td></tr>
+      <tr><td>مختبر</td><td><code>lab@carelink.com</code></td><td><code>123456</code></td></tr>
+      <tr><td>أشعة</td><td><code>radiology@carelink.com</code></td><td><code>123456</code></td></tr>
+      <tr><td>أدمن</td><td><code>admin@carelink.com</code></td><td><code>123456</code></td></tr>
+    </tbody>
+  </table>
+
+  <h2>11) حالات الموعد الجديدة/ذات الصلة</h2>
+  <ul>
+    <li><code>awaiting_radiology</code> — بانتظار الأشعة</li>
+    <li><code>awaiting_lab</code> / <code>awaiting_pharmacy</code> / <code>results_ready</code> / <code>completed</code> — كما في المسار السابق مع دعم إنهاء الزيارة من الطبيب أو الاستقبال</li>
+  </ul>
+
+  <div class="footer">
+    CareLink Health System — سجل تعديلات الواجهة الأمامية · تم توليده آلياً لجلسة التطوير
+    (يوليو 2026). يمكن طباعة هذه الصفحة إلى PDF من المتصفح (Ctrl+P → حفظ كـ PDF).
+  </div>
+
+  <script>
+    // Optional: auto-print when opened with ?print=1
+    if (new URLSearchParams(location.search).has("print")) {
+      window.addEventListener("load", () => setTimeout(() => window.print(), 300));
+    }
+  </script>
+</body>
+</html>

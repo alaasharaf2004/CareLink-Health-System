@@ -1,13 +1,18 @@
-import { LayoutDashboard, Pill } from "lucide-react";
+import { LayoutDashboard, ClipboardList, Package, Pill } from "lucide-react";
 import { Navigate } from "react-router-dom";
 
 import ProtectedRoute from "../authentication/components/ProtectedRoute";
 import StaffWorkspaceLayout from "../care-system/components/StaffWorkspaceLayout";
+import PharmacyHistoryPage from "./pages/PharmacyHistoryPage";
 import PharmacyHomePage from "./pages/PharmacyHomePage";
+import PharmacyInventoryPage from "./pages/PharmacyInventoryPage";
+import PharmacyPrescriptionsPage from "./pages/PharmacyPrescriptionsPage";
 
 const navItems = [
-  { to: "/pharmacy/dashboard", label: "الوصفات", icon: Pill },
-  { to: "/pharmacy/dashboard", label: "لوحة الصيدلية", icon: LayoutDashboard },
+  { to: "/pharmacy/dashboard", label: "لوحة الصيدلية", icon: LayoutDashboard, end: true },
+  { to: "/pharmacy/prescriptions", label: "الوصفات", icon: Pill },
+  { to: "/pharmacy/inventory", label: "المخزون", icon: Package },
+  { to: "/pharmacy/history", label: "سجل الصرف", icon: ClipboardList },
 ];
 
 export const pharmacyRoutes = [
@@ -16,7 +21,9 @@ export const pharmacyRoutes = [
     element: (
       <ProtectedRoute allowedRoles={["pharmacy"]}>
         <StaffWorkspaceLayout
-          title="الصيدلية"
+          title="لوحة الصيدلية"
+          roleLabel="صيدلي"
+          roleKey="pharmacy"
           navItems={navItems}
           homePath="/pharmacy/dashboard"
         />
@@ -25,6 +32,9 @@ export const pharmacyRoutes = [
     children: [
       { index: true, element: <Navigate to="dashboard" replace /> },
       { path: "dashboard", element: <PharmacyHomePage /> },
+      { path: "prescriptions", element: <PharmacyPrescriptionsPage /> },
+      { path: "inventory", element: <PharmacyInventoryPage /> },
+      { path: "history", element: <PharmacyHistoryPage /> },
     ],
   },
 ];

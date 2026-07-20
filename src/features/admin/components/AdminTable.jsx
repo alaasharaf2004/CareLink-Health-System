@@ -1,16 +1,18 @@
-function AdminTable({ columns, children, emptyMessage }) {
+function AdminTable({ columns, children, emptyMessage, className = "", bordered = true }) {
   const isEmpty = !children || (Array.isArray(children) && children.length === 0);
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <div
+      className={`${bordered ? "overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm" : ""} ${className}`}
+    >
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[640px] text-sm">
+        <table className="w-full min-w-[640px] border-collapse text-sm" dir="rtl">
           <thead>
             <tr className="border-b border-slate-100 bg-slate-50/80">
               {columns.map((column) => (
                 <th
                   key={column.key}
-                  className={`px-4 py-3.5 text-right text-xs font-extrabold uppercase tracking-wide text-slate-500 ${column.className ?? ""}`}
+                  className={`whitespace-nowrap px-3 py-3 text-right text-xs font-extrabold text-slate-500 sm:px-4 sm:py-3.5 ${column.className ?? ""}`}
                 >
                   {column.label}
                 </th>
@@ -43,7 +45,10 @@ export function AdminTableRow({ children, className = "", style }) {
 
 export function AdminTableCell({ children, className = "", ...props }) {
   return (
-    <td className={`px-4 py-3.5 align-middle text-slate-700 ${className}`} {...props}>
+    <td
+      className={`px-3 py-3 align-middle text-sm text-slate-700 sm:px-4 sm:py-3.5 ${className}`}
+      {...props}
+    >
       {children}
     </td>
   );

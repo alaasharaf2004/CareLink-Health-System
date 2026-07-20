@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 
 import CareLinkLogo from "../../../components/CareLinkLogo";
-import { getCmsSiteSettings } from "../data/cmsContent";
+import { fetchLandingSettings, getCmsSiteSettings } from "../data/cmsContent";
 
 const quickLinks = [
   { to: "/about", label: "عن المنصة" },
@@ -49,10 +49,16 @@ function LandingFooter() {
   const [settings, setSettings] = useState(() => getCmsSiteSettings());
 
   useEffect(() => {
-    const reload = () => setSettings(getCmsSiteSettings());
-    reload();
-    window.addEventListener("carelink-store-updated", reload);
-    return () => window.removeEventListener("carelink-store-updated", reload);
+    let active = true;
+    const load = async () => {
+      const next = await fetchLandingSettings();
+      if (!active) return;
+      setSettings(next);
+    };
+    load();
+    return () => {
+      active = false;
+    };
   }, []);
 
   const resolvedSocial = socialLinks.map((link) => {

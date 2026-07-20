@@ -3,7 +3,7 @@ import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { ArrowLeft, Menu, X } from "lucide-react";
 
 import CareLinkLogo from "../../../components/CareLinkLogo";
-import { getCmsSiteSettings } from "../data/cmsContent";
+import { fetchLandingSettings, getCmsSiteSettings } from "../data/cmsContent";
 import InteractiveBackdrop from "./InteractiveBackdrop";
 import LandingFooter from "./LandingFooter";
 
@@ -24,10 +24,16 @@ function LandingLayout() {
   const [siteSettings, setSiteSettings] = useState(() => getCmsSiteSettings());
 
   useEffect(() => {
-    const reload = () => setSiteSettings(getCmsSiteSettings());
-    reload();
-    window.addEventListener("carelink-store-updated", reload);
-    return () => window.removeEventListener("carelink-store-updated", reload);
+    let active = true;
+    const load = async () => {
+      const settings = await fetchLandingSettings();
+      if (!active) return;
+      setSiteSettings(settings);
+    };
+    load();
+    return () => {
+      active = false;
+    };
   }, []);
 
   const navItems = ALL_NAV_ITEMS.filter(

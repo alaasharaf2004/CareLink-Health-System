@@ -18,8 +18,8 @@ import {
   DoctorCard,
   SectionHeading,
 } from "../components/LandingCards";
-import { listPublishedArticles } from "../data/cmsContent";
-import { doctors, faqs, testimonials } from "../data/landingMockData";
+import { listPublishedArticles, fetchLandingArticles, fetchLandingDoctors } from "../data/cmsContent";
+import { faqs, testimonials } from "../data/landingMockData";
 
 const heroDoctors = [
   {
@@ -43,12 +43,23 @@ const heroDoctors = [
 function LandingPage() {
   const [activeDoctor, setActiveDoctor] = useState(0);
   const [articles, setArticles] = useState(() => listPublishedArticles());
+  const [doctors, setDoctors] = useState([]);
 
   useEffect(() => {
-    const reload = () => setArticles(listPublishedArticles());
-    reload();
-    window.addEventListener("carelink-store-updated", reload);
-    return () => window.removeEventListener("carelink-store-updated", reload);
+    let active = true;
+    const load = async () => {
+      const [nextArticles, nextDoctors] = await Promise.all([
+        fetchLandingArticles(),
+        fetchLandingDoctors(),
+      ]);
+      if (!active) return;
+      setArticles(nextArticles);
+      setDoctors(nextDoctors);
+    };
+    load();
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {

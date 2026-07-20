@@ -1,4 +1,4 @@
-const STORAGE_KEY = "carelink_care_system_v1";
+const STORAGE_KEY = "carelink_care_system_v2";
 
 const seedArticles = [
   {
@@ -75,6 +75,8 @@ const seedStaff = [
     specialty: "الطب العام",
     department: "الإدارة الطبية",
     status: "active",
+    password: "123456",
+    mustChangePassword: false,
   },
   {
     id: "doc-2",
@@ -84,6 +86,8 @@ const seedStaff = [
     specialty: "الطب العام",
     department: "الإدارة الطبية",
     status: "active",
+    password: "123456",
+    mustChangePassword: false,
   },
   {
     id: "doc-3",
@@ -93,6 +97,8 @@ const seedStaff = [
     specialty: "جراحة عامة",
     department: "الجراحة",
     status: "active",
+    password: "123456",
+    mustChangePassword: false,
   },
   {
     id: "doc-4",
@@ -102,6 +108,8 @@ const seedStaff = [
     specialty: "أمراض القلب",
     department: "القلب",
     status: "active",
+    password: "123456",
+    mustChangePassword: false,
   },
   {
     id: "rec-1",
@@ -111,6 +119,8 @@ const seedStaff = [
     specialty: "استقبال",
     department: "الاستقبال",
     status: "active",
+    password: "123456",
+    mustChangePassword: false,
   },
   {
     id: "lab-1",
@@ -120,6 +130,8 @@ const seedStaff = [
     specialty: "تحاليل طبية",
     department: "المختبر",
     status: "active",
+    password: "123456",
+    mustChangePassword: false,
   },
   {
     id: "pharm-1",
@@ -129,6 +141,19 @@ const seedStaff = [
     specialty: "صيدلة",
     department: "الصيدلية",
     status: "active",
+    password: "123456",
+    mustChangePassword: false,
+  },
+  {
+    id: "rad-1",
+    role: "radiology",
+    name: "فني. سامر عبده",
+    email: "radiology@carelink.com",
+    specialty: "تصوير طبي",
+    department: "الأشعة",
+    status: "active",
+    password: "123456",
+    mustChangePassword: false,
   },
 ];
 
@@ -142,6 +167,11 @@ const seedPatients = [
     gender: "ذكر",
     birthDate: "1992-04-12",
     hasWebAccount: true,
+    guardianId: null,
+    insuranceStatus: "active",
+    insuranceProvider: "التأمين الوطني",
+    receptionFlags: ["needs_more_time"],
+    receptionNote: "مريض يحتاج شرحاً أطول للإجراءات",
   },
   {
     id: "pat-2",
@@ -152,6 +182,11 @@ const seedPatients = [
     gender: "أنثى",
     birthDate: "1988-09-03",
     hasWebAccount: true,
+    guardianId: null,
+    insuranceStatus: "active",
+    insuranceProvider: "تكافل",
+    receptionFlags: [],
+    receptionNote: "",
   },
   {
     id: "pat-3",
@@ -162,6 +197,26 @@ const seedPatients = [
     gender: "ذكر",
     birthDate: "1975-01-20",
     hasWebAccount: false,
+    guardianId: null,
+    insuranceStatus: "expired",
+    insuranceProvider: "التأمين الوطني",
+    receptionFlags: ["often_late"],
+    receptionNote: "غالباً يتأخر عن الموعد",
+  },
+  {
+    id: "pat-4",
+    name: "ليان التميمي",
+    email: "",
+    phone: "+970591111111",
+    nationalId: "409998887",
+    gender: "أنثى",
+    birthDate: "2018-06-01",
+    hasWebAccount: false,
+    guardianId: "pat-1",
+    insuranceStatus: "active",
+    insuranceProvider: "التأمين الوطني",
+    receptionFlags: ["sensitive"],
+    receptionNote: "طفلة — تابع لوالدها محمد التميمي",
   },
 ];
 
@@ -195,7 +250,7 @@ const seedAppointments = [
     date: "2026-07-19",
     time: "09:00",
     type: "حضوري",
-    status: "with_doctor",
+    status: "awaiting_pharmacy",
     notes: "تسجيل عبر الاستقبال بدون حساب ويب",
     createdBy: "reception",
   },
@@ -207,15 +262,26 @@ const seedVisits = [
     appointmentId: "apt-3",
     patientId: "pat-3",
     doctorId: "doc-4",
-    status: "with_doctor",
-    diagnosis: "",
-    clinicalNotes: "",
+    status: "awaiting_pharmacy",
+    diagnosis: "ارتفاع ضغط الدم — متابعة",
+    clinicalNotes: "يحتاج صرف أدوية من الصيدلية",
     endedAt: null,
   },
 ];
 
 const seedLabOrders = [];
-const seedPrescriptions = [];
+const seedImagingOrders = [];
+const seedPrescriptions = [
+  {
+    id: "rx-demo-1",
+    appointmentId: "apt-3",
+    patientId: "pat-3",
+    doctorId: "doc-4",
+    medications: "أملوديبين 5 ملغ — قرص مرة يومياً\nأسبرين 100 ملغ — قرص مساءً بعد الأكل",
+    status: "pending",
+    createdAt: "2026-07-19T09:30:00.000Z",
+  },
+];
 
 const seedSiteSettings = {
   platformName: "CareLink",
@@ -230,6 +296,49 @@ const seedSiteSettings = {
   showFaq: true,
 };
 
+const seedInventory = [
+  {
+    id: "inv-1",
+    name: "أملوديبين 5 ملغ",
+    keywords: ["أملوديبين", "املوديبين", "amlodipine"],
+    quantity: 15,
+    minQuantity: 20,
+    unit: "علبة",
+  },
+  {
+    id: "inv-2",
+    name: "أسبرين 100 ملغ",
+    keywords: ["أسبرين", "اسبرين", "aspirin"],
+    quantity: 64,
+    minQuantity: 25,
+    unit: "علبة",
+  },
+  {
+    id: "inv-3",
+    name: "ميتفورمين 500 ملغ",
+    keywords: ["ميتفورمين", "metformin"],
+    quantity: 40,
+    minQuantity: 15,
+    unit: "علبة",
+  },
+  {
+    id: "inv-4",
+    name: "أموكسيسيلين 500 ملغ",
+    keywords: ["أموكسيسيلين", "اموكسيسيلين", "amoxicillin", "بنسلين"],
+    quantity: 22,
+    minQuantity: 10,
+    unit: "علبة",
+  },
+  {
+    id: "inv-5",
+    name: "باراسيتامول 500 ملغ",
+    keywords: ["باراسيتامول", "paracetamol", "بنادول"],
+    quantity: 120,
+    minQuantity: 30,
+    unit: "علبة",
+  },
+];
+
 function createSeedState() {
   return {
     articles: seedArticles,
@@ -240,9 +349,29 @@ function createSeedState() {
     appointments: seedAppointments,
     visits: seedVisits,
     labOrders: seedLabOrders,
+    imagingOrders: seedImagingOrders,
     prescriptions: seedPrescriptions,
+    dispenseLogs: [],
+    inventory: seedInventory,
+    patientNotifications: [],
+    chatMessages: [],
+    broadcasts: [],
+    shiftHandovers: [],
     siteSettings: seedSiteSettings,
-    medicalProfiles: {},
+    medicalProfiles: {
+      "pat-1": {
+        patientId: "pat-1",
+        blood_type: "A+",
+        allergies: "لا يوجد",
+        status: "مستقر",
+      },
+      "pat-3": {
+        patientId: "pat-3",
+        blood_type: "O+",
+        allergies: "أسبرين، بنسلين",
+        status: "متابعة ضغط",
+      },
+    },
     patientAccounts: [
       {
         patientId: "pat-1",
@@ -267,11 +396,63 @@ function loadState() {
       return seed;
     }
     const parsed = JSON.parse(raw);
+    const seed = createSeedState();
+    const legacyAds = parsed.ads || [];
+    const adsNeedMigrate =
+      legacyAds.length > 0 &&
+      legacyAds.every((ad) => !ad.description && !ad.image);
+
+    const mergedStaff = (parsed.staff || seed.staff).map((member) => {
+      const seedMatch = seed.staff.find((item) => item.id === member.id);
+      return {
+        ...seedMatch,
+        ...member,
+        password: member.password || seedMatch?.password || "123456",
+        mustChangePassword: Boolean(member.mustChangePassword),
+      };
+    });
+    const mergedIds = new Set(mergedStaff.map((item) => item.id));
+    const missingSeedStaff = seed.staff.filter((item) => !mergedIds.has(item.id));
+
+    const parsedPatients = parsed.patients || seed.patients;
+    const patientIds = new Set(parsedPatients.map((item) => item.id));
+    const missingSeedPatients = seed.patients.filter((item) => !patientIds.has(item.id));
+    const mergedPatients = [...parsedPatients, ...missingSeedPatients].map((patient) => {
+      const seedMatch = seed.patients.find((item) => item.id === patient.id);
+      return {
+        ...seedMatch,
+        ...patient,
+        guardianId: patient.guardianId ?? seedMatch?.guardianId ?? null,
+        insuranceStatus: patient.insuranceStatus || seedMatch?.insuranceStatus || "unknown",
+        insuranceProvider: patient.insuranceProvider ?? seedMatch?.insuranceProvider ?? "",
+        receptionFlags: Array.isArray(patient.receptionFlags)
+          ? patient.receptionFlags
+          : seedMatch?.receptionFlags || [],
+        receptionNote: patient.receptionNote ?? seedMatch?.receptionNote ?? "",
+      };
+    });
+
     return {
-      ...createSeedState(),
+      ...seed,
       ...parsed,
-      medicalProfiles: parsed.medicalProfiles || {},
+      staff: [...mergedStaff, ...missingSeedStaff],
+      patients: mergedPatients,
+      ads: adsNeedMigrate ? seed.ads : legacyAds.length ? legacyAds : seed.ads,
+      medicalProfiles: {
+        ...(createSeedState().medicalProfiles || {}),
+        ...(parsed.medicalProfiles || {}),
+      },
       patientAccounts: parsed.patientAccounts || [],
+      chatMessages: parsed.chatMessages || [],
+      broadcasts: parsed.broadcasts || [],
+      dispenseLogs: parsed.dispenseLogs || [],
+      inventory:
+        Array.isArray(parsed.inventory) && parsed.inventory.length
+          ? parsed.inventory
+          : createSeedState().inventory,
+      patientNotifications: parsed.patientNotifications || [],
+      imagingOrders: Array.isArray(parsed.imagingOrders) ? parsed.imagingOrders : [],
+      shiftHandovers: Array.isArray(parsed.shiftHandovers) ? parsed.shiftHandovers : [],
     };
   } catch {
     return createSeedState();
@@ -281,6 +462,13 @@ function loadState() {
 function saveState(state) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   window.dispatchEvent(new CustomEvent("carelink-store-updated"));
+  try {
+    const channel = new BroadcastChannel("carelink-store");
+    channel.postMessage({ type: "carelink-store-updated" });
+    channel.close();
+  } catch {
+    // BroadcastChannel غير مدعوم — نعتمد على storage event
+  }
 }
 
 let state = typeof window !== "undefined" ? loadState() : createSeedState();
@@ -307,6 +495,7 @@ export const DEMO_ACCOUNTS = [
   { email: "reception@carelink.com", password: "123456", role: "reception", name: "نورا أبو سالم", staffId: "rec-1", patientId: null },
   { email: "lab@carelink.com", password: "123456", role: "laboratory", name: "م. لينا خليل", staffId: "lab-1", patientId: null },
   { email: "pharmacy@carelink.com", password: "123456", role: "pharmacy", name: "صي. كريم ناصر", staffId: "pharm-1", patientId: null },
+  { email: "radiology@carelink.com", password: "123456", role: "radiology", name: "فني. سامر عبده", staffId: "rad-1", patientId: null },
   { email: "admin@carelink.com", password: "123456", role: "admin", name: "المسؤول", staffId: null, patientId: null },
 ];
 
@@ -336,7 +525,12 @@ export function tryDemoLogin(email, password, role) {
       item.password === password &&
       item.role === role
   );
-  if (demo) return demo;
+  if (demo) {
+    return {
+      ...demo,
+      mustChangePassword: false,
+    };
+  }
 
   if (role === "patient") {
     const account = careSystemStore.findPatientAccount(normalizedEmail, password);
@@ -349,12 +543,71 @@ export function tryDemoLogin(email, password, role) {
         name: patient?.name || "مريض",
         staffId: null,
         patientId: account.patientId,
+        mustChangePassword: false,
+      };
+    }
+  }
+
+  const staffRoles = ["reception", "laboratory", "pharmacy", "radiology", "doctor"];
+  if (staffRoles.includes(role)) {
+    const staff = careSystemStore.findStaffLogin(normalizedEmail, password, role);
+    if (staff) {
+      if (staff.status === "suspended" || staff.status === "disabled") {
+        throw new Error("هذا الحساب معطّل. راجع الإدارة لإعادة التفعيل.");
+      }
+      return {
+        email: staff.email,
+        password: staff.password,
+        role: staff.role,
+        name: staff.name,
+        staffId: staff.id,
+        patientId: null,
+        mustChangePassword: Boolean(staff.mustChangePassword),
       };
     }
   }
 
   return null;
 }
+
+function generateTempPassword(length = 10) {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+  let result = "";
+  for (let i = 0; i < length; i += 1) {
+    result += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return result;
+}
+
+const ROLE_EMAIL_PREFIX = {
+  reception: "reception",
+  laboratory: "lab",
+  pharmacy: "pharmacy",
+  radiology: "radiology",
+  doctor: "doctor",
+};
+
+const ROLE_DEFAULTS = {
+  reception: { department: "الاستقبال", specialty: "استقبال" },
+  laboratory: { department: "المختبر", specialty: "تحاليل طبية" },
+  pharmacy: { department: "الصيدلية", specialty: "صيدلة" },
+  radiology: { department: "الأشعة", specialty: "تصوير طبي" },
+  doctor: { department: "العيادات", specialty: "الطب العام" },
+};
+
+export function suggestStaffEmail(role) {
+  const prefix = ROLE_EMAIL_PREFIX[role] || "staff";
+  let email = "";
+  do {
+    email = `${prefix}.${Math.random().toString(36).slice(2, 7)}@carelink.com`;
+  } while (
+    careSystemStore.listStaff().some(
+      (item) => item.email.toLowerCase() === email.toLowerCase()
+    )
+  );
+  return email;
+}
+
 
 function isActiveAppointment(appointment) {
   return appointment.status !== "cancelled";
@@ -433,30 +686,142 @@ export const careSystemStore = {
     const all = refresh().staff;
     return role ? all.filter((item) => item.role === role) : all;
   },
+  getStaff: (id) => refresh().staff.find((item) => item.id === id),
+  findStaffLogin: (email, password, role) => {
+    const normalizedEmail = String(email || "").trim().toLowerCase();
+    return (
+      refresh().staff.find(
+        (item) =>
+          item.email?.toLowerCase() === normalizedEmail &&
+          item.password === password &&
+          (!role || item.role === role)
+      ) || null
+    );
+  },
+  /**
+   * Admin creates clinic staff with generated email + temporary password.
+   * Returns { member, temporaryPassword } so admin can share credentials once.
+   */
+  createStaffWithCredentials: ({ name, role, department, specialty, email }) => {
+    if (!name?.trim()) throw new Error("اسم الموظف مطلوب");
+    if (!role) throw new Error("دور الموظف مطلوب");
+
+    const defaults = ROLE_DEFAULTS[role] || {};
+    const resolvedEmail = String(email || suggestStaffEmail(role)).trim().toLowerCase();
+    const temporaryPassword = generateTempPassword();
+
+    const exists = refresh().staff.some(
+      (item) => item.email.toLowerCase() === resolvedEmail
+    );
+    if (exists) throw new Error("البريد الإلكتروني مستخدم مسبقاً");
+
+    const id = uid(role.slice(0, 3) || "stf");
+    const member = {
+      id,
+      role,
+      name: name.trim(),
+      email: resolvedEmail,
+      department: department?.trim() || defaults.department || "",
+      specialty: specialty?.trim() || defaults.specialty || "",
+      status: "active",
+      password: temporaryPassword,
+      mustChangePassword: true,
+      createdAt: new Date().toISOString(),
+    };
+
+    update((s) => ({
+      ...s,
+      staff: [member, ...s.staff],
+    }));
+
+    return { member, temporaryPassword };
+  },
   saveStaff: (member) =>
     update((s) => {
       if (member.id) {
+        const { password, temporaryPassword, ...safe } = member;
         return {
           ...s,
-          staff: s.staff.map((item) => (item.id === member.id ? { ...item, ...member } : item)),
+          staff: s.staff.map((item) =>
+            item.id === member.id
+              ? {
+                  ...item,
+                  ...safe,
+                  // Keep existing password unless explicitly resetting
+                  password: password || item.password,
+                }
+              : item
+          ),
         };
       }
       return {
         ...s,
-        staff: [{ ...member, id: uid(member.role?.slice(0, 3) || "stf"), status: "active" }, ...s.staff],
+        staff: [
+          {
+            ...member,
+            id: uid(member.role?.slice(0, 3) || "stf"),
+            status: member.status || "active",
+            mustChangePassword: member.mustChangePassword ?? true,
+            password: member.password || generateTempPassword(),
+          },
+          ...s.staff,
+        ],
       };
     }),
+  resetStaffTemporaryPassword: (id) => {
+    const temporaryPassword = generateTempPassword();
+    update((s) => ({
+      ...s,
+      staff: s.staff.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              password: temporaryPassword,
+              mustChangePassword: true,
+            }
+          : item
+      ),
+    }));
+    return temporaryPassword;
+  },
+  changeStaffPassword: (id, newPassword) => {
+    if (!newPassword || String(newPassword).length < 6) {
+      throw new Error("كلمة المرور يجب أن تكون 6 أحرف على الأقل");
+    }
+    update((s) => ({
+      ...s,
+      staff: s.staff.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              password: newPassword,
+              mustChangePassword: false,
+            }
+          : item
+      ),
+    }));
+  },
   setStaffStatus: (id, status) =>
     update((s) => ({
       ...s,
       staff: s.staff.map((item) => (item.id === id ? { ...item, status } : item)),
     })),
+  /** Soft-disable preferred over hard delete to keep historical records. */
+  disableStaff: (id) => careSystemStore.setStaffStatus(id, "suspended"),
+  enableStaff: (id) => careSystemStore.setStaffStatus(id, "active"),
   deleteStaff: (id) =>
     update((s) => ({ ...s, staff: s.staff.filter((item) => item.id !== id) })),
 
   // Patients
   listPatients: () => refresh().patients,
   getPatient: (id) => refresh().patients.find((item) => item.id === id),
+  listDependents: (guardianId) =>
+    refresh().patients.filter((p) => String(p.guardianId || "") === String(guardianId)),
+  getGuardian: (patientId) => {
+    const patient = careSystemStore.getPatient(patientId);
+    if (!patient?.guardianId) return null;
+    return careSystemStore.getPatient(patient.guardianId);
+  },
   savePatient: (patient) => {
     const { password, createWebAccount, ...rest } = patient;
     const email = String(rest.email || "").trim().toLowerCase();
@@ -471,12 +836,21 @@ export const careSystemStore = {
 
     let createdId = patient.id || null;
     update((s) => {
+      const normalized = {
+        ...rest,
+        guardianId: rest.guardianId || null,
+        insuranceStatus: rest.insuranceStatus || "unknown",
+        insuranceProvider: rest.insuranceProvider || "",
+        receptionFlags: Array.isArray(rest.receptionFlags) ? rest.receptionFlags : [],
+        receptionNote: rest.receptionNote || "",
+      };
+
       if (patient.id) {
         const nextPatients = s.patients.map((item) =>
           item.id === patient.id
             ? {
                 ...item,
-                ...rest,
+                ...normalized,
                 hasWebAccount: wantsAccount || item.hasWebAccount || Boolean(rest.email),
               }
             : item
@@ -501,7 +875,7 @@ export const careSystemStore = {
       const id = uid("pat");
       createdId = id;
       const created = {
-        ...rest,
+        ...normalized,
         id,
         email: rest.email || "",
         hasWebAccount: wantsAccount,
@@ -518,6 +892,92 @@ export const careSystemStore = {
     });
 
     return careSystemStore.getPatient(createdId);
+  },
+
+  updatePatientReceptionMeta: (patientId, patch) => {
+    if (!patientId) return null;
+    update((s) => ({
+      ...s,
+      patients: s.patients.map((item) =>
+        item.id === patientId
+          ? {
+              ...item,
+              ...patch,
+              receptionFlags: Array.isArray(patch.receptionFlags)
+                ? patch.receptionFlags
+                : item.receptionFlags || [],
+            }
+          : item
+      ),
+    }));
+    return careSystemStore.getPatient(patientId);
+  },
+
+  // Reception shift handover
+  listShiftHandovers: (limit = 20) =>
+    [...(refresh().shiftHandovers || [])]
+      .sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")))
+      .slice(0, limit),
+  addShiftHandover: ({ message, authorName = "الاستقبال", authorId = null }) => {
+    const text = String(message || "").trim();
+    if (!text) throw new Error("اكتب ملاحظة تسليم الوردية");
+    const item = {
+      id: uid("sho"),
+      message: text,
+      authorName,
+      authorId,
+      createdAt: new Date().toISOString(),
+      acknowledged: false,
+    };
+    update((s) => ({
+      ...s,
+      shiftHandovers: [item, ...(s.shiftHandovers || [])],
+    }));
+    return item;
+  },
+  acknowledgeShiftHandover: (id) =>
+    update((s) => ({
+      ...s,
+      shiftHandovers: (s.shiftHandovers || []).map((item) =>
+        item.id === id
+          ? { ...item, acknowledged: true, acknowledgedAt: new Date().toISOString() }
+          : item
+      ),
+    })),
+
+  getReceptionDaySummary: (dateIso) => {
+    const day = dateIso || new Date().toISOString().slice(0, 10);
+    const list = refresh().appointments.filter((apt) => apt.date === day);
+    return {
+      date: day,
+      total: list.length,
+      completed: list.filter((a) => a.status === "completed").length,
+      cancelled: list.filter((a) => a.status === "cancelled").length,
+      noShow: list.filter((a) => a.status === "scheduled").length,
+      checkedIn: list.filter((a) => a.status === "checked_in").length,
+      withDoctor: list.filter((a) => a.status === "with_doctor").length,
+      awaitingLab: list.filter((a) => a.status === "awaiting_lab").length,
+      awaitingRadiology: list.filter((a) => a.status === "awaiting_radiology").length,
+      awaitingPharmacy: list.filter((a) => a.status === "awaiting_pharmacy").length,
+    };
+  },
+
+  getWaitingRoomQueue: (dateIso) => {
+    const day = dateIso || new Date().toISOString().slice(0, 10);
+    const { patientName, doctorName } = careSystemStore.resolveNames();
+    return refresh()
+      .appointments.filter(
+        (apt) =>
+          apt.date === day &&
+          ["checked_in", "with_doctor", "scheduled"].includes(apt.status)
+      )
+      .sort((a, b) => String(a.time).localeCompare(String(b.time)))
+      .map((apt, index) => ({
+        ...apt,
+        queueNumber: index + 1,
+        patient: patientName(apt.patientId),
+        doctor: doctorName(apt.doctorId),
+      }));
   },
 
   // Appointments
@@ -642,31 +1102,505 @@ export const careSystemStore = {
       };
     }),
 
-  // Prescriptions
-  listPrescriptions: () => refresh().prescriptions,
-  savePrescription: (rx) =>
+  // Radiology / imaging
+  listImagingOrders: () => refresh().imagingOrders || [],
+  saveImagingOrder: (order) =>
     update((s) => {
-      if (rx.id) {
+      const imagingOrders = s.imagingOrders || [];
+      if (order.id) {
         return {
           ...s,
-          prescriptions: s.prescriptions.map((item) =>
-            item.id === rx.id ? { ...item, ...rx } : item
+          imagingOrders: imagingOrders.map((item) =>
+            item.id === order.id ? { ...item, ...order } : item
           ),
         };
       }
       return {
         ...s,
+        imagingOrders: [
+          {
+            ...order,
+            id: uid("img"),
+            status: order.status || "pending",
+            createdAt: new Date().toISOString(),
+          },
+          ...imagingOrders,
+        ],
+      };
+    }),
+
+  // Prescriptions
+  listPrescriptions: () => refresh().prescriptions,
+  listPrescriptionsByAppointment: (appointmentId) =>
+    refresh().prescriptions.filter((item) => item.appointmentId === appointmentId),
+  savePrescription: (rx) =>
+    update((s) => {
+      // نجلب بيانات المريض وقت الحفظ حتى تظهر للصيدلية حتى لو تغيّر السجل لاحقاً
+      const patient =
+        (rx.patientId && s.patients.find((p) => p.id === rx.patientId)) || null;
+
+      const clean = {
+        id: rx.id,
+        appointmentId: rx.appointmentId,
+        patientId: rx.patientId,
+        doctorId: rx.doctorId,
+        medications: rx.medications,
+        status: rx.status || "pending",
+        createdAt: rx.createdAt,
+        dispensedAt: rx.dispensedAt || null,
+        notes: rx.notes || "",
+        patientName:
+          rx.patientName ||
+          patient?.name ||
+          rx.patient_name ||
+          "",
+        patientPhone:
+          rx.patientPhone ||
+          patient?.phone ||
+          rx.patient_phone ||
+          "",
+        nationalId:
+          rx.nationalId ||
+          patient?.nationalId ||
+          rx.national_id ||
+          "",
+      };
+
+      if (rx.id) {
+        return {
+          ...s,
+          prescriptions: s.prescriptions.map((item) =>
+            item.id === rx.id
+              ? {
+                  ...item,
+                  ...clean,
+                  id: item.id,
+                  createdAt: item.createdAt || clean.createdAt || new Date().toISOString(),
+                  patientName: clean.patientName || item.patientName || "",
+                  patientPhone: clean.patientPhone || item.patientPhone || "",
+                  nationalId: clean.nationalId || item.nationalId || "",
+                }
+              : item
+          ),
+        };
+      }
+
+      return {
+        ...s,
         prescriptions: [
           {
-            ...rx,
+            appointmentId: clean.appointmentId,
+            patientId: clean.patientId,
+            doctorId: clean.doctorId,
+            medications: clean.medications,
+            notes: clean.notes,
+            patientName: clean.patientName,
+            patientPhone: clean.patientPhone,
+            nationalId: clean.nationalId,
             id: uid("rx"),
-            status: rx.status || "pending",
+            status: clean.status,
             createdAt: new Date().toISOString(),
+            dispensedAt: null,
           },
           ...s.prescriptions,
         ],
       };
     }),
+  dispensePrescription: (id, options = {}) => {
+    const {
+      idLast4 = "",
+      notes = "",
+      pharmacistName = "الصيدلي",
+      acknowledgeAllergy = false,
+    } = options;
+
+    const rx = refresh().prescriptions.find((item) => item.id === id);
+    if (!rx) throw new Error("الوصفة غير موجودة");
+    if (rx.status === "dispensed") throw new Error("تم صرف هذه الوصفة مسبقاً");
+
+    const patient = careSystemStore.getPatient(rx.patientId);
+    const nationalId = String(rx.nationalId || patient?.nationalId || "").replace(/\D/g, "");
+    const phoneDigits = String(rx.patientPhone || patient?.phone || "").replace(/\D/g, "");
+    const expected =
+      nationalId.length >= 4
+        ? nationalId.slice(-4)
+        : phoneDigits.length >= 4
+          ? phoneDigits.slice(-4)
+          : "";
+
+    if (!expected) {
+      throw new Error("لا تتوفر هوية أو جوال للتحقق — راجع بيانات المريض");
+    }
+    if (String(idLast4).trim() !== expected) {
+      throw new Error(
+        nationalId.length >= 4
+          ? "آخر 4 أرقام من رقم الهوية غير صحيحة"
+          : "آخر 4 أرقام من رقم الجوال غير صحيحة"
+      );
+    }
+
+    const profile = careSystemStore.getMedicalProfile(rx.patientId);
+    const allergies = String(profile?.allergies || "").trim();
+    const allergyHit = careSystemStore.findAllergyConflict(allergies, rx.medications);
+    if (allergyHit && !acknowledgeAllergy) {
+      throw new Error(`تحذير حساسية: ${allergyHit} — أكّد المتابعة للمتابعة بالصرف`);
+    }
+
+    const dispensedAt = new Date().toISOString();
+    const patientName =
+      rx.patientName || patient?.name || careSystemStore.resolveNames().patientName(rx.patientId);
+
+    careSystemStore.savePrescription({
+      ...rx,
+      status: "dispensed",
+      dispensedAt,
+      readyAt: rx.readyAt || dispensedAt,
+    });
+
+    // خصم من المخزون حسب أسماء الأدوية المطابقة
+    const stockResult = careSystemStore.consumeInventoryForMedications(rx.medications);
+
+    update((s) => ({
+      ...s,
+      dispenseLogs: [
+        {
+          id: uid("dlog"),
+          prescriptionId: rx.id,
+          appointmentId: rx.appointmentId,
+          patientId: rx.patientId,
+          patientName,
+          patientPhone: rx.patientPhone || patient?.phone || "",
+          nationalId: rx.nationalId || patient?.nationalId || "",
+          doctorId: rx.doctorId,
+          medications: rx.medications,
+          pharmacistName,
+          notes: String(notes || "").trim(),
+          verifyMethod: nationalId.length >= 4 ? "national_id" : "phone",
+          allergyWarning: allergyHit || null,
+          allergyOverridden: Boolean(allergyHit && acknowledgeAllergy),
+          stockChanges: stockResult.changes,
+          stockWarnings: stockResult.warnings,
+          dispensedAt,
+        },
+        ...(s.dispenseLogs || []),
+      ],
+    }));
+
+    // إشعار المريض أن الدواء تم صرفه / جاهز
+    careSystemStore.notifyPatient({
+      patientId: rx.patientId,
+      type: "pharmacy",
+      title: "تم صرف دوائك",
+      body: `تم صرف وصفتك من الصيدلية (${patientName}). احتفظ بالإيصال للمراجعة.`,
+      prescriptionId: rx.id,
+    });
+
+    if (rx.appointmentId) {
+      careSystemStore.setAppointmentStatus(rx.appointmentId, "completed");
+      careSystemStore.upsertVisit({
+        appointmentId: rx.appointmentId,
+        patientId: rx.patientId,
+        doctorId: rx.doctorId,
+        status: "completed",
+        endedAt: dispensedAt,
+      });
+    }
+
+    return { ...rx, status: "dispensed", dispensedAt, stockResult };
+  },
+  markPrescriptionReady: (id, { pharmacistName = "الصيدلي" } = {}) => {
+    const rx = refresh().prescriptions.find((item) => item.id === id);
+    if (!rx) throw new Error("الوصفة غير موجودة");
+    if (rx.status === "dispensed") throw new Error("الوصفة مصروفة مسبقاً");
+
+    const patient = careSystemStore.getPatient(rx.patientId);
+    const patientName =
+      rx.patientName || patient?.name || careSystemStore.resolveNames().patientName(rx.patientId);
+    const readyAt = new Date().toISOString();
+
+    careSystemStore.savePrescription({
+      ...rx,
+      status: "ready",
+      readyAt,
+      readyBy: pharmacistName,
+    });
+
+    careSystemStore.notifyPatient({
+      patientId: rx.patientId,
+      type: "pharmacy",
+      title: "دواءك جاهز للاستلام",
+      body: `وصفتك جاهزة في الصيدلية يا ${patientName}. يمكنك الحضور للاستلام.`,
+      prescriptionId: rx.id,
+    });
+
+    return { ...rx, status: "ready", readyAt };
+  },
+  listDispenseLogs: () =>
+    [...(refresh().dispenseLogs || [])].sort((a, b) =>
+      String(b.dispensedAt || "").localeCompare(String(a.dispensedAt || ""))
+    ),
+
+  // Inventory
+  listInventory: () =>
+    [...(refresh().inventory || [])].sort((a, b) =>
+      String(a.name).localeCompare(String(b.name), "ar")
+    ),
+  saveInventoryItem: (item) =>
+    update((s) => {
+      const clean = {
+        id: item.id,
+        name: String(item.name || "").trim(),
+        keywords: Array.isArray(item.keywords)
+          ? item.keywords
+          : String(item.keywords || item.name || "")
+              .split(/[,،]/)
+              .map((k) => k.trim())
+              .filter(Boolean),
+        quantity: Math.max(0, Number(item.quantity) || 0),
+        minQuantity: Math.max(0, Number(item.minQuantity) || 0),
+        unit: item.unit || "علبة",
+      };
+      if (!clean.name) throw new Error("اسم الدواء مطلوب");
+
+      if (item.id) {
+        return {
+          ...s,
+          inventory: (s.inventory || []).map((row) =>
+            row.id === item.id ? { ...row, ...clean, id: row.id } : row
+          ),
+        };
+      }
+      return {
+        ...s,
+        inventory: [{ ...clean, id: uid("inv") }, ...(s.inventory || [])],
+      };
+    }),
+  adjustInventoryQuantity: (id, delta) =>
+    update((s) => ({
+      ...s,
+      inventory: (s.inventory || []).map((row) =>
+        row.id === id
+          ? { ...row, quantity: Math.max(0, Number(row.quantity || 0) + Number(delta || 0)) }
+          : row
+      ),
+    })),
+  consumeInventoryForMedications: (medicationsText) => {
+    const meds = String(medicationsText || "").toLowerCase();
+    const changes = [];
+    const warnings = [];
+    if (!meds.trim()) return { changes, warnings };
+
+    update((s) => {
+      const inventory = (s.inventory || []).map((item) => {
+        const keys = [item.name, ...(item.keywords || [])]
+          .map((k) => String(k).toLowerCase().trim())
+          .filter(Boolean);
+        const matched = keys.some((key) => key.length >= 3 && meds.includes(key));
+        if (!matched) return item;
+
+        const nextQty = Math.max(0, Number(item.quantity || 0) - 1);
+        changes.push({
+          id: item.id,
+          name: item.name,
+          from: item.quantity,
+          to: nextQty,
+        });
+        if (nextQty <= Number(item.minQuantity || 0)) {
+          warnings.push(`${item.name} — الكمية منخفضة (${nextQty} ${item.unit || "علبة"})`);
+        }
+        if (item.quantity <= 0) {
+          warnings.push(`${item.name} — غير متوفر في المخزون`);
+        }
+        return { ...item, quantity: nextQty };
+      });
+      return { ...s, inventory };
+    });
+
+    return { changes, warnings };
+  },
+  getLowStockItems: () =>
+    careSystemStore
+      .listInventory()
+      .filter((item) => Number(item.quantity || 0) <= Number(item.minQuantity || 0)),
+
+  // Patient notifications (pharmacy / system)
+  notifyPatient: ({ patientId, title, body, type = "pharmacy", prescriptionId = null }) => {
+    if (!patientId || !title || !body) return null;
+    const item = {
+      id: uid("pnot"),
+      patientId,
+      title,
+      body,
+      type,
+      prescriptionId,
+      createdAt: new Date().toISOString(),
+      read: false,
+    };
+    update((s) => ({
+      ...s,
+      patientNotifications: [item, ...(s.patientNotifications || [])],
+    }));
+    return item;
+  },
+  listPatientNotifications: (patientId) =>
+    [...(refresh().patientNotifications || [])]
+      .filter((item) => !patientId || String(item.patientId) === String(patientId))
+      .sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || ""))),
+  markPatientNotificationRead: (id) =>
+    update((s) => ({
+      ...s,
+      patientNotifications: (s.patientNotifications || []).map((item) =>
+        item.id === id ? { ...item, read: true } : item
+      ),
+    })),
+
+  findAllergyConflict: (allergiesText, medicationsText) => {
+    const allergies = String(allergiesText || "")
+      .toLowerCase()
+      .split(/[,،\/|-]+/)
+      .map((part) => part.trim())
+      .filter((part) => part && part !== "لا يوجد" && part !== "لا" && part !== "none");
+    const meds = String(medicationsText || "").toLowerCase();
+    if (!allergies.length || !meds) return null;
+
+    const aliases = {
+      أسبرين: ["أسبرين", "اسبرين", "aspirin", "asa"],
+      بنسلين: ["بنسلين", "بنسيلين", "penicillin", "amoxicillin", "أموكسيسيلين"],
+      سلفا: ["سلفا", "sulfa", "sulfonamide"],
+      لاتكس: ["لاتكس", "latex"],
+      ايبوبروفين: ["ايبوبروفين", "إيبوبروفين", "ibuprofen", "بروفين"],
+    };
+
+    for (const allergy of allergies) {
+      const keys = aliases[allergy] || [allergy];
+      for (const key of keys) {
+        if (key.length >= 3 && meds.includes(key.toLowerCase())) {
+          return allergy;
+        }
+      }
+      if (allergy.length >= 3 && meds.includes(allergy)) {
+        return allergy;
+      }
+    }
+    return null;
+  },
+
+  // Appointment chat — doctor ↔ patient only
+  listChatMessages: (appointmentId) =>
+    refresh()
+      .chatMessages.filter(
+        (msg) =>
+          String(msg.appointmentId) === String(appointmentId) &&
+          (msg.senderRole === "doctor" || msg.senderRole === "patient")
+      )
+      .sort((a, b) => String(a.createdAt).localeCompare(String(b.createdAt))),
+  sendChatMessage: ({
+    appointmentId,
+    senderRole,
+    senderName,
+    body,
+    id,
+    createdAt,
+  }) => {
+    const text = String(body || "").trim();
+    if (!appointmentId || !text) throw new Error("لا يمكن إرسال رسالة فارغة");
+    if (senderRole !== "doctor" && senderRole !== "patient") {
+      throw new Error("الدردشة متاحة بين الطبيب والمريض فقط");
+    }
+
+    // تجنّب تكرار نفس الرسالة عند الدمج من الـ API
+    const existing = refresh().chatMessages || [];
+    if (
+      id &&
+      existing.some((msg) => msg.id === id)
+    ) {
+      return existing.find((msg) => msg.id === id);
+    }
+
+    const message = {
+      id: id || uid("msg"),
+      appointmentId: String(appointmentId),
+      senderRole,
+      senderName:
+        senderName || (senderRole === "doctor" ? "الطبيب" : "المريض"),
+      body: text,
+      createdAt: createdAt || new Date().toISOString(),
+    };
+    update((s) => ({
+      ...s,
+      chatMessages: [...(s.chatMessages || []), message],
+    }));
+    return message;
+  },
+
+  // Admin broadcasts — تصل للمستهدفين عبر جرس الإشعارات
+  listBroadcasts: () =>
+    [...(refresh().broadcasts || [])].sort((a, b) =>
+      String(b.created_at || b.createdAt || "").localeCompare(
+        String(a.created_at || a.createdAt || "")
+      )
+    ),
+  saveBroadcast: ({ message, target, id, created_at, updated_at }) => {
+    const text = String(message || "").trim();
+    if (!text) throw new Error("اكتب نص الإعلان أولاً");
+    const now = new Date().toISOString();
+    const item = {
+      id: id || uid("bc"),
+      message: text,
+      target: target || "all",
+      created_at: created_at || now,
+      updated_at: updated_at || now,
+    };
+    update((s) => {
+      const exists = (s.broadcasts || []).some(
+        (row) => String(row.id) === String(item.id)
+      );
+      if (exists) {
+        return {
+          ...s,
+          broadcasts: s.broadcasts.map((row) =>
+            String(row.id) === String(item.id) ? { ...row, ...item } : row
+          ),
+        };
+      }
+      return {
+        ...s,
+        broadcasts: [item, ...(s.broadcasts || [])],
+      };
+    });
+    return item;
+  },
+  /** دمج قائمة من الـ API مع الإعلانات المحلية بدون تكرار */
+  syncBroadcasts: (list = []) => {
+    if (!Array.isArray(list) || list.length === 0) return refresh().broadcasts;
+    update((s) => {
+      const map = new Map();
+      for (const row of s.broadcasts || []) {
+        map.set(String(row.id), row);
+      }
+      for (const raw of list) {
+        const item = {
+          id: raw.id ?? uid("bc"),
+          message: raw.message || "",
+          target: raw.target || "all",
+          created_at: raw.created_at || raw.createdAt || new Date().toISOString(),
+          updated_at: raw.updated_at || raw.updatedAt || raw.created_at || null,
+        };
+        if (!item.message) continue;
+        map.set(String(item.id), { ...map.get(String(item.id)), ...item });
+      }
+      return {
+        ...s,
+        broadcasts: [...map.values()],
+      };
+    });
+    return refresh().broadcasts;
+  },
+  deleteBroadcast: (id) =>
+    update((s) => ({
+      ...s,
+      broadcasts: (s.broadcasts || []).filter((item) => String(item.id) !== String(id)),
+    })),
 
   // Settings
   getSiteSettings: () => refresh().siteSettings,
@@ -716,6 +1650,7 @@ export const APPOINTMENT_STATUS_LABELS = {
   checked_in: "تم الحضور",
   with_doctor: "عند الطبيب",
   awaiting_lab: "بانتظار المختبر",
+  awaiting_radiology: "بانتظار الأشعة",
   results_ready: "نتائج جاهزة",
   awaiting_pharmacy: "بانتظار الصيدلية",
   completed: "مكتمل",

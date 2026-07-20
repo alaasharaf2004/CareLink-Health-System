@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import {
   ArrowRight,
@@ -9,7 +10,7 @@ import {
   Sparkles,
 } from "lucide-react";
 
-import { getCmsArticleBySlug } from "../data/cmsContent";
+import { fetchLandingArticleBySlug } from "../data/cmsContent";
 
 function ArticleContentBlock({ block, index }) {
   if (typeof block === "string") {
@@ -50,11 +51,41 @@ function ArticleContentBlock({ block, index }) {
 
 function ArticleDetailPage() {
   const { slug } = useParams();
-  const article = getCmsArticleBySlug(slug);
+  const [article, setArticle] = useState(null);
+  const [status, setStatus] = useState("loading");
 
-  if (!article) {
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      setStatus("loading");
+      const next = await fetchLandingArticleBySlug(slug);
+      if (!active) return;
+      setArticle(next);
+      setStatus(next ? "ready" : "missing");
+    };
+    load();
+    return () => {
+      active = false;
+    };
+  }, [slug]);
+
+  if (status === "loading") {
+    return (
+      <div className="mx-auto max-w-4xl px-5 py-20 text-center text-sm font-bold text-slate-500">
+        جاري تحميل المقال...
+      </div>
+    );
+  }
+
+  if (status === "missing" || !article) {
     return <Navigate to="/blog" replace />;
   }
+
+  const contentBlocks = Array.isArray(article.content)
+    ? article.content
+    : typeof article.content === "string"
+      ? [{ type: "p", text: article.content }]
+      : [{ type: "p", text: article.excerpt || "محتوى المقال قيد الإعداد." }];
 
   return (
     <article className="landing-article-page">
@@ -80,44 +111,39 @@ function ArticleDetailPage() {
               {article.readTime}
             </span>
           </div>
-          <h1 className="landing-article-page-title">{article.title}</h1>
-          <p className="landing-article-page-lead">{article.excerpt}</p>
-
+          <h1>{article.title}</h1>
           <div className="landing-article-page-author">
             <div className="landing-article-avatar" aria-hidden="true">
               {article.initials}
             </div>
             <div>
               <p className="landing-article-author-name">{article.author}</p>
-              <div className="landing-article-actions mt-1">
-                <span>
-                  <Heart size={15} strokeWidth={1.8} />
-                  <em>{article.likes}</em>
-                </span>
-                <span>
-                  <MessageCircle size={15} strokeWidth={1.8} />
-                  <em>{article.comments}</em>
-                </span>
-              </div>
+              <p className="landing-article-meta">كاتب المقال</p>
             </div>
           </div>
         </header>
 
         <div className="landing-article-page-content">
-          {(article.content || []).map((block, index) => (
-            <ArticleContentBlock key={`${article.slug}-${index}`} block={block} index={index} />
+          {contentBlocks.map((block, index) => (
+            <ArticleContentBlock key={index} block={block} index={index} />
           ))}
         </div>
 
-        <div className="landing-article-page-footer">
-          <Link to="/blog" className="landing-btn-secondary">
-            <ArrowRight size={16} />
-            تصفح المزيد من المقالات
-          </Link>
+        <footer className="landing-article-page-footer">
+          <div className="landing-article-actions">
+            <span>
+              <Heart size={16} />
+              {article.likes ?? 0}
+            </span>
+            <span>
+              <MessageCircle size={16} />
+              {article.comments ?? 0}
+            </span>
+          </div>
           <Link to="/doctors" className="landing-btn-primary">
             احجز استشارة
           </Link>
-        </div>
+        </footer>
       </div>
     </article>
   );

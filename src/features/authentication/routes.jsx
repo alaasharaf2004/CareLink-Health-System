@@ -2,11 +2,13 @@ import { Navigate } from "react-router-dom";
 
 import AuthPageTransition from "./components/AuthPageTransition";
 import GuestRoute from "./components/GuestRoute";
+import ProtectedRoute from "./components/ProtectedRoute";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import VerifyCodePage from "./pages/VerifyCodePage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
+import ForceChangePasswordPage from "./pages/ForceChangePasswordPage";
 
 export const authenticationRoutes = [
   {
@@ -51,6 +53,14 @@ export const authenticationRoutes = [
       {
         path: "/reset-password",
         element: <ResetPasswordPage />,
+      },
+      {
+        path: "/change-password",
+        element: (
+          <ProtectedRoute>
+            <ForceChangePasswordPage />
+          </ProtectedRoute>
+        ),
       },
     ],
   },

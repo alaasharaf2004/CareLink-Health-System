@@ -12,14 +12,14 @@ function buildFormData(fields) {
 }
 
 /**
- * تسجيل الدخول حسب الدور: patient | doctor | admin | reception | laboratory | pharmacy
+ * تسجيل الدخول حسب الدور: patient | doctor | admin | reception | laboratory | pharmacy | radiology
  */
 /**
- * تسجيل الدخول حسب الدور: patient | doctor | admin | reception | laboratory | pharmacy
+ * تسجيل الدخول حسب الدور: patient | doctor | admin | reception | laboratory | pharmacy | radiology
  */
 export async function login(role, { email, password }) {
   // إذا كان الدور أحد أدوار طاقم العيادة، نوجهه للمسار الخاص به في الباك إند
-  if (["reception", "laboratory", "pharmacy"].includes(role)) {
+  if (["reception", "laboratory", "pharmacy", "radiology"].includes(role)) {
     const response = await apiClient.post(
       `/auth/staff/login`,
       buildFormData({ email, password, role })

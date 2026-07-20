@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import {
   CalendarPlus,
   CalendarSync,
-  Eye,
+  MessageCircle,
   Plus,
   Star,
   XCircle,
@@ -42,7 +42,7 @@ const COLUMNS = [
   { key: "status", label: "الحالة" },
   { key: "description", label: "الوصف" },
   { key: "reject", label: "سبب الرفض" },
-  { key: "actions", label: "إجراءات", className: "w-28" },
+  { key: "actions", label: "إجراءات", className: "w-44" },
 ];
 
 const FILTER_TABS = [
@@ -119,66 +119,65 @@ function PatientAppointmentsPage() {
     careSystemStore.listPatients().find((p) => p.email === profile?.email)?.id ||
     "pat-1";
 
+  const loadLocalData = () => {
+    const { doctorName, staffById } = careSystemStore.resolveNames();
+    setAppointments(
+      careSystemStore
+        .listAppointments()
+        .filter((apt) => apt.patientId === patientId)
+        .map((apt) => mapAppointment(apt, doctorName, staffById))
+    );
+    setAvailableDoctors(
+      careSystemStore
+        .listStaff("doctor")
+        .filter((d) => d.status === "active")
+        .map((d) => ({
+          id: d.id,
+          name: d.name,
+          specialty: d.specialty || "—",
+        }))
+    );
+  };
+
   const reload = async () => {
     try {
-      console.log("1- before appointments");
-
-      // جلب المواعيد
       const response = await apiClient.get("/patient/appointments");
-
-      console.log("2- appointments loaded");
-      console.log(response.data.data.map(a => ({
-  id: a.id,
-  status: a.status,
-  doctor: a.doctor_id,
-  scheduled_at: a.scheduled_at,
-})));
-
-      const appointments = response.data.data ?? [];
-
-      console.log("3- before setAppointments");
+      const list = response.data?.data ?? response.data ?? [];
 
       setAppointments(
-        appointments.map((apt) => ({
+        (Array.isArray(list) ? list : []).map((apt) => ({
           id: apt.id,
-          doctorId: apt.doctor_id,
-          patientId: apt.patient_id,
-
+          doctorId: apt.doctor_id ?? apt.doctorId,
+          patientId: apt.patient_id ?? apt.patientId,
           doctor_name: apt.doctor?.name || "الطبيب",
           doctor_specialty: apt.doctor?.specialty || "—",
           doctor_avatar: "",
-
           scheduled_at: apt.scheduled_at,
           duration_minutes: 30,
-
-          type: apt.type === "online" ? "online" : "in_person",
-
+          type: apt.type === "online" || apt.type === "عن بُعد" ? "online" : "in_person",
           status: apt.status,
-
-          description: apt.notes || "—",
-
-          rejection_reason: apt.cancel_reason || "",
+          description: apt.notes || apt.description || "—",
+          rejection_reason: apt.cancel_reason || apt.cancelReason || "",
         }))
       );
 
-      console.log("4- after setAppointments");
-
-      console.log("5- before doctors");
-
-      // جلب الأطباء
-      const doctorsResponse = await apiClient.get("/patient/doctors");
-
-      console.log("6- doctors loaded");
-      console.log(doctorsResponse.data);
-
-      setAvailableDoctors(doctorsResponse.data.data);
-
-      console.log("7- done");
-    } catch (error) {
-      console.log("ERROR:");
-      console.log(error);
-      console.log(error.response);
-      console.log(error.response?.data);
+      try {
+        const doctorsResponse = await apiClient.get("/patient/doctors");
+        setAvailableDoctors(doctorsResponse.data?.data ?? doctorsResponse.data ?? []);
+      } catch {
+        setAvailableDoctors(
+          careSystemStore
+            .listStaff("doctor")
+            .filter((d) => d.status === "active")
+            .map((d) => ({
+              id: d.id,
+              name: d.name,
+              specialty: d.specialty || "—",
+            }))
+        );
+      }
+    } catch {
+      loadLocalData();
     }
   };
 
@@ -193,7 +192,7 @@ function PatientAppointmentsPage() {
       ? appointments
       : activeFilter === "with_doctor"
         ? appointments.filter((a) =>
-            ["checked_in", "with_doctor", "awaiting_lab", "results_ready", "awaiting_pharmacy"].includes(
+    ["checked_in", "with_doctor", "awaiting_lab", "awaiting_radiology", "results_ready", "awaiting_pharmacy"].includes(
               a.status
             )
           )
@@ -261,6 +260,9 @@ const handleAddAppointment = async () => {
     return;
   }
 
+  const [date, time] = newAppointment.datetime.split("T");
+  const slot = time?.slice(0, 5) || "10:00";
+
   try {
     await apiClient.post("/patient/appointments", {
       doctor_id: newAppointment.doctorId,
@@ -268,30 +270,39 @@ const handleAddAppointment = async () => {
     });
 
     showToast("تم حجز الموعد بنجاح", "success");
-
-    setIsAddOpen(false);
-
-    setNewAppointment({
-      doctorId: "",
-      datetime: "",
-      type: "in_person",
-      description: "",
-    });
-
-    reload(); // لإعادة تحميل المواعيد
   } catch (err) {
-  console.log(err.response);
-  console.log(err.response?.data);
-  console.log(err.response?.status);
-  console.error(err);
+    if (err.response?.status === 409) {
+      showToast("هذا الموعد محجوز مسبقًا", "error");
+      return;
+    }
 
-  if (err.response?.status === 409) {
-    showToast("هذا الموعد محجوز مسبقًا", "error");
-    return;
+    // fallback محلي عند تعذّر الاتصال بالخادم
+    try {
+      careSystemStore.saveAppointment({
+        patientId,
+        doctorId: newAppointment.doctorId,
+        date,
+        time: slot,
+        type: newAppointment.type === "online" ? "عن بُعد" : "حضوري",
+        notes: newAppointment.description.trim() || "",
+        status: "scheduled",
+        createdBy: "patient",
+      });
+      showToast("تم حجز الموعد بنجاح", "success");
+    } catch (localError) {
+      showToast(localError.message || "فشل حجز الموعد", "error");
+      return;
+    }
   }
 
-  showToast("فشل حجز الموعد", "error");
-}
+  setIsAddOpen(false);
+  setNewAppointment({
+    doctorId: "",
+    datetime: "",
+    type: "in_person",
+    description: "",
+  });
+  reload();
 };
 
   return (
@@ -300,7 +311,7 @@ const handleAddAppointment = async () => {
 
       <PatientPageHeader
         title="المواعيد"
-        description="عرض مواعيدك مع الأطباء — إلغاء، طلب تأجيل، أو حجز موعد جديد."
+        description="عرض مواعيدك مع الأطباء — افتح الموعد للدردشة مع الطبيب، أو إلغاء وتأجيل وحجز جديد."
         action={
           <button
             type="button"
@@ -406,10 +417,11 @@ const handleAddAppointment = async () => {
                 <div className="flex gap-1">
                   <Link
                     to={`/patient/appointments/${appointment.id}`}
-                    className="rounded-lg p-2 text-slate-500 transition-all duration-200 hover:scale-110 hover:bg-blue-50 hover:text-blue-700"
-                    title="التفاصيل"
+                    className="inline-flex items-center gap-1 rounded-lg bg-blue-50 px-2.5 py-1.5 text-xs font-bold text-blue-700 transition hover:bg-blue-100"
+                    title="التفاصيل والدردشة"
                   >
-                    <Eye size={17} />
+                    <MessageCircle size={14} />
+                    دردشة
                   </Link>
                   {appointment.status !== "cancelled" &&
                     appointment.status !== "completed" && (

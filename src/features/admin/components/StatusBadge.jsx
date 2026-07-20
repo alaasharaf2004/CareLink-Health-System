@@ -7,7 +7,7 @@ const STATUS_STYLES = {
 const STATUS_LABELS = {
   pending: "بانتظار التفعيل",
   active: "مفعّل",
-  suspended: "موقوف",
+  suspended: "معطّل",
 };
 
 function StatusBadge({ status }) {

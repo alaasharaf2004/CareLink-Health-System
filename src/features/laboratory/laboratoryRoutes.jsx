@@ -6,8 +6,8 @@ import StaffWorkspaceLayout from "../care-system/components/StaffWorkspaceLayout
 import LaboratoryHomePage from "./pages/LaboratoryHomePage";
 
 const navItems = [
+  { to: "/laboratory/dashboard", label: "لوحة المختبر", icon: LayoutDashboard, end: true },
   { to: "/laboratory/dashboard", label: "طلبات التحاليل", icon: FlaskConical },
-  { to: "/laboratory/dashboard", label: "لوحة المختبر", icon: LayoutDashboard },
 ];
 
 export const laboratoryRoutes = [
@@ -16,7 +16,9 @@ export const laboratoryRoutes = [
     element: (
       <ProtectedRoute allowedRoles={["laboratory"]}>
         <StaffWorkspaceLayout
-          title="المختبر"
+          title="لوحة المختبر"
+          roleLabel="فني مختبر"
+          roleKey="laboratory"
           navItems={navItems}
           homePath="/laboratory/dashboard"
         />

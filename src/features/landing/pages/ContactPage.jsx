@@ -220,7 +220,7 @@ function ContactPage() {
       <section className="mx-auto max-w-7xl px-5 pb-20 lg:px-8">
         <div className="landing-map-frame relative overflow-hidden rounded-3xl border border-slate-200 shadow-sm">
           <iframe
-            title="موقع مستشفى CareLink - قطاع غزة"
+            title="موقع عيادة CareLink - قطاع غزة"
             src={GAZA_MAP_SRC}
             className="landing-map-iframe"
             loading="lazy"
@@ -236,7 +236,7 @@ function ContactPage() {
             >
               <Building2 size={26} className="mx-auto text-[#101860]" />
               <p className="mt-2 text-sm font-black text-[#101860]">
-                مستشفى CareLink
+                عيادة CareLink
               </p>
               <p className="mt-1 flex items-center justify-center gap-1.5 text-xs text-slate-500">
                 <MapPin size={13} className="text-[#40c0a0]" />

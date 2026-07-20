@@ -14,9 +14,11 @@ import {
 } from "lucide-react";
 
 import { AppointmentStatusBadge } from "../components/AppointmentBadges";
+import FadeUp from "../components/FadeUp";
 import PatientWelcomeHero from "../components/PatientWelcomeHero";
 import ProfileAvatar from "../components/ProfileAvatar";
 import { formatArabicDateTime } from "../utils/formatDateTime";
+import { staggerDelay } from "../utils/staggerDelay";
 
 const QUICK_ACTIONS = [
   {
@@ -65,31 +67,24 @@ function PatientHomePage() {
   const [patient, setPatient] = useState(null);
   const [medicalProfile, setMedicalProfile] = useState(null);
   useEffect(() => {
-  const loadAppointments = async () => {
-    try {
-      const response = await apiClient.get("/patient/appointments");
+    const loadAppointments = async () => {
+      try {
+        const response = await apiClient.get("/patient/appointments");
 
-      console.log(response.data);
+        setMyAppointments(response.data.data);
+        const profileResponse = await apiClient.get("/patient/profile");
 
-      setMyAppointments(response.data.data);
-      const profileResponse = await apiClient.get("/patient/profile");
+        setPatient(profileResponse.data.user);
+        const medicalResponse = await apiClient.get("/patient/medical-profile");
 
-      
-      setPatient(profileResponse.data.user);
-      const medicalResponse = await apiClient.get("/patient/medical-profile");
+        setMedicalProfile(medicalResponse.data.data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
 
-      setMedicalProfile(medicalResponse.data.data);
-      console.log("Medical:", medicalResponse.data.data);
-      console.log(profileResponse.data.user);
-      
-
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  loadAppointments();
-}, []);
+    loadAppointments();
+  }, []);
 
   const pending = myAppointments.filter((a) => a.status === "pending");
   const confirmed = myAppointments.filter((a) => a.status === "confirmed");
@@ -110,28 +105,27 @@ function PatientHomePage() {
   return (
     <div className="space-y-8">
       <div className="opacity-0 animate-[formFadeUp_0.55s_cubic-bezier(0.22,1,0.36,1)_forwards]">
-        <PatientWelcomeHero
-            patient={patient}
-            medicalProfile={medicalProfile}
-        />
+        <PatientWelcomeHero patient={patient} medicalProfile={medicalProfile} />
       </div>
 
       <section>
-        <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-lg font-extrabold text-[#101860]">إجراءات سريعة</h3>
-          <span className="text-xs font-medium text-slate-400">وصول مباشر</span>
-        </div>
+        <FadeUp index={1}>
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="text-lg font-extrabold text-[#101860]">إجراءات سريعة</h3>
+            <span className="text-xs font-medium text-slate-400">وصول مباشر</span>
+          </div>
+        </FadeUp>
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {QUICK_ACTIONS.map(
             ({ to, icon: Icon, label, desc, gradient, iconClass }, index) => (
               <Link
                 key={label}
                 to={to}
-                className={`group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-gradient-to-br ${gradient} p-5 shadow-sm opacity-0 transition-all duration-300 animate-[formFadeUp_0.5s_ease_forwards] hover:-translate-y-1 hover:border-[#40c0a0]/30 hover:shadow-lg`}
-                style={{ animationDelay: `${0.1 + index * 0.07}s` }}
+                className={`workspace-quick-tile group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-gradient-to-br ${gradient} p-5 shadow-sm opacity-0 transition-all duration-300 animate-[formFadeUp_0.5s_ease_forwards] hover:-translate-y-1 hover:border-[#40c0a0]/30 hover:shadow-lg`}
+                style={{ animationDelay: staggerDelay(index, 0.07, 0.1) }}
               >
                 <div
-                  className={`mb-4 flex h-12 w-12 items-center justify-center rounded-2xl shadow-md transition-transform duration-300 group-hover:scale-110 ${iconClass}`}
+                  className={`mb-4 flex h-12 w-12 items-center justify-center rounded-2xl shadow-md transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3 ${iconClass}`}
                 >
                   <Icon size={22} />
                 </div>
@@ -149,119 +143,132 @@ function PatientHomePage() {
 
       <section className="grid grid-cols-1 gap-5 lg:grid-cols-12">
         {nextAppointment && (
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm lg:col-span-7">
-            <div className="border-b border-slate-100 bg-gradient-to-l from-blue-50/80 to-white px-6 py-4">
-              <p className="text-xs font-bold uppercase tracking-wider text-blue-600">
-                الموعد القادم
-              </p>
-            </div>
-            <div className="p-6">
-              <div className="flex items-start gap-4">
-                <ProfileAvatar
-                  src={nextAppointment.doctor_avatar}
-                  name={nextAppointment.doctor_name}
-                  size="xl"
-                  ring
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="text-xl font-extrabold text-[#101860]">
-                    {nextAppointment.doctor_name}
-                  </p>
-                  <p className="mt-0.5 text-sm text-slate-500">
-                    {nextAppointment.doctor_specialty}
-                  </p>
-                  <p className="mt-3 text-sm font-bold text-slate-700">
-                    {formatArabicDateTime(nextAppointment.scheduled_at)}
-                  </p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <AppointmentStatusBadge status={nextAppointment.status} />
-                    {nextAppointment.type === "online" && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-violet-50 px-2.5 py-1 text-xs font-bold text-violet-600 ring-1 ring-violet-100">
-                        <Video size={12} />
-                        عن بُعد
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-              <Link
-                to={`/patient/appointments/${nextAppointment.id}`}
-                className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[#101860] py-3 text-sm font-bold text-white transition-colors hover:bg-blue-900"
-              >
-                عرض تفاصيل الموعد
-                <ArrowLeft size={16} />
-              </Link>
-            </div>
-          </div>
-        )}
-
-        <div
-          className={`rounded-2xl border border-slate-200 bg-white p-5 shadow-sm ${nextAppointment ? "lg:col-span-5" : "lg:col-span-12"}`}
-        >
-          <p className="mb-4 text-sm font-extrabold text-[#101860]">ملخص المواعيد</p>
-          <div className="grid grid-cols-2 gap-3">
-            {STATS.map(({ key, icon: Icon, label, tone }) => (
-              <div
-                key={key}
-                className="rounded-xl border border-slate-100 p-4 transition-colors hover:border-slate-200"
-              >
-                <div
-                  className={`mb-2 flex h-9 w-9 items-center justify-center rounded-lg ${tone}`}
-                >
-                  <Icon size={18} />
-                </div>
-                <p className="text-2xl font-extrabold text-[#101860]">
-                  {statValues[key]}
+          <FadeUp index={2} className="lg:col-span-7">
+            <div className="patient-card overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+              <div className="border-b border-slate-100 bg-gradient-to-l from-blue-50/80 to-white px-6 py-4">
+                <p className="text-xs font-bold uppercase tracking-wider text-blue-600">
+                  الموعد القادم
                 </p>
-                <p className="text-xs text-slate-400">{label}</p>
               </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-slate-200 bg-white shadow-sm lg:col-span-12">
-          <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
-            <h3 className="font-extrabold text-[#101860]">المواعيد المعلقة</h3>
-            <Link
-              to="/patient/appointments"
-              className="text-sm font-bold text-[#40c0a0] hover:text-[#2a9d82]"
-            >
-              عرض الكل
-            </Link>
-          </div>
-
-          {pending.length === 0 ? (
-            <p className="px-6 py-12 text-center text-sm text-slate-400">
-              لا توجد مواعيد معلقة — أنت منظم!
-            </p>
-          ) : (
-            <div className="divide-y divide-slate-100">
-              {pending.map((appointment) => (
-                <Link
-                  key={appointment.id}
-                  to={`/patient/appointments/${appointment.id}`}
-                  className="flex items-center gap-4 px-6 py-4 transition-colors hover:bg-slate-50/80"
-                >
+              <div className="p-6">
+                <div className="flex items-start gap-4">
                   <ProfileAvatar
-                    src={appointment.doctor_avatar}
-                    name={appointment.doctor_name}
-                    size="md"
+                    src={nextAppointment.doctor_avatar}
+                    name={nextAppointment.doctor_name}
+                    size="xl"
+                    ring
                   />
                   <div className="min-w-0 flex-1">
-                    <p className="font-bold text-[#101860]">
-                      {appointment.doctor_name}
+                    <p className="text-xl font-extrabold text-[#101860]">
+                      {nextAppointment.doctor_name}
                     </p>
                     <p className="mt-0.5 text-sm text-slate-500">
-                      {formatArabicDateTime(appointment.scheduled_at)}
+                      {nextAppointment.doctor_specialty}
                     </p>
+                    <p className="mt-3 text-sm font-bold text-slate-700">
+                      {formatArabicDateTime(nextAppointment.scheduled_at)}
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <AppointmentStatusBadge status={nextAppointment.status} />
+                      {nextAppointment.type === "online" && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-violet-50 px-2.5 py-1 text-xs font-bold text-violet-600 ring-1 ring-violet-100">
+                          <Video size={12} />
+                          عن بُعد
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <AppointmentStatusBadge status={appointment.status} />
-                  <ArrowLeft size={16} className="shrink-0 text-slate-300" />
+                </div>
+                <Link
+                  to={`/patient/appointments/${nextAppointment.id}`}
+                  className="workspace-btn-press mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[#101860] py-3 text-sm font-bold text-white hover:bg-blue-900"
+                >
+                  عرض تفاصيل الموعد
+                  <ArrowLeft size={16} />
                 </Link>
+              </div>
+            </div>
+          </FadeUp>
+        )}
+
+        <FadeUp
+          index={3}
+          className={nextAppointment ? "lg:col-span-5" : "lg:col-span-12"}
+        >
+          <div className="patient-card rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p className="mb-4 text-sm font-extrabold text-[#101860]">ملخص المواعيد</p>
+            <div className="grid grid-cols-2 gap-3">
+              {STATS.map(({ key, icon: Icon, label, tone }) => (
+                <div
+                  key={key}
+                  className="workspace-stat-chip rounded-xl border border-slate-100 p-4 hover:border-slate-200"
+                >
+                  <div
+                    className={`mb-2 flex h-9 w-9 items-center justify-center rounded-lg ${tone}`}
+                  >
+                    <Icon size={18} />
+                  </div>
+                  <p className="text-2xl font-extrabold text-[#101860]">
+                    {statValues[key]}
+                  </p>
+                  <p className="text-xs text-slate-400">{label}</p>
+                </div>
               ))}
             </div>
-          )}
-        </div>
+          </div>
+        </FadeUp>
+
+        <FadeUp index={4} className="lg:col-span-12">
+          <div className="patient-card rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+              <h3 className="font-extrabold text-[#101860]">المواعيد المعلقة</h3>
+              <Link
+                to="/patient/appointments"
+                className="text-sm font-bold text-[#40c0a0] transition-colors hover:text-[#2a9d82]"
+              >
+                عرض الكل
+              </Link>
+            </div>
+
+            {pending.length === 0 ? (
+              <p className="px-6 py-12 text-center text-sm text-slate-400">
+                لا توجد مواعيد معلقة — أنت منظم!
+              </p>
+            ) : (
+              <div className="divide-y divide-slate-100">
+                {pending.map((appointment, index) => (
+                  <Link
+                    key={appointment.id}
+                    to={`/patient/appointments/${appointment.id}`}
+                    className="workspace-list-row flex items-center gap-4 px-6 py-4 opacity-0 animate-[patientSlideIn_0.45s_ease_forwards]"
+                    style={{
+                      animationDelay: staggerDelay(index, 0.06, 0.35),
+                    }}
+                  >
+                    <ProfileAvatar
+                      src={appointment.doctor_avatar}
+                      name={appointment.doctor_name}
+                      size="md"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="font-bold text-[#101860]">
+                        {appointment.doctor_name}
+                      </p>
+                      <p className="mt-0.5 text-sm text-slate-500">
+                        {formatArabicDateTime(appointment.scheduled_at)}
+                      </p>
+                    </div>
+                    <AppointmentStatusBadge status={appointment.status} />
+                    <ArrowLeft
+                      size={16}
+                      className="workspace-row-arrow shrink-0 text-slate-300"
+                    />
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        </FadeUp>
       </section>
     </div>
   );

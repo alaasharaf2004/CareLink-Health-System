@@ -132,7 +132,7 @@ function AdsPage() {
           {ads.map((ad) => (
             <AdminTableRow key={ad.id}>
               <AdminTableCell className="font-bold text-blue-950">{ad.title}</AdminTableCell>
-              <AdminTableCell dir="">{ad.link}</AdminTableCell>
+              <AdminTableCell dir="ltr">{ad.link}</AdminTableCell>
               <AdminTableCell>
   <span className="text-slate-600 font-medium">
     {ad.created_at ? new Date(ad.created_at).toLocaleDateString('ar-EG', {

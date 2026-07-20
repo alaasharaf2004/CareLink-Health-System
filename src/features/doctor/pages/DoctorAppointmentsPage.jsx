@@ -5,6 +5,11 @@ import { Eye, Loader2 } from "lucide-react";
 import AdminTable, { AdminTableCell, AdminTableRow } from "../../admin/components/AdminTable";
 import Toast from "../../admin/components/Toast";
 import { useToast } from "../../admin/hooks/useToast";
+import { useAuth } from "../../authentication/context/AuthContext";
+import {
+  APPOINTMENT_STATUS_LABELS,
+  careSystemStore,
+} from "../../care-system/data/careSystemStore";
 import FadeUp from "../../patient/components/FadeUp";
 import DoctorPageHeader from "../components/DoctorPageHeader";
 import apiClient from "../../../lib/api/client";
@@ -22,26 +27,58 @@ const STATUS_LABELS = {
   confirmed: "مؤكد",
   completed: "مكتمل",
   cancelled: "ملغي",
+  ...APPOINTMENT_STATUS_LABELS,
 };
 
 const TYPE_LABELS = {
   in_person: "حضوري",
   online: "أونلاين",
+  حضوري: "حضوري",
+  "عن بُعد": "أونلاين",
 };
 
+function mapLocalAppointment(apt, patientName) {
+  const type =
+    apt.type === "عن بُعد" || apt.type === "online" ? "online" : "in_person";
+
+  return {
+    id: apt.id,
+    patient: { full_name: patientName(apt.patientId) },
+    scheduled_at: `${apt.date} ${apt.time || "00:00"}`,
+    type,
+    status: apt.status,
+  };
+}
+
 function DoctorAppointmentsPage() {
+  const { profile } = useAuth();
   const [appointments, setAppointments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast, showToast, hideToast } = useToast();
+
+  const loadLocalAppointments = () => {
+    const doctorId =
+      profile?.staffId ||
+      careSystemStore.listStaff("doctor").find((d) => d.email === profile?.email)?.id;
+
+    const { patientName } = careSystemStore.resolveNames();
+    const list = careSystemStore
+      .listAppointments()
+      .filter((apt) => !doctorId || apt.doctorId === doctorId)
+      .map((apt) => mapLocalAppointment(apt, patientName));
+
+    setAppointments(list);
+  };
 
   const fetchAppointments = async () => {
     try {
       setIsLoading(true);
       const response = await apiClient.get("/doctor/appointments");
-      // استخراج المصفوفة من response.data.data بناءً على الريسبونس الخاص بك
-      setAppointments(response.data.data || []);
+      const raw = response.data?.data ?? response.data ?? [];
+      setAppointments(Array.isArray(raw) ? raw : []);
     } catch {
-      showToast("خطأ في جلب المواعيد", "error");
+      loadLocalAppointments();
+      showToast("تعذر الاتصال بالخادم — عرض المواعيد المحلية", "info");
     } finally {
       setIsLoading(false);
     }
@@ -49,12 +86,16 @@ function DoctorAppointmentsPage() {
 
   useEffect(() => {
     fetchAppointments();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <div className="space-y-6">
       <Toast toast={toast} onClose={hideToast} />
-      <DoctorPageHeader title="المواعيد" description="مواعيد مرضاك فقط — افتح الموعد للتشخيص والتحاليل والوصفة." />
+      <DoctorPageHeader
+        title="المواعيد"
+        description="مواعيد مرضاك فقط — افتح الموعد للتشخيص والتحاليل والوصفة والمحادثة."
+      />
 
       <FadeUp index={1}>
         {isLoading ? (
@@ -68,12 +109,10 @@ function DoctorAppointmentsPage() {
         ) : (
           <AdminTable columns={COLUMNS}>
             {appointments.map((appointment) => {
-              // جلب اسم المريض من علاقة patient.full_name
               const patientName = appointment.patient?.full_name || "مريض";
-              
-              // فصل التاريخ عن الوقت من scheduled_at (مثال: "2026-07-25 10:00:00")
-              const [datePart, timePart] = appointment.scheduled_at 
-                ? appointment.scheduled_at.split(" ") 
+
+              const [datePart, timePart] = appointment.scheduled_at
+                ? appointment.scheduled_at.replace("T", " ").split(" ")
                 : ["—", "—"];
 
               return (
@@ -81,18 +120,22 @@ function DoctorAppointmentsPage() {
                   <AdminTableCell className="font-bold text-blue-950">
                     {patientName}
                   </AdminTableCell>
-                  <AdminTableCell dir=" ">
+                  <AdminTableCell dir="ltr">
                     {datePart} — {timePart ? timePart.slice(0, 5) : ""}
                   </AdminTableCell>
                   <AdminTableCell>
                     {TYPE_LABELS[appointment.type] || appointment.type}
                   </AdminTableCell>
                   <AdminTableCell>
-                    <span className={`inline-block rounded-full px-2.5 py-1 text-xs font-bold ${
-                      appointment.status === 'confirmed' 
-                        ? 'bg-emerald-50 text-emerald-700' 
-                        : 'bg-amber-50 text-amber-700'
-                    }`}>
+                    <span
+                      className={`inline-block rounded-full px-2.5 py-1 text-xs font-bold ${
+                        appointment.status === "confirmed" ||
+                        appointment.status === "with_doctor" ||
+                        appointment.status === "scheduled"
+                          ? "bg-emerald-50 text-emerald-700"
+                          : "bg-amber-50 text-amber-700"
+                      }`}
+                    >
                       {STATUS_LABELS[appointment.status] || appointment.status}
                     </span>
                   </AdminTableCell>

@@ -14,8 +14,10 @@ import {
 
 import CareLinkLogo from "../../../components/CareLinkLogo";
 import { useAuth } from "../../authentication/context/AuthContext";
+import { useBroadcastNotifications } from "../../care-system/hooks/useBroadcastNotifications";
 import NotificationsBell from "../../patient/components/NotificationsBell";
 import ProfileAvatar from "../../patient/components/ProfileAvatar";
+import { staggerDelay } from "../../patient/utils/staggerDelay";
 import DoctorPageShell from "./DoctorPageShell";
 
 const NAV_ITEMS = [
@@ -30,6 +32,7 @@ function DoctorLayout() {
   const navigate = useNavigate();
   const { clearSession } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const broadcastNotifications = useBroadcastNotifications("doctor");
 
   const doctorName = "الطبيب";
   const pendingCount = 0;
@@ -40,14 +43,14 @@ function DoctorLayout() {
   };
 
   const navLinkClass = ({ isActive }) =>
-    `flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold transition-all duration-200 ${
+    `workspace-nav-link flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold transition-all duration-200 ${
       isActive
-        ? "bg-gradient-to-l from-[#101860] to-blue-700 text-white shadow-[0_8px_24px_rgba(16,24,96,0.25)]"
+        ? "workspace-nav-active bg-gradient-to-l from-[#101860] to-blue-700 text-white shadow-[0_8px_24px_rgba(16,24,96,0.25)]"
         : "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
     }`;
 
   const sidebarContent = (
-    <div className="flex h-full flex-col">
+    <div className="workspace-sidebar-in flex h-full flex-col">
       <div className="relative mb-6 flex justify-center border-b border-slate-100 pb-5 pt-1">
         <button
           type="button"
@@ -70,29 +73,34 @@ function DoctorLayout() {
       </div>
 
       <nav className="flex flex-1 flex-col gap-2">
-        {NAV_ITEMS.map(({ to, label, icon: Icon, end }) => (
-          <NavLink
+        {NAV_ITEMS.map(({ to, label, icon: Icon, end }, index) => (
+          <div
             key={to}
-            to={to}
-            end={end}
-            onClick={() => setIsSidebarOpen(false)}
-            className={navLinkClass}
+            className="workspace-nav-item"
+            style={{ animationDelay: staggerDelay(index, 0.05, 0.08) }}
           >
-            <Icon size={19} />
-            {label}
-            {label === "المواعيد" && pendingCount > 0 && (
-              <span className="ms-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1.5 text-[10px] font-extrabold text-white">
-                {pendingCount}
-              </span>
-            )}
-          </NavLink>
+            <NavLink
+              to={to}
+              end={end}
+              onClick={() => setIsSidebarOpen(false)}
+              className={navLinkClass}
+            >
+              <Icon size={19} className="workspace-nav-icon" />
+              {label}
+              {label === "المواعيد" && pendingCount > 0 && (
+                <span className="ms-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1.5 text-[10px] font-extrabold text-white">
+                  {pendingCount}
+                </span>
+              )}
+            </NavLink>
+          </div>
         ))}
       </nav>
 
       <button
         type="button"
         onClick={handleLogout}
-        className="mt-4 flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 px-4 py-3 text-sm font-bold text-slate-600 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+        className="workspace-btn-press mt-4 flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 px-4 py-3 text-sm font-bold text-slate-600 hover:border-red-200 hover:bg-red-50 hover:text-red-600"
       >
         <LogOut size={19} />
         تسجيل الخروج
@@ -122,12 +130,12 @@ function DoctorLayout() {
       )}
 
       <div className="lg:mr-72">
-        <header className="sticky top-0 z-20 flex items-center justify-between gap-4 border-b border-slate-200/80 bg-white/95 px-5 py-3.5 shadow-sm backdrop-blur-md lg:px-8">
+        <header className="workspace-chrome-in sticky top-0 z-20 flex items-center justify-between gap-4 border-b border-slate-200/80 bg-white/95 px-5 py-3.5 shadow-sm backdrop-blur-md lg:px-8">
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => setIsSidebarOpen(true)}
-              className="cursor-pointer rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 lg:hidden"
+              className="workspace-btn-press cursor-pointer rounded-lg p-2 text-slate-600 hover:bg-slate-100 lg:hidden"
               aria-label="فتح القائمة"
             >
               <Menu size={22} />
@@ -143,11 +151,11 @@ function DoctorLayout() {
           </div>
 
           <div className="flex items-center gap-3 sm:gap-4">
-            <NotificationsBell notifications={[]} />
+            <NotificationsBell notifications={broadcastNotifications} />
 
             <Link
               to="/doctor/settings"
-              className="flex cursor-pointer items-center gap-2.5 rounded-2xl border border-slate-200/80 bg-white py-1.5 pe-3 ps-1.5 shadow-sm transition-all duration-200 hover:border-blue-200 hover:shadow-md"
+              className="workspace-profile-chip flex cursor-pointer items-center gap-2.5 rounded-2xl border border-slate-200/80 bg-white py-1.5 pe-3 ps-1.5 shadow-sm hover:border-blue-200 hover:shadow-md"
             >
               <ProfileAvatar
                 src=""

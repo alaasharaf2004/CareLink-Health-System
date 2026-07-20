@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, FlaskConical, Lock, Mail, Pill, Users } from "lucide-react";
+import { Eye, EyeOff, FlaskConical, Lock, Mail, Pill, Scan, Users } from "lucide-react";
 
 import CareLinkLogo from "../../../components/CareLinkLogo";
 import AuthLayout from "../components/AuthLayout";
@@ -10,23 +10,28 @@ import {
   AUTH_CLICKABLE,
   AUTH_FORM_ALIGN,
   AUTH_FORM_CARD_CLASS,
+  AUTH_BODY_ANIM,
   AUTH_HERO_ALIGN,
   AUTH_HERO_NUDGE,
+  AUTH_LOGO_ANIM,
+  AUTH_STEP_ANIM,
 } from "../constants/authForm";
 import { getDashboardPath } from "../constants/authRoutes";
 import { getSubmitButtonClass, isValidEmail } from "../utils/validation";
 import { DEMO_ACCOUNTS, tryDemoLogin } from "../../care-system/data/careSystemStore";
 
 const STAFF_ROLES = [
-  { value: "reception", label: "استقبال", icon: Users },
-  { value: "laboratory", label: "المختبر", icon: FlaskConical },
-  { value: "pharmacy", label: "صيدلية", icon: Pill },
+  { value: "reception", label: "موظف استقبال", icon: Users },
+  { value: "laboratory", label: "فني مختبر", icon: FlaskConical },
+  { value: "pharmacy", label: "صيدلي", icon: Pill },
+  { value: "radiology", label: "فني أشعة", icon: Scan },
 ];
 
 const ROLE_LABELS = {
-  reception: "الاستقبال",
-  laboratory: "المختبر",
-  pharmacy: "الصيدلية",
+  reception: "موظف الاستقبال",
+  laboratory: "فني المختبر",
+  pharmacy: "الصيدلي",
+  radiology: "فني الأشعة",
 };
 
 const inputClass =
@@ -83,33 +88,33 @@ function StaffLoginPage() {
     <AuthLayout
       heroAlign={AUTH_HERO_ALIGN.simple}
       heroNudgeClass={AUTH_HERO_NUDGE.admin}
-      formAlign={AUTH_FORM_ALIGN.center}
+      formAlign={AUTH_FORM_ALIGN.end}
     >
       <AuthCard className={AUTH_FORM_CARD_CLASS}>
-        <div className="mb-6 flex justify-center opacity-0 animate-[formFadeUp_0.7s_ease_0.1s_forwards]">
-          <CareLinkLogo size={42} showText layout="form" align="center" />
+        <div className={`mb-6 flex justify-center ${AUTH_LOGO_ANIM}`}>
+          <CareLinkLogo size={44} showText layout="form" align="center" />
         </div>
 
-        <div
-          className="mb-6 text-center opacity-0 animate-[formFadeUp_0.7s_ease_0.15s_forwards]"
-          dir="rtl"
-        >
+        <div className={`mb-6 text-center ${AUTH_STEP_ANIM}`} dir="rtl">
           <h1 className="text-2xl font-extrabold text-blue-950">دخول الموظفين</h1>
           <p className="mt-2 text-sm text-slate-500">
-            مخصص لفرق الاستقبال والمختبر والصيدلية — وليس للجمهور.
+            استقبال، مختبر، صيدلية، وأشعة — اختر دورك ثم سجّل الدخول.
           </p>
         </div>
 
-        <div className="mb-5 grid grid-cols-3 gap-1 rounded-xl border border-slate-200 bg-slate-50 p-1 opacity-0 animate-[formFadeUp_0.7s_ease_0.25s_forwards]">
-          {STAFF_ROLES.map(({ value, label, icon: Icon }) => (
+        <div
+          className={`mb-5 grid grid-cols-2 gap-1.5 rounded-xl border border-slate-200 bg-slate-50/80 p-1.5 ${AUTH_BODY_ANIM}`}
+        >
+          {STAFF_ROLES.map(({ value, label, icon: Icon }, index) => (
             <button
               key={value}
               type="button"
               onClick={() => setSelectedRole(value)}
-              className={`${AUTH_CLICKABLE.roleTabBase} ${
+              style={{ animationDelay: `${0.2 + index * 0.08}s` }}
+              className={`${AUTH_CLICKABLE.roleTabBase} gap-1.5 px-2 text-[11px] opacity-0 animate-[loginCategoryIn_0.6s_cubic-bezier(0.22,1,0.36,1)_forwards] sm:text-sm ${
                 selectedRole === value
-                  ? AUTH_CLICKABLE.roleTabActive
-                  : AUTH_CLICKABLE.roleTabInactive
+                  ? "bg-blue-600 text-white shadow-sm shadow-blue-200/70"
+                  : "text-slate-600 hover:bg-white hover:text-blue-700"
               }`}
             >
               <Icon size={14} />
@@ -119,7 +124,7 @@ function StaffLoginPage() {
         </div>
 
         <form
-          className="space-y-4 opacity-0 animate-[formFadeUp_0.7s_ease_0.35s_forwards]"
+          className={`space-y-4 ${AUTH_BODY_ANIM}`}
           dir="rtl"
           onSubmit={handleSubmit}
         >

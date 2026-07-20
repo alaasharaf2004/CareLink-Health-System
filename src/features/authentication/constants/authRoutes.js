@@ -5,6 +5,7 @@ export const DASHBOARD_BY_ROLE = {
   reception: "/reception/dashboard",
   laboratory: "/laboratory/dashboard",
   pharmacy: "/pharmacy/dashboard",
+  radiology: "/radiology/dashboard",
 };
 
 export function getDashboardPath(role) {

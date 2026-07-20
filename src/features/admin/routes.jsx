@@ -11,6 +11,7 @@ import PatientsMonitorPage from "./pages/PatientsMonitorPage";
 import PostsPage from "./pages/PostsPage";
 import SiteSettingsPage from "./pages/SiteSettingsPage";
 import StaffPage from "./pages/StaffPage";
+import BroadcastsPage from "./pages/BroadcastsPage";
 import NewDoctorPage from "./pages/AddNewDoctor.tsx";
 
 export const adminRoutes = [
@@ -29,6 +30,7 @@ export const adminRoutes = [
       { path: "doctors/new", element: <NewDoctorPage /> },
       { path: "articles", element: <ArticlesPage /> },
       { path: "ads", element: <AdsPage /> },
+      { path: "broadcasts", element: <BroadcastsPage /> },
       { path: "posts", element: <PostsPage /> },
       { path: "patients", element: <PatientsMonitorPage /> },
       { path: "appointments", element: <AppointmentsMonitorPage /> },
