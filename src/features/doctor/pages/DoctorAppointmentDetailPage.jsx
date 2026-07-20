@@ -1,46 +1,76 @@
 import { Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Loader2, FileText, FlaskConical, Pill, CheckCircle2 } from "lucide-react";
 
 import FadeUp from "../../patient/components/FadeUp";
 import Toast from "../../admin/components/Toast";
 import { useToast } from "../../admin/hooks/useToast";
-import {
-  APPOINTMENT_STATUS_LABELS,
-  careSystemStore,
-} from "../../care-system/data/careSystemStore";
+import apiClient from "../../../lib/api/client";
+
+const STATUS_LABELS = {
+  pending: "قيد الانتظار",
+  confirmed: "مؤكد",
+  with_doctor: "مع الطبيب",
+  awaiting_lab: "بانتظار المختبر",
+  awaiting_pharmacy: "بانتظار الصيدلية",
+  completed: "مكتمل",
+  cancelled: "ملغي",
+};
 
 function DoctorAppointmentDetailPage() {
   const { id } = useParams();
   const [appointment, setAppointment] = useState(null);
-  const [visit, setVisit] = useState(null);
   const [patient, setPatient] = useState(null);
   const [labOrders, setLabOrders] = useState([]);
+  
+  const [isLoading, setIsLoading] = useState(true);
   const [diagnosis, setDiagnosis] = useState("");
   const [notes, setNotes] = useState("");
   const [tests, setTests] = useState("");
   const [medications, setMedications] = useState("");
+  
   const { toast, showToast, hideToast } = useToast();
 
-  const reload = () => {
-    const apt = careSystemStore.getAppointment(id);
-    setAppointment(apt || null);
-    if (!apt) return;
-    setPatient(careSystemStore.getPatient(apt.patientId));
-    const currentVisit = careSystemStore.getVisitByAppointment(apt.id);
-    setVisit(currentVisit || null);
-    setDiagnosis(currentVisit?.diagnosis || "");
-    setNotes(currentVisit?.clinicalNotes || "");
-    setLabOrders(
-      careSystemStore.listLabOrders().filter((order) => order.appointmentId === apt.id)
-    );
+  const fetchAppointmentDetails = async () => {
+    try {
+      setIsLoading(true);
+      const response = await apiClient.get(`/doctor/appointments/${id}`);
+      const data = response.data.data || response.data;
+      
+      setAppointment(data);
+      setPatient(data.patient || null);
+      
+      // تعبئة الحقول بالبيانات المخزنة مسبقاً إن وجدت في الموعد
+      setDiagnosis(data.diagnosis || "");
+      setNotes(data.clinical_notes || "");
+      if (data.lab_tests) {
+        setTests(data.lab_tests);
+      }
+      if (data.medications) {
+        setMedications(data.medications);
+      }
+
+      if (data.lab_orders) {
+        setLabOrders(data.lab_orders);
+      }
+    } catch {
+      showToast("خطأ في جلب تفاصيل الموعد", "error");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
-    reload();
-    window.addEventListener("carelink-store-updated", reload);
-    return () => window.removeEventListener("carelink-store-updated", reload);
+    fetchAppointmentDetails();
   }, [id]);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-20">
+        <Loader2 className="animate-spin text-blue-600" size={36} />
+      </div>
+    );
+  }
 
   if (!appointment) {
     return (
@@ -53,77 +83,57 @@ function DoctorAppointmentDetailPage() {
     );
   }
 
-  const names = careSystemStore.resolveNames();
-
-  const saveDiagnosis = () => {
-    careSystemStore.upsertVisit({
-      appointmentId: appointment.id,
-      patientId: appointment.patientId,
-      doctorId: appointment.doctorId,
-      status: appointment.status === "results_ready" ? "results_ready" : "with_doctor",
-      diagnosis,
-      clinicalNotes: notes,
-    });
-    careSystemStore.setAppointmentStatus(appointment.id, "with_doctor");
-    showToast("تم حفظ التشخيص", "success");
+  const saveDiagnosis = async () => {
+    try {
+      const response = await apiClient.post(`/doctor/appointments/${id}/diagnosis`, {
+        diagnosis,
+        clinical_notes: notes,
+      });
+      setAppointment(response.data.data || response.data);
+      showToast("تم حفظ التشخيص بنجاح", "success");
+      fetchAppointmentDetails();
+    } catch {
+      showToast("خطأ أثناء حفظ التشخيص", "error");
+    }
   };
 
-  const requestLabs = () => {
+  const requestLabs = async () => {
     if (!tests.trim()) return;
-    careSystemStore.saveLabOrder({
-      appointmentId: appointment.id,
-      patientId: appointment.patientId,
-      doctorId: appointment.doctorId,
-      tests: tests.trim(),
-      status: "pending",
-    });
-    careSystemStore.setAppointmentStatus(appointment.id, "awaiting_lab");
-    careSystemStore.upsertVisit({
-      appointmentId: appointment.id,
-      patientId: appointment.patientId,
-      doctorId: appointment.doctorId,
-      status: "awaiting_lab",
-      diagnosis,
-      clinicalNotes: notes,
-    });
-    setTests("");
-    showToast("تم إرسال طلب التحاليل للمختبر", "success");
+    try {
+      const response = await apiClient.post(`/doctor/appointments/${id}/lab-orders`, {
+        tests: tests.trim(),
+      });
+      setAppointment(response.data.data || response.data);
+      showToast("تم إرسال طلب التحاليل للمختبر", "success");
+      fetchAppointmentDetails();
+    } catch {
+      showToast("خطأ أثناء إرسال التحاليل", "error");
+    }
   };
 
-  const writePrescription = () => {
+  const writePrescription = async () => {
     if (!medications.trim()) return;
-    careSystemStore.savePrescription({
-      appointmentId: appointment.id,
-      patientId: appointment.patientId,
-      doctorId: appointment.doctorId,
-      medications: medications.trim(),
-      status: "pending",
-    });
-    careSystemStore.setAppointmentStatus(appointment.id, "awaiting_pharmacy");
-    careSystemStore.upsertVisit({
-      appointmentId: appointment.id,
-      patientId: appointment.patientId,
-      doctorId: appointment.doctorId,
-      status: "awaiting_pharmacy",
-      diagnosis,
-      clinicalNotes: notes,
-    });
-    setMedications("");
-    showToast("تم إرسال الوصفة للصيدلية", "success");
+    try {
+      const response = await apiClient.post(`/doctor/appointments/${id}/prescriptions`, {
+        medications: medications.trim(),
+      });
+      setAppointment(response.data.data || response.data);
+      showToast("تم إرسال الوصفة للصيدلية", "success");
+      fetchAppointmentDetails();
+    } catch {
+      showToast("خطأ أثناء إرسال الوصفة", "error");
+    }
   };
 
-  const endVisit = () => {
-    careSystemStore.setAppointmentStatus(appointment.id, "completed");
-    careSystemStore.upsertVisit({
-      appointmentId: appointment.id,
-      patientId: appointment.patientId,
-      doctorId: appointment.doctorId,
-      status: "completed",
-      diagnosis,
-      clinicalNotes: notes,
-      endedAt: new Date().toISOString(),
-    });
-    showToast("تم إنهاء الزيارة", "success");
+  const endVisit = async () => {
+    try {
+      const response = await apiClient.post(`/doctor/appointments/${id}/complete`);
+      setAppointment(response.data.data || response.data);
+      showToast("تم إنهاء الزيارة بنجاح", "success");
+      fetchAppointmentDetails();
+    } catch {
+      showToast("خطأ أثناء إنهاء الزيارة", "error");
+    }
   };
 
   return (
@@ -139,37 +149,72 @@ function DoctorAppointmentDetailPage() {
         </Link>
       </FadeUp>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-6">
+      {/* معلومات الموعد الأساسية */}
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h1 className="text-xl font-extrabold text-blue-950">{patient?.name}</h1>
-            <p className="mt-1 text-sm text-slate-500">
-              {appointment.date} — {appointment.time} · {names.doctorName(appointment.doctorId)}
+            <h1 className="text-xl font-extrabold text-blue-950">{patient?.full_name || "مريض"}</h1>
+            <p className="mt-1 text-sm text-slate-500" dir="ltr">
+              {appointment.scheduled_at}
             </p>
             <p className="mt-2 text-sm font-bold text-slate-600">
-              الحالة: {APPOINTMENT_STATUS_LABELS[appointment.status]}
+              الحالة الحالية: <span className="text-blue-600">{STATUS_LABELS[appointment.status] || appointment.status}</span>
             </p>
           </div>
         </div>
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-2 text-sm">
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 text-sm border-t border-slate-100 pt-4">
           <p><span className="font-bold">الجوال:</span> {patient?.phone || "—"}</p>
-          <p><span className="font-bold">الهوية:</span> {patient?.nationalId || "—"}</p>
-          <p className="sm:col-span-2"><span className="font-bold">ملاحظة الموعد:</span> {appointment.notes || "—"}</p>
+          <p><span className="font-bold">الهوية:</span> {patient?.national_id || "—"}</p>
+          <p className="sm:col-span-2"><span className="font-bold">ملاحظة الموعد:</span> {appointment.description || "—"}</p>
         </div>
       </div>
 
+      {/* كارد ملخص ما تم إنجازه للحالة */}
+      <div className="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50/50 to-indigo-50/30 p-6 shadow-sm">
+        <h2 className="flex items-center gap-2 text-base font-extrabold text-blue-950 mb-4">
+          <CheckCircle2 size={20} className="text-blue-600" />
+          ملخص الإجراءات الطبية المسجلة لهذه الحالة
+        </h2>
+        <div className="grid gap-4 md:grid-cols-3 text-sm">
+          <div className="rounded-xl bg-white p-4 border border-blue-100 shadow-xs">
+            <span className="flex items-center gap-1.5 font-bold text-blue-900 mb-1">
+              <FileText size={16} className="text-blue-600" /> التشخيص والملاحظات:
+            </span>
+            <p className="text-slate-600 mt-1">{appointment.diagnosis || "لم يُسجل تشخيص بعد"}</p>
+            {appointment.clinical_notes && (
+              <p className="text-xs text-slate-400 mt-1">ملاحظات: {appointment.clinical_notes}</p>
+            )}
+          </div>
+
+          <div className="rounded-xl bg-white p-4 border border-teal-100 shadow-xs">
+            <span className="flex items-center gap-1.5 font-bold text-teal-900 mb-1">
+              <FlaskConical size={16} className="text-teal-600" /> التحاليل المطلوبة:
+            </span>
+            <p className="text-slate-600 mt-1">{appointment.lab_tests || "لا توجد تحاليل مطلوبة"}</p>
+          </div>
+
+          <div className="rounded-xl bg-white p-4 border border-indigo-100 shadow-xs">
+            <span className="flex items-center gap-1.5 font-bold text-indigo-900 mb-1">
+              <Pill size={16} className="text-indigo-600" /> الوصفة الطبية:
+            </span>
+            <p className="text-slate-600 mt-1">{appointment.medications || "لم تُسجل وصفة طبية بعد"}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* النماذج وأزرار التعديل والإدخال */}
       <div className="grid gap-6 lg:grid-cols-2">
-        <section className="rounded-2xl border border-slate-200 bg-white p-5">
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <h2 className="font-extrabold text-blue-950">التشخيص والملاحظات</h2>
           <textarea
-            className="mt-3 min-h-24 w-full rounded-xl border px-3 py-2 text-sm"
+            className="mt-3 min-h-24 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             placeholder="التشخيص"
             value={diagnosis}
             onChange={(e) => setDiagnosis(e.target.value)}
           />
           <textarea
-            className="mt-3 min-h-24 w-full rounded-xl border px-3 py-2 text-sm"
+            className="mt-3 min-h-24 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             placeholder="ملاحظات سريرية"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
@@ -177,16 +222,16 @@ function DoctorAppointmentDetailPage() {
           <button
             type="button"
             onClick={saveDiagnosis}
-            className="mt-3 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-700"
+            className="mt-3 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-700 cursor-pointer transition-colors"
           >
             حفظ التشخيص
           </button>
         </section>
 
-        <section className="rounded-2xl border border-slate-200 bg-white p-5">
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <h2 className="font-extrabold text-blue-950">طلب تحاليل</h2>
           <textarea
-            className="mt-3 min-h-24 w-full rounded-xl border px-3 py-2 text-sm"
+            className="mt-3 min-h-24 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100"
             placeholder="مثال: صورة دم كاملة، سكر صائم"
             value={tests}
             onChange={(e) => setTests(e.target.value)}
@@ -194,7 +239,7 @@ function DoctorAppointmentDetailPage() {
           <button
             type="button"
             onClick={requestLabs}
-            className="mt-3 rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-teal-700"
+            className="mt-3 rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-teal-700 cursor-pointer transition-colors"
           >
             إرسال للمختبر
           </button>
@@ -206,18 +251,16 @@ function DoctorAppointmentDetailPage() {
                 <div key={order.id} className="rounded-xl bg-slate-50 p-3 text-sm">
                   <p className="font-bold">{order.tests}</p>
                   <p className="text-slate-500">{order.status === "completed" ? "نتيجة جاهزة" : "بانتظار المختبر"}</p>
-                  {order.resultText && <p className="mt-1 text-slate-700">{order.resultText}</p>}
-                  {order.pdfName && <p className="text-xs text-blue-600">PDF: {order.pdfName}</p>}
                 </div>
               ))}
             </div>
           )}
         </section>
 
-        <section className="rounded-2xl border border-slate-200 bg-white p-5">
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <h2 className="font-extrabold text-blue-950">وصفة طبية</h2>
           <textarea
-            className="mt-3 min-h-24 w-full rounded-xl border px-3 py-2 text-sm"
+            className="mt-3 min-h-24 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
             placeholder="اسم الدواء والجرعة"
             value={medications}
             onChange={(e) => setMedications(e.target.value)}
@@ -225,13 +268,13 @@ function DoctorAppointmentDetailPage() {
           <button
             type="button"
             onClick={writePrescription}
-            className="mt-3 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-indigo-700"
+            className="mt-3 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-indigo-700 cursor-pointer transition-colors"
           >
             إرسال للصيدلية
           </button>
         </section>
 
-        <section className="rounded-2xl border border-slate-200 bg-white p-5">
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <h2 className="font-extrabold text-blue-950">إنهاء الزيارة</h2>
           <p className="mt-2 text-sm text-slate-500">
             استخدم الإنهاء إذا لم تحتج الزيارة لتحاليل أو صرف دواء، أو بعد اكتمال المسار.
@@ -240,13 +283,13 @@ function DoctorAppointmentDetailPage() {
             type="button"
             onClick={endVisit}
             disabled={appointment.status === "completed"}
-            className="mt-4 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-bold text-white hover:bg-slate-800 disabled:opacity-50"
+            className="mt-4 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-bold text-white hover:bg-slate-800 disabled:opacity-50 cursor-pointer transition-colors"
           >
             إنهاء الزيارة
           </button>
-          {visit?.endedAt && (
+          {appointment.status === "completed" && (
             <p className="mt-2 text-xs font-bold text-emerald-700">
-              انتهت في {new Date(visit.endedAt).toLocaleString("ar")}
+              تم إكمال الزيارة بنجاح.
             </p>
           )}
         </section>

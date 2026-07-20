@@ -3,7 +3,6 @@ import { Eye, EyeOff, Lock, Save } from "lucide-react";
 
 import Toast from "../../admin/components/Toast";
 import { useToast } from "../../admin/hooks/useToast";
-import { isValidEmail } from "../../authentication/utils/validation";
 import FadeUp from "../../patient/components/FadeUp";
 import ProfileAvatar from "../../patient/components/ProfileAvatar";
 import DoctorPageHeader from "../components/DoctorPageHeader";
@@ -28,7 +27,7 @@ const inputClass =
 function DoctorSettingsPage() {
   const { toast, showToast, hideToast } = useToast();
   const [profile, setProfile] = useState({ ...EMPTY_DOCTOR_PROFILE });
-  const [isLoading, setIsLoading] = useState(true); // إضافة حالة التحميل
+  const [isLoading, setIsLoading] = useState(true);
   const [passwords, setPasswords] = useState({
     current: "",
     newPassword: "",
@@ -40,63 +39,53 @@ function DoctorSettingsPage() {
     confirm: false,
   });
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      setIsLoading(true); // ابدأ التحميل
-      try {
-        // const response = await fetch("http://127.0.0.1:8000/api/doctor/profile", {
-        // method: "GET",
-        // headers: {
-        // "Accept": "application/json", // هذا هو السطر الأهم لحل مشكلة الـ Redirect
-        // "Authorization": `Bearer ${localStorage.getItem("carelink_auth_token")}`,
-        // },
-        // });
-        const response = await apiClient.get("/doctor/profile");
-        const result = response.data;
+  const fetchProfile = async () => {
+    try {
+      setIsLoading(true);
+      const response = await apiClient.get("/doctor/profile");
+      const result = response.data;
 
-        if (result.data) {
-          // هنا نقوم بعمل المطابقة بين بيانات السيرفر والـ State الخاصة بالـ Inputs
-          setProfile({
-            name: result.data.name || "",
-            email: result.data.email || "",
-            phone: result.data.phone || "",
-            date_of_birth: result.data.date_of_birth || "",
-            national_id: result.data.national_id || "",
-            address: result.data.address || "",
-            gender: result.data.gender || "male",
-            status: result.data.status || "active",
-            specialty: result.data.specialty || "",
-            profile_picture: result.data.profile_picture || "",
-          });
-        }
-      } catch (error) {
-        console.error("Error loading profile:", error);
-      } finally {
-        setIsLoading(false); // أنهِ التحميل سواء نجح أو فشل
+      if (result.data) {
+        setProfile({
+          name: result.data.name || "",
+          email: result.data.email || "",
+          phone: result.data.phone || "",
+          date_of_birth: result.data.date_of_birth || "",
+          national_id: result.data.national_id || "",
+          address: result.data.address || "",
+          gender: result.data.gender || "male",
+          status: result.data.status || "active",
+          specialty: result.data.specialty || "",
+          profile_picture: result.data.profile_picture || "",
+        });
       }
-    };
+    } catch {
+      showToast("خطأ في جلب بيانات الملف الشخصي", "error");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchProfile();
-    setIsLoading(false);
   }, []);
 
   if (isLoading) {
-    return <div className="text-center py-10">جاري تحميل بياناتك...</div>;
+    return <div className="text-center py-20 font-bold text-slate-500">جاري تحميل بياناتك...</div>;
   }
 
   const handleProfileSave = async (event) => {
     event.preventDefault();
     try {
       const response = await apiClient.put("/doctor/profile", profile);
-
-      if (response.ok) {
+      if (response.status === 200 || response.data) {
         showToast("تم حفظ البيانات بنجاح", "success");
-        // الخيار الأفضل: إعادة جلب البيانات المحدثة من السيرفر
-        // fetchProfile();
+        fetchProfile();
       } else {
         showToast("حدث خطأ أثناء الحفظ", "error");
       }
     } catch (error) {
-      showToast("خطأ في الاتصال بالخادم", "error");
+      showToast(error.response?.data?.message || "خطأ في الاتصال بالخادم", "error");
     }
   };
 
@@ -108,30 +97,15 @@ function DoctorSettingsPage() {
     }
 
     try {
-      const response = await fetch(
-        "YOUR_API_ENDPOINT/profile/change-password",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          body: JSON.stringify({
-            current_password: passwords.current,
-            new_password: passwords.newPassword,
-          }),
-        },
-      );
+      await apiClient.post("/doctor/profile/change-password", {
+        current_password: passwords.current,
+        new_password: passwords.newPassword,
+      });
 
-      if (response.ok) {
-        showToast("تم تحديث كلمة المرور", "success");
-        setPasswords({ current: "", newPassword: "", confirm: "" });
-      } else {
-        const errorData = await response.json();
-        showToast(errorData.message || "فشل التحديث", "error");
-      }
+      showToast("تم تحديث كلمة المرور بنجاح", "success");
+      setPasswords({ current: "", newPassword: "", confirm: "" });
     } catch (error) {
-      showToast("خطأ في الاتصال بالخادم", "error");
+      showToast(error.response?.data?.message || "فشل تحديث كلمة المرور", "error");
     }
   };
 
@@ -195,7 +169,7 @@ function DoctorSettingsPage() {
                     type={type}
                     className={inputClass}
                     dir={dir}
-                    value={profile[key] || ""} // إضافة || "" لتجنب خطأ الـ Controlled Component
+                    value={profile[key] || ""}
                     onChange={(e) =>
                       setProfile((c) => ({ ...c, [key]: e.target.value }))
                     }
@@ -266,7 +240,7 @@ function DoctorSettingsPage() {
                   />
                   <input
                     type={showPassword[key] ? "text" : "password"}
-                    className={`${inputClass} pl-10`}
+                    className={`${inputClass} pl-10 pr-10`}
                     value={passwords[key]}
                     onChange={(e) =>
                       setPasswords((c) => ({ ...c, [key]: e.target.value }))

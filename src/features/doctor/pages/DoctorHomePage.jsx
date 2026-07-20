@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowLeft,
@@ -9,6 +10,7 @@ import {
   Stethoscope,
   Users,
   Video,
+  Loader2,
 } from "lucide-react";
 
 import {
@@ -20,6 +22,9 @@ import ProfileAvatar from "../../patient/components/ProfileAvatar";
 import { formatArabicDateTime } from "../../patient/utils/formatDateTime";
 import { staggerDelay } from "../../patient/utils/staggerDelay";
 import DoctorWelcomeHero from "../components/DoctorWelcomeHero";
+import Toast from "../../admin/components/Toast";
+import { useToast } from "../../admin/hooks/useToast";
+import { apiClient } from "../../../lib/api/client";
 
 const QUICK_ACTIONS = [
   {
@@ -64,7 +69,26 @@ const STATS = [
 ];
 
 function DoctorHomePage() {
-  const appointments = [];
+  const [appointments, setAppointments] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { toast, showToast, hideToast } = useToast();
+
+  const fetchHomeData = async () => {
+    try {
+      setIsLoading(true);
+      const response = await apiClient.get("/doctor/home-stats");
+      setAppointments(response.data.data || []);
+    } catch {
+      showToast("خطأ في جلب بيانات لوحة التحكم", "error");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchHomeData();
+  }, []);
+
   const pending = appointments.filter((a) => a.status === "pending");
   const confirmed = appointments.filter((a) => a.status === "confirmed");
   const today = appointments.filter((a) =>
@@ -81,8 +105,18 @@ function DoctorHomePage() {
     total: appointments.length,
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-20">
+        <Loader2 className="animate-spin text-blue-600" size={36} />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
+      <Toast toast={toast} onClose={hideToast} />
+
       <div className="opacity-0 animate-[formFadeUp_0.55s_cubic-bezier(0.22,1,0.36,1)_forwards]">
         <DoctorWelcomeHero />
       </div>
