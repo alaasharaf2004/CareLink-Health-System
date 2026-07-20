@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import apiClient from "../../../lib/api/client";
 import { Eye, EyeOff, Lock, Save } from "lucide-react";
 
 import PatientPageHeader from "../components/PatientPageHeader";
@@ -7,6 +8,9 @@ import ProfileAvatar from "../components/ProfileAvatar";
 import Toast from "../../admin/components/Toast";
 import { useToast } from "../../admin/hooks/useToast";
 import { isValidEmail } from "../../authentication/utils/validation";
+
+
+
 
 const EMPTY_PATIENT_PROFILE = {
   name: "",
@@ -24,6 +28,9 @@ const inputClass =
   "h-11 w-full rounded-xl border border-slate-200 bg-white pr-10 pl-4 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100";
 
 function PatientSettingsPage() {
+  
+
+
   const { toast, showToast, hideToast } = useToast();
   const [profile, setProfile] = useState({ ...EMPTY_PATIENT_PROFILE });
   const [passwords, setPasswords] = useState({
@@ -37,14 +44,61 @@ function PatientSettingsPage() {
     confirm: false,
   });
 
-  const handleProfileSave = (event) => {
+
+
+
+
+  const loadProfile = async () => {
+    try {
+      const response = await apiClient.get("/patient/profile");
+      const user = response.data.user;
+      setProfile((prev) => ({
+        ...prev,
+        name: user.name || "",
+        email: user.email || "",
+        phone: user.phone || "",
+        national_id: user.national_id || "",
+        birth_date: user.birth_date || "",
+        gender: user.gender || "",
+        address: user.address || "",
+        status: user.status || "active",
+      }));
+    } catch (error) {
+      console.error(error);
+      showToast("فشل تحميل البيانات", "error");
+    }
+  };
+        useEffect(() => {
+      loadProfile();
+      }, []);
+
+  const handleProfileSave = async (event) => {
     event.preventDefault();
+
     if (!isValidEmail(profile.email)) {
       showToast("أدخل بريداً إلكترونياً صحيحاً", "error");
       return;
     }
-    showToast("تم حفظ الإعدادات", "success");
+
+    try {
+      await apiClient.patch("/patient/account", {
+        name: profile.name,
+        email: profile.email,
+        phone: profile.phone,
+        national_id: profile.national_id,
+        birth_date: profile.birth_date,
+        gender: profile.gender,
+        address: profile.address,
+
+      });
+
+      showToast("تم حفظ البيانات بنجاح", "success");
+    } catch (error) {
+      console.error(error);
+      showToast("حدث خطأ أثناء الحفظ", "error");
+    }
   };
+  
 
   const handlePasswordSave = (event) => {
     event.preventDefault();
@@ -59,6 +113,7 @@ function PatientSettingsPage() {
     setPasswords({ current: "", newPassword: "", confirm: "" });
     showToast("تم تحديث كلمة المرور", "success");
   };
+  
 
   return (
     <div className="space-y-6">

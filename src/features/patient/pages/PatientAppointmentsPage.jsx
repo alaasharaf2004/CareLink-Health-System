@@ -32,6 +32,7 @@ import {
   todayIsoDate,
 } from "../utils/formatDateTime";
 import { staggerDelay } from "../utils/staggerDelay";
+import apiClient from "../../../lib/api/client";
 
 const COLUMNS = [
   { key: "doctor", label: "الطبيب" },
@@ -118,17 +119,67 @@ function PatientAppointmentsPage() {
     careSystemStore.listPatients().find((p) => p.email === profile?.email)?.id ||
     "pat-1";
 
-  const reload = () => {
-    const { doctorName, staffById } = careSystemStore.resolveNames();
-    setAvailableDoctors(
-      careSystemStore.listStaff("doctor").filter((d) => d.status === "active")
-    );
-    setAppointments(
-      careSystemStore
-        .listAppointments()
-        .filter((apt) => apt.patientId === patientId)
-        .map((apt) => mapAppointment(apt, doctorName, staffById))
-    );
+  const reload = async () => {
+    try {
+      console.log("1- before appointments");
+
+      // جلب المواعيد
+      const response = await apiClient.get("/patient/appointments");
+
+      console.log("2- appointments loaded");
+      console.log(response.data.data.map(a => ({
+  id: a.id,
+  status: a.status,
+  doctor: a.doctor_id,
+  scheduled_at: a.scheduled_at,
+})));
+
+      const appointments = response.data.data ?? [];
+
+      console.log("3- before setAppointments");
+
+      setAppointments(
+        appointments.map((apt) => ({
+          id: apt.id,
+          doctorId: apt.doctor_id,
+          patientId: apt.patient_id,
+
+          doctor_name: apt.doctor?.name || "الطبيب",
+          doctor_specialty: apt.doctor?.specialty || "—",
+          doctor_avatar: "",
+
+          scheduled_at: apt.scheduled_at,
+          duration_minutes: 30,
+
+          type: apt.type === "online" ? "online" : "in_person",
+
+          status: apt.status,
+
+          description: apt.notes || "—",
+
+          rejection_reason: apt.cancel_reason || "",
+        }))
+      );
+
+      console.log("4- after setAppointments");
+
+      console.log("5- before doctors");
+
+      // جلب الأطباء
+      const doctorsResponse = await apiClient.get("/patient/doctors");
+
+      console.log("6- doctors loaded");
+      console.log(doctorsResponse.data);
+
+      setAvailableDoctors(doctorsResponse.data.data);
+
+      console.log("7- done");
+    } catch (error) {
+      console.log("ERROR:");
+      console.log(error);
+      console.log(error.response);
+      console.log(error.response?.data);
+    }
   };
 
   useEffect(() => {
@@ -154,20 +205,30 @@ function PatientAppointmentsPage() {
     setRescheduleNote("");
   };
 
-  const handleCancel = () => {
+  const handleCancel = async () => {
     if (!cancelReason.trim()) {
       showToast("يرجى كتابة سبب الإلغاء", "error");
       return;
     }
-    careSystemStore.saveAppointment({
-      id: cancelTarget.id,
-      cancelReason: cancelReason.trim(),
-      status: "cancelled",
-    });
-    careSystemStore.setAppointmentStatus(cancelTarget.id, "cancelled");
-    showToast("تم إلغاء الموعد", "error");
-    setCancelTarget(null);
-    setCancelReason("");
+
+    try {
+      await apiClient.patch(
+        `/patient/appointments/${cancelTarget.id}/cancel`,
+        {
+          cancel_reason: cancelReason.trim(),
+        }
+      );
+
+      showToast("تم إلغاء الموعد", "success");
+
+      setCancelTarget(null);
+      setCancelReason("");
+
+      await reload();
+    } catch (err) {
+      console.log(err.response);
+      showToast("فشل إلغاء الموعد", "error");
+    }
   };
 
   const handleReschedule = () => {
@@ -189,36 +250,49 @@ function PatientAppointmentsPage() {
     setRescheduleNote("");
   };
 
-  const handleAddAppointment = () => {
-    if (!newAppointment.doctorId) {
-      showToast("اختر طبيباً", "error");
-      return;
-    }
-    if (!newAppointment.datetime.trim()) {
-      showToast("اختر تاريخ ووقت الموعد", "error");
-      return;
-    }
-    const [date, time] = newAppointment.datetime.split("T");
-    careSystemStore.saveAppointment({
-      patientId,
-      doctorId: newAppointment.doctorId,
-      date,
-      time: time?.slice(0, 5) || "10:00",
-      type: newAppointment.type === "online" ? "عن بُعد" : "حضوري",
-      notes: newAppointment.description || "موعد عبر بوابة المريض",
-      createdBy: "patient",
-      status: "scheduled",
+const handleAddAppointment = async () => {
+  if (!newAppointment.doctorId) {
+    showToast("اختر طبيباً", "error");
+    return;
+  }
+
+  if (!newAppointment.datetime.trim()) {
+    showToast("اختر تاريخ ووقت الموعد", "error");
+    return;
+  }
+
+  try {
+    await apiClient.post("/patient/appointments", {
+      doctor_id: newAppointment.doctorId,
+      scheduled_at: newAppointment.datetime,
     });
 
     showToast("تم حجز الموعد بنجاح", "success");
+
     setIsAddOpen(false);
+
     setNewAppointment({
       doctorId: "",
       datetime: "",
       type: "in_person",
       description: "",
     });
-  };
+
+    reload(); // لإعادة تحميل المواعيد
+  } catch (err) {
+  console.log(err.response);
+  console.log(err.response?.data);
+  console.log(err.response?.status);
+  console.error(err);
+
+  if (err.response?.status === 409) {
+    showToast("هذا الموعد محجوز مسبقًا", "error");
+    return;
+  }
+
+  showToast("فشل حجز الموعد", "error");
+}
+};
 
   return (
     <div className="space-y-6">
