@@ -24,10 +24,12 @@ function ProfileAvatar({
     return (
       <img
         src={src}
+        onError={(e) => {
+            console.log("Image failed:", e.target.src);
+        }}
         alt={name ? `صورة ${name}` : "صورة الملف الشخصي"}
         className={`${sizeClass} shrink-0 rounded-full object-cover ${ringClass} ${animClass} ${className}`}
         loading="lazy"
-        referrerPolicy="no-referrer"
       />
     );
   }

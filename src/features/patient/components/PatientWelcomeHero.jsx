@@ -4,6 +4,8 @@ import { ArrowLeft, CalendarPlus, Sparkles } from "lucide-react";
 import ProfileAvatar from "./ProfileAvatar";
 
 function PatientWelcomeHero({ patient, medicalProfile }) {
+  console.log(patient?.profile_picture);
+  console.log(import.meta.env.VITE_API_BASE_URL);
   return (
     <section className="patient-hero relative overflow-hidden rounded-3xl">
       <div className="patient-hero-bg" aria-hidden="true" />
@@ -73,10 +75,14 @@ function PatientWelcomeHero({ patient, medicalProfile }) {
             <div className="patient-hero-ring" aria-hidden="true" />
             <div className="patient-hero-ring patient-hero-ring--delay" aria-hidden="true" />
             <ProfileAvatar
-              src=""
-              name={patient?.name}
-              size="xl"
-              className="relative z-10 !h-44 !w-44 border-4 border-white shadow-2xl shadow-blue-900/15 sm:!h-52 sm:!w-52"
+                src={
+                    patient?.profile_picture
+                        ? `${import.meta.env.VITE_API_BASE_URL.replace("/api", "")}/storage/${patient.profile_picture}`
+                        : ""
+                }
+                name={patient?.name}
+                size="xl"
+                className="relative z-10 !h-44 !w-44 border-4 border-white shadow-2xl shadow-blue-900/15 sm:!h-52 sm:!w-52"
             />
             <div className="absolute -bottom-2 start-1/2 z-20 -translate-x-1/2 rounded-full border border-white bg-gradient-to-l from-[#40c0a0] to-emerald-500 px-4 py-1.5 text-xs font-extrabold text-white shadow-md">
               حسابي

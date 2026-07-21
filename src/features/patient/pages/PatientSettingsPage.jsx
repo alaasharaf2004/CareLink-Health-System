@@ -1,4 +1,6 @@
+import { useRef } from "react";
 import { useEffect, useState } from "react";
+
 import apiClient from "../../../lib/api/client";
 import { Eye, EyeOff, Lock, Save } from "lucide-react";
 
@@ -44,8 +46,7 @@ function PatientSettingsPage() {
     confirm: false,
   });
 
-
-
+  const fileInputRef = useRef(null);
 
 
   const loadProfile = async () => {
@@ -62,6 +63,10 @@ function PatientSettingsPage() {
         gender: user.gender || "",
         address: user.address || "",
         status: user.status || "active",
+
+        profile_picture: user.profile_picture
+          ? `http://127.0.0.1:8000/storage/${user.profile_picture}`
+          : "",
       }));
     } catch (error) {
       console.error(error);
@@ -96,6 +101,37 @@ function PatientSettingsPage() {
     } catch (error) {
       console.error(error);
       showToast("حدث خطأ أثناء الحفظ", "error");
+    }
+  };
+
+    const handleProfilePictureChange = async (event) => {
+    const file = event.target.files[0];
+
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("profile_picture", file);
+
+    try {
+      const response = await apiClient.post(
+        "/patient/profile-picture",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      setProfile((prev) => ({
+        ...prev,
+        profile_picture: response.data.profile_picture,
+      }));
+
+      showToast("تم تحديث الصورة الشخصية", "success");
+    } catch (error) {
+      console.error(error);
+      showToast("فشل رفع الصورة", "error");
     }
   };
   
@@ -141,14 +177,18 @@ function PatientSettingsPage() {
               <p className="font-extrabold text-blue-950">{profile.name}</p>
               <p className="text-sm text-slate-500">{profile.email}</p>
               <button
-                type="button"
-                onClick={() =>
-                  showToast("تغيير الصورة متاح لاحقاً مع الـ API", "info")
-                }
-                className="mt-2 cursor-pointer text-xs font-bold text-blue-600 hover:text-blue-700"
+                  type="button"
+                  onClick={() => fileInputRef.current.click()}
               >
                 تغيير الصورة الشخصية
               </button>
+              <input
+                  type="file"
+                  accept="image/*"
+                  ref={fileInputRef}
+                  onChange={handleProfilePictureChange}
+                  className="hidden"
+                />
             </div>
           </div>
 
