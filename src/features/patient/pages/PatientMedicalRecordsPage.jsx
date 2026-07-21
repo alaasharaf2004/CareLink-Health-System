@@ -1,56 +1,36 @@
 import { useEffect, useState } from "react";
-
+import apiClient from "../../../lib/api/client";
 import AdminTable, { AdminTableCell, AdminTableRow } from "../../admin/components/AdminTable";
 import { useAuth } from "../../authentication/context/AuthContext";
-import { careSystemStore } from "../../care-system/data/careSystemStore";
 import FadeUp from "../components/FadeUp";
 import PatientPageHeader from "../components/PatientPageHeader";
 
 function PatientMedicalRecordsPage() {
-  const { profile } = useAuth();
+  useAuth();
   const [records, setRecords] = useState([]);
   const [labs, setLabs] = useState([]);
   const [prescriptions, setPrescriptions] = useState([]);
 
-  useEffect(() => {
-    const reload = () => {
-      const patientId =
-        profile?.patientId ||
-        careSystemStore.listPatients().find((p) => p.email === profile?.email)?.id ||
-        "pat-1";
-      const { doctorName } = careSystemStore.resolveNames();
-      setRecords(
-        careSystemStore
-          .listVisits()
-          .filter((visit) => visit.patientId === patientId && visit.diagnosis)
-          .map((visit) => ({
-            ...visit,
-            doctor: doctorName(visit.doctorId),
-          }))
-      );
-      setLabs(
-        careSystemStore
-          .listLabOrders()
-          .filter((order) => order.patientId === patientId)
-          .map((order) => ({
-            ...order,
-            doctor: doctorName(order.doctorId),
-          }))
-      );
-      setPrescriptions(
-        careSystemStore
-          .listPrescriptions()
-          .filter((rx) => rx.patientId === patientId)
-          .map((rx) => ({
-            ...rx,
-            doctor: doctorName(rx.doctorId),
-          }))
-      );
+    const reload = async () => {
+      try {
+        const response = await apiClient.get("/patient/medical-records");
+        const list = response.data?.data ?? [];
+        setRecords(list);
+        setLabs(
+          list.filter((record) => record.lab_tests)
+        );
+        setPrescriptions(
+          list.filter((record) => record.medications)
+        );
+      } catch (err) {
+        console.log(err);
+        setRecords([]);
+      }
     };
-    reload();
-    window.addEventListener("carelink-store-updated", reload);
-    return () => window.removeEventListener("carelink-store-updated", reload);
-  }, [profile?.email, profile?.patientId]);
+
+    useEffect(() => {
+      reload();
+    }, []);
 
   return (
     <div className="space-y-8">
@@ -75,9 +55,11 @@ function PatientMedicalRecordsPage() {
           >
             {records.map((record) => (
               <AdminTableRow key={record.id}>
-                <AdminTableCell className="font-bold">{record.doctor}</AdminTableCell>
+                <AdminTableCell className="font-bold">
+                  {record.doctor?.name || "—"}
+                </AdminTableCell>
                 <AdminTableCell>{record.diagnosis}</AdminTableCell>
-                <AdminTableCell>{record.clinicalNotes || "—"}</AdminTableCell>
+                <AdminTableCell>{record.clinical_notes || record.notes || "—"}</AdminTableCell>
               </AdminTableRow>
             ))}
           </AdminTable>
@@ -99,16 +81,19 @@ function PatientMedicalRecordsPage() {
               { key: "status", label: "الحالة" },
             ]}
           >
-            {labs.map((lab) => (
-              <AdminTableRow key={lab.id}>
-                <AdminTableCell className="font-bold">{lab.tests}</AdminTableCell>
-                <AdminTableCell>{lab.resultText || "—"}</AdminTableCell>
-                <AdminTableCell>{lab.pdfName || "—"}</AdminTableCell>
-                <AdminTableCell>
-                  {lab.status === "completed" ? "جاهز" : "قيد التنفيذ"}
-                </AdminTableCell>
-              </AdminTableRow>
-            ))}
+              {labs.map((lab) => (
+                <AdminTableRow key={lab.id}>
+                  <AdminTableCell className="font-bold">
+                    {lab.lab_tests}
+                  </AdminTableCell>
+
+                  <AdminTableCell>—</AdminTableCell>
+
+                  <AdminTableCell>—</AdminTableCell>
+
+                  <AdminTableCell>جاهز</AdminTableCell>
+                </AdminTableRow>
+              ))}
           </AdminTable>
         )}
       </FadeUp>
@@ -129,10 +114,16 @@ function PatientMedicalRecordsPage() {
           >
             {prescriptions.map((rx) => (
               <AdminTableRow key={rx.id}>
-                <AdminTableCell className="font-bold">{rx.medications}</AdminTableCell>
-                <AdminTableCell>{rx.doctor}</AdminTableCell>
+                <AdminTableCell className="font-bold">
+                  {rx.medications}
+                </AdminTableCell>
+
                 <AdminTableCell>
-                  {rx.status === "dispensed" ? "تم الصرف" : "بانتظار الصرف"}
+                  {rx.doctor?.name || "—"}
+                </AdminTableCell>
+
+                <AdminTableCell>
+                  تم إصدار الوصفة
                 </AdminTableCell>
               </AdminTableRow>
             ))}

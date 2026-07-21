@@ -36,6 +36,7 @@ const NAV_ITEMS = [
 function PatientLayout() {
   const navigate = useNavigate();
   const { clearSession, profile } = useAuth();
+  console.log(profile);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const patientId =
@@ -160,7 +161,11 @@ function PatientLayout() {
               className="workspace-profile-chip flex cursor-pointer items-center gap-2.5 rounded-2xl border border-slate-200/80 bg-white py-1.5 pe-3 ps-1.5 shadow-sm hover:border-[#40c0a0]/40 hover:shadow-md"
             >
               <ProfileAvatar
-                src=""
+                src={
+                  profile?.profile_picture
+                    ? `${import.meta.env.VITE_API_BASE_URL.replace("/api", "")}/storage/${profile.profile_picture}`
+                    : ""
+                }
                 name={patientName}
                 size="md"
               />

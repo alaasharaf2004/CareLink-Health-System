@@ -139,6 +139,7 @@ function LoginPage() {
         name: account.name,
         staffId: account.staffId,
         patientId: account.patientId,
+        profile_picture: account.profile_picture || null,
         mustChangePassword: Boolean(account.mustChangePassword),
       },
     });
@@ -193,6 +194,7 @@ function LoginPage() {
             name: user.name || "مستخدم",
             staffId: user.id || null,
             patientId: null,
+            profile_picture: user.profile_picture || null,
           },
         });
         navigate(getDashboardPath(selectedRole), { replace: true });

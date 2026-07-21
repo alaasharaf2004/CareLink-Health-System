@@ -59,7 +59,7 @@ function PatientSettingsPage() {
         email: user.email || "",
         phone: user.phone || "",
         national_id: user.national_id || "",
-        birth_date: user.birth_date || "",
+        date_of_birth: user.birth_date || "",
         gender: user.gender || "",
         address: user.address || "",
         status: user.status || "active",
@@ -91,7 +91,7 @@ function PatientSettingsPage() {
         email: profile.email,
         phone: profile.phone,
         national_id: profile.national_id,
-        birth_date: profile.birth_date,
+        birth_date: profile.date_of_birth,
         gender: profile.gender,
         address: profile.address,
 
