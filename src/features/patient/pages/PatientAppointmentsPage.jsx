@@ -230,23 +230,36 @@ function PatientAppointmentsPage() {
     }
   };
 
-  const handleReschedule = () => {
+
+  const handleReschedule = async () => {
     if (!rescheduleDate.trim()) {
       showToast("اختر التاريخ والوقت الجديد", "error");
       return;
     }
-    const [date, time] = rescheduleDate.split("T");
-    careSystemStore.saveAppointment({
-      id: rescheduleTarget.id,
-      date,
-      time: time?.slice(0, 5) || "10:00",
-      notes: rescheduleNote.trim() || rescheduleTarget.description,
-      status: "scheduled",
-    });
-    showToast("تم تحديث الموعد", "success");
-    setRescheduleTarget(null);
-    setRescheduleDate("");
-    setRescheduleNote("");
+
+    console.log("scheduled_at:", rescheduleDate);
+    console.log("description:", rescheduleNote);
+
+    try {
+      await apiClient.patch(
+        `/patient/appointments/${rescheduleTarget.id}/reschedule`,
+        {
+          scheduled_at: rescheduleDate,
+          description: rescheduleNote,
+        }
+      );
+
+      showToast("تم تحديث الموعد", "success");
+
+      setRescheduleTarget(null);
+      setRescheduleDate("");
+      setRescheduleNote("");
+
+      await reload();
+    } catch (err) {
+      console.log(err.response?.data);
+      showToast("فشل تحديث الموعد", "error");
+    }
   };
 
 const handleAddAppointment = async () => {
