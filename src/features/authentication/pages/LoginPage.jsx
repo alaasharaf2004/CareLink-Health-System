@@ -162,18 +162,18 @@ function LoginPage() {
     setSuccessMessage("");
 
     try {
-      const demo = tryDemoLogin(email, password, selectedRole);
-      if (demo) {
-        finishLogin(demo);
-        return;
-      }
-
-      if (STAFF_ROLES.includes(selectedRole)) {
-        setErrorMessage(
-          "الحساب غير موجود أو كلمة المرور خاطئة. تأكد أن الأدمن أنشأ لك حساباً أو استخدم الحساب التجريبي."
-        );
-        return;
-      }
+     // const demo = tryDemoLogin(email, password, selectedRole);
+     // if (demo) {
+     //   finishLogin(demo);
+     //   return;
+     // }
+//
+     // if (STAFF_ROLES.includes(selectedRole)) {
+     //   setErrorMessage(
+     //     "الحساب غير موجود أو كلمة المرور خاطئة. تأكد أن الأدمن أنشأ لك حساباً أو استخدم الحساب التجريبي."
+     //   );
+     //   return;
+     // }
 
       const data =
         selectedRole === "admin"

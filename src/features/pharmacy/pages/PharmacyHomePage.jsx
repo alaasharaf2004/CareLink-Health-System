@@ -10,26 +10,16 @@ import {
   Pill,
   Search,
   UserRound,
+  Loader2,
 } from "lucide-react";
 
 import Toast from "../../admin/components/Toast";
 import { useToast } from "../../admin/hooks/useToast";
-import { careSystemStore } from "../../care-system/data/careSystemStore";
 import FadeUp from "../../patient/components/FadeUp";
 import { staggerDelay } from "../../patient/utils/staggerDelay";
+import { apiClient } from "../../../lib/api/client";
 import DispenseVerifyModal from "../components/DispenseVerifyModal";
 import PharmacyWelcomeHero from "../components/PharmacyWelcomeHero";
-
-function mapPrescription(rx, patientName, doctorName) {
-  const patient = careSystemStore.getPatient(rx.patientId);
-  return {
-    ...rx,
-    patient: rx.patientName || patientName(rx.patientId) || patient?.name || "مريض",
-    phone: rx.patientPhone || patient?.phone || "",
-    nationalId: rx.nationalId || patient?.nationalId || "",
-    doctor: doctorName(rx.doctorId),
-  };
-}
 
 function PharmacyHomePage() {
   const [stats, setStats] = useState({
@@ -40,49 +30,38 @@ function PharmacyHomePage() {
   });
   const [dispenseTarget, setDispenseTarget] = useState(null);
   const [lowStock, setLowStock] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast, showToast, hideToast } = useToast();
 
-  const reload = () => {
-    const { patientName, doctorName } = careSystemStore.resolveNames();
-    const list = careSystemStore
-      .listPrescriptions()
-      .map((rx) => mapPrescription(rx, patientName, doctorName));
-    const pending = list.filter((rx) => rx.status !== "dispensed");
-    setStats({
-      total: list.length,
-      pending: pending.length,
-      dispensed: list.filter((rx) => rx.status === "dispensed").length,
-      latestPending: pending.slice(0, 5),
-    });
-    setLowStock(careSystemStore.getLowStockItems());
+  const fetchHomeData = async () => {
+    try {
+      setIsLoading(true);
+      const response = await apiClient.get("/pharmacy/home-stats");
+      const result = response.data.data;
+      if (result) {
+        setStats(result.stats);
+        setLowStock(result.lowStock || []);
+      }
+    } catch {
+      showToast("خطأ في جلب بيانات لوحة التحكم", "error");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
-    reload();
-    const onStorage = (event) => {
-      if (event.key === "carelink_care_system_v2" || event.key === null) reload();
-    };
-    let channel;
-    try {
-      channel = new BroadcastChannel("carelink-store");
-      channel.onmessage = () => reload();
-    } catch {
-      channel = null;
-    }
-    window.addEventListener("carelink-store-updated", reload);
-    window.addEventListener("storage", onStorage);
-    const timer = window.setInterval(reload, 2500);
-    return () => {
-      window.removeEventListener("carelink-store-updated", reload);
-      window.removeEventListener("storage", onStorage);
-      window.clearInterval(timer);
-      try {
-        channel?.close();
-      } catch {
-        // ignore
-      }
-    };
+    fetchHomeData();
+    const timer = setInterval(fetchHomeData, 10000); // تحديث دوري خفيف
+    return () => clearInterval(timer);
   }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-20">
+        <Loader2 className="animate-spin text-blue-600" size={36} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6" dir="rtl">
@@ -262,7 +241,7 @@ function PharmacyHomePage() {
                     <button
                       type="button"
                       onClick={() => setDispenseTarget(rx)}
-                      className="workspace-btn-press inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3.5 py-2 text-xs font-bold text-white hover:bg-emerald-700"
+                      className="workspace-btn-press inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3.5 py-2 text-xs font-bold text-white hover:bg-emerald-700 cursor-pointer"
                     >
                       <PackageCheck size={14} />
                       صرف الآن
@@ -281,7 +260,7 @@ function PharmacyHomePage() {
           onClose={() => setDispenseTarget(null)}
           onSuccess={(rx) => {
             showToast(`تم صرف دواء ${rx.patient || rx.patientName}`, "success");
-            reload();
+            fetchHomeData();
           }}
         />
       ) : null}
