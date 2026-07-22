@@ -6,7 +6,7 @@ import Modal from "../../admin/components/Modal";
 import { emptyAppointmentForm } from "../utils/receptionHelpers";
 import apiClient from "../../../lib/api/client";
 
-// الأوقات المتاحة الثابتة للعيادة (يمكنك جلبها من الـ backend أو تركها هنا)
+// فترات الأوقات الثابتة للعيادة
 const CLINIC_TIME_SLOTS = [
   "09:00 AM", "09:30 AM", "10:00 AM", "10:30 AM", 
   "11:00 AM", "11:30 AM", "12:00 PM", "12:30 PM", 
@@ -25,7 +25,7 @@ function ReceptionBookModal({
   const [busySlots, setBusySlots] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // جلب المواعيد المحجوزة للطبيب في اليوم المحدد من الـ Backend
+  // 1. جلب المواعيد المحجوزة للطبيب واليوم المحدد من الباك إند
   useEffect(() => {
     const fetchDoctorSchedule = async () => {
       if (!form.doctorId || !form.date) {
@@ -45,7 +45,7 @@ function ReceptionBookModal({
     fetchDoctorSchedule();
   }, [form.doctorId, form.date]);
 
-  // الأوقات المشغولة كنص أو أري لتسهيل الفحص
+  // 2. استخراج الأوقات المشغولة فقط كنصوص للمقارنة
   const busyTimes = busySlots.map((apt) => apt.time);
 
   const saveAppointment = async (event) => {
@@ -60,10 +60,11 @@ function ReceptionBookModal({
       const response = await apiClient.post("/reception/appointments", {
         patient_id: form.patientId,
         doctor_id: form.doctorId,
-        date: form.date,
+        date: form.date,  
+        //appointment_date: form.date,
         time: form.time,
         notes: form.notes || "",
-        type: form.type || "in_person",
+        type: "in_person",
       });
 
       onSuccess?.(response.data?.data || response.data);
@@ -89,7 +90,7 @@ function ReceptionBookModal({
               <option value="">اختر المريض</option>
               {patients.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.full_name}
+                  {p.full_name || p.name}
                   {p.phone ? ` — ${p.phone}` : ""}
                 </option>
               ))}
@@ -128,6 +129,7 @@ function ReceptionBookModal({
           </label>
         </div>
 
+        {/* قسم عرض الأوقات الفارغة والمشغولة بناءً على جلب الباك إند */}
         {form.doctorId && form.date && (
           <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
             <p className="mb-2 text-xs font-bold text-slate-600">
@@ -145,7 +147,7 @@ function ReceptionBookModal({
                     <span className="font-bold tabular-nums text-rose-700" dir="ltr" lang="en">
                       {apt.time}
                     </span>
-                    <span className="truncate font-semibold text-slate-700">{apt.patient_name || apt.patient}</span>
+                    <span className="truncate font-semibold text-slate-700">{apt.patient_name}</span>
                     <span className="shrink-0 text-slate-500">
                       {apt.status}
                     </span>
@@ -157,6 +159,7 @@ function ReceptionBookModal({
             <p className="mb-2 text-xs font-bold text-slate-600">اختر وقتاً فارغاً</p>
             <div className="flex flex-wrap gap-2">
               {CLINIC_TIME_SLOTS.map((slot) => {
+                // الفحص الديناميكي: هل الوقت مشغول قادماً من الداتا بيز؟
                 const free = !busyTimes.includes(slot);
                 const selected = form.time === slot;
                 return (

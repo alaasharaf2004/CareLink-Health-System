@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { CalendarDays, CalendarPlus, ChevronDown } from "lucide-react";
+import { CalendarDays, CalendarPlus, ChevronDown, User, Phone, Stethoscope } from "lucide-react";
 
 import CareLinkDatePicker from "../../../components/CareLinkDatePicker";
 import AdminPageHeader from "../../admin/components/AdminPageHeader";
@@ -25,7 +25,6 @@ function ReceptionSchedulePage() {
   const [bookForm, setBookForm] = useState(null);
   const { toast, showToast, hideToast } = useToast();
 
-  // جلب المرضى والأطباء والجدول من الـ Backend
   const fetchData = async () => {
     try {
       const [patientsRes, doctorsRes] = await Promise.all([
@@ -47,7 +46,6 @@ function ReceptionSchedulePage() {
     }
   };
 
-  // جلب مواعيد الطبيب في اليوم المحدد
   const fetchDoctorSchedule = async () => {
     if (!scheduleDoctorId || !scheduleDate) return;
     try {
@@ -120,7 +118,7 @@ function ReceptionSchedulePage() {
   const endVisitAtReception = async (apt) => {
     try {
       await apiClient.post(`/reception/appointments/${apt.id}/end`);
-      showToast(`تم إنهاء زيارة ${apt.patient_name || apt.patient}`, "success");
+      showToast(`تم إنهاء زيارة ${apt.patient_name || apt.patient?.name}`, "success");
       fetchDoctorSchedule();
     } catch (error) {
       showToast("تعذر إنهاء الزيارة", "error");
@@ -132,7 +130,7 @@ function ReceptionSchedulePage() {
       <Toast toast={toast} onClose={hideToast} />
       <AdminPageHeader
         title="ملف مواعيد الطبيب"
-        description="اعرض جدول أي طبيب حسب اليوم، وشوف المرضى المحجوزين والأوقات المتاحة، واحجز للمريض القادم."
+        description="اعرض جدول أي طبيب حسب اليوم، وشوف تفاصيل المريض والطبيب والأوقات المتاحة."
         action={
           <button
             type="button"
@@ -174,17 +172,17 @@ function ReceptionSchedulePage() {
           <div className="mb-5 flex flex-wrap items-center gap-3 rounded-xl border border-slate-100 bg-slate-50/80 px-4 py-3">
             <CalendarDays size={18} className="text-blue-600" />
             <p className="text-sm text-slate-600">
-              جدول <span className="font-extrabold text-[#101860]">{selectedDoctor.name}</span>
+              جدول الطبيب: <span className="font-extrabold text-[#101860]">{selectedDoctor.name}</span>
               {" · "}
               <span className="font-bold tabular-nums" dir="ltr" lang="en">
                 {scheduleDate}
               </span>
             </p>
             <span className="rounded-lg bg-white px-2.5 py-1 text-xs font-bold text-slate-700 ring-1 ring-slate-200">
-              {daySchedule.length} محجوز
+              {daySchedule.length} موعد محجوز
             </span>
             <span className="rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-800 ring-1 ring-emerald-100">
-              {freeSlots.length} متاح
+              {freeSlots.length} وقت متاح
             </span>
           </div>
         )}
@@ -192,8 +190,8 @@ function ReceptionSchedulePage() {
         <div className="overflow-hidden rounded-xl border border-slate-200">
           <div className="flex items-center gap-4 border-b border-slate-200 bg-slate-50 px-4 py-2.5 text-xs font-extrabold text-slate-500">
             <span className="w-16 shrink-0 text-center sm:w-20">الوقت</span>
-            <span className="min-w-0 flex-1">الحالة</span>
-            <span className="w-24 shrink-0 text-center sm:w-28">إجراء</span>
+            <span className="min-w-0 flex-1">تفاصيل الحجز والمريض</span>
+            <span className="w-28 shrink-0 text-center sm:w-32">إجراءات الاستقبال</span>
           </div>
 
           <ul className="divide-y divide-slate-100">
@@ -201,8 +199,8 @@ function ReceptionSchedulePage() {
               <li
                 key={time}
                 className={[
-                  "flex items-center gap-4 px-4 py-3",
-                  appointment ? "bg-white" : "bg-emerald-50/40",
+                  "flex items-center gap-4 px-4 py-3.5",
+                  appointment ? "bg-white" : "bg-emerald-50/30",
                 ].join(" ")}
               >
                 <div className="w-16 shrink-0 text-center sm:w-20">
@@ -217,24 +215,46 @@ function ReceptionSchedulePage() {
 
                 <div className="min-w-0 flex-1">
                   {appointment ? (
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="truncate font-bold text-slate-800">{appointment.patient_name || appointment.patient}</p>
-                      <span
-                        className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-bold ${statusBadgeClass(appointment.status)}`}
-                      >
-                        {APPOINTMENT_STATUS_LABELS[appointment.status] || appointment.status}
-                      </span>
-                      <span className="text-xs text-slate-400">{appointment.type || "حضوري"}</span>
+                    <div className="space-y-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="flex items-center gap-1 font-extrabold text-slate-900 text-sm">
+                          <User size={14} className="text-blue-600" />
+                          {appointment.patient_name || appointment.patient?.name || appointment.patient}
+                        </span>
+                        
+                        <span
+                          className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-bold ${statusBadgeClass(appointment.status)}`}
+                        >
+                          {APPOINTMENT_STATUS_LABELS[appointment.status] || appointment.status}
+                        </span>
+
+                        <span className="rounded bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600">
+                          {appointment.type === "in_person" ? "حضوري" : appointment.type || "حضوري"}
+                        </span>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500">
+                        {appointment.patient?.phone && (
+                          <span className="flex items-center gap-1" dir="ltr">
+                            <Phone size={12} className="text-slate-400" />
+                            {appointment.patient.phone}
+                          </span>
+                        )}
+                        <span className="flex items-center gap-1">
+                          <Stethoscope size={12} className="text-blue-500" />
+                          الطبيب: <strong className="text-slate-700">{appointment.doctor_name || appointment.doctor?.name || selectedDoctor?.name}</strong>
+                        </span>
+                      </div>
                     </div>
                   ) : (
-                    <p className="text-sm font-semibold text-emerald-700">متاح للحجز</p>
+                    <p className="text-sm font-semibold text-emerald-700">متاح للحجز في هذا الوقت</p>
                   )}
                 </div>
 
-                <div className="flex w-24 shrink-0 flex-wrap justify-center gap-1.5 sm:w-28">
+                <div className="flex w-28 shrink-0 flex-wrap justify-center gap-1.5 sm:w-32">
                   {appointment ? (
                     <>
-                      {appointment.status === "scheduled" && (
+                      {(appointment.status === "scheduled" || appointment.status === "pending") && (
                         <button
                           type="button"
                           className="rounded-lg bg-emerald-50 px-2.5 py-1.5 text-[11px] font-bold text-emerald-700 hover:bg-emerald-100 cursor-pointer"
@@ -244,7 +264,8 @@ function ReceptionSchedulePage() {
                         </button>
                       )}
                       {(appointment.status === "checked_in" ||
-                        appointment.status === "scheduled") && (
+                        appointment.status === "scheduled" ||
+                        appointment.status === "pending") && (
                         <button
                           type="button"
                           className="rounded-lg bg-blue-50 px-2.5 py-1.5 text-[11px] font-bold text-blue-700 hover:bg-blue-100 cursor-pointer"
@@ -281,7 +302,7 @@ function ReceptionSchedulePage() {
                       className="rounded-lg bg-blue-600 px-3 py-1.5 text-[11px] font-bold text-white hover:bg-blue-700 cursor-pointer"
                       onClick={() => openBooking(time)}
                     >
-                      حجز
+                      حجز موعد
                     </button>
                   ) : null}
                 </div>

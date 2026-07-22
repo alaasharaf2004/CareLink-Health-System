@@ -1,11 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 
 import CareLinkLogo from "../../../components/CareLinkLogo";
-import {
-  APPOINTMENT_STATUS_LABELS,
-  careSystemStore,
-} from "../../care-system/data/careSystemStore";
+import { APPOINTMENT_STATUS_LABELS } from "../../care-system/data/careSystemStore";
 import { todayIso } from "../utils/receptionHelpers";
+import apiClient from "../../../lib/api/client";
 
 function formatArabicDate(iso) {
   try {
@@ -26,16 +24,23 @@ function ReceptionWaitingDisplayPage() {
   const [flashKey, setFlashKey] = useState(0);
   const today = todayIso();
 
-  const reload = () => setQueue(careSystemStore.getWaitingRoomQueue(today));
+  // جلب قائمة الانتظار من الـ Backend مع تضمين الحالة pending
+  const fetchQueue = async () => {
+    try {
+      const response = await apiClient.get("/reception/waiting-queue", {
+        params: { date: today }
+      });
+      setQueue(response.data?.data || response.data || []);
+    } catch (error) {
+      console.error("تعذر جلب قائمة الانتظار", error);
+    }
+  };
 
   useEffect(() => {
-    reload();
-    const onStore = () => reload();
-    window.addEventListener("carelink-store-updated", onStore);
-    const poll = window.setInterval(reload, 3000);
+    fetchQueue();
+    const poll = window.setInterval(fetchQueue, 3000); // تحديث كل 3 ثوانٍ
     const clock = window.setInterval(() => setNow(new Date()), 1000);
     return () => {
-      window.removeEventListener("carelink-store-updated", onStore);
       window.clearInterval(poll);
       window.clearInterval(clock);
     };
@@ -52,7 +57,7 @@ function ReceptionWaitingDisplayPage() {
     () =>
       queue
         .filter((item) => item.id !== current?.id)
-        .filter((item) => item.status === "checked_in" || item.status === "scheduled")
+        .filter((item) => item.status === "checked_in" || item.status === "scheduled" || item.status === "pending")
         .slice(0, 5),
     [queue, current]
   );
@@ -92,15 +97,15 @@ function ReceptionWaitingDisplayPage() {
               <div className="mt-6 flex flex-col items-start gap-5 sm:mt-8 sm:gap-6">
                 <div className="flex items-end gap-4 sm:gap-6">
                   <span className="waiting-board-number tabular-nums">
-                    {String(current.queueNumber).padStart(2, "0")}
+                    {String(current.queueNumber || current.id).padStart(2, "0")}
                   </span>
                   <span className="waiting-board-number-label">رقم الدور</span>
                 </div>
 
-                <h1 className="waiting-board-name">{current.patient}</h1>
+                <h1 className="waiting-board-name">{current.patient_name || current.patient}</h1>
 
                 <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-base font-bold text-slate-600 sm:text-lg">
-                  <span>{current.doctor}</span>
+                  <span>{current.doctor_name || current.doctor}</span>
                   <span className="h-1.5 w-1.5 rounded-full bg-[#40c0a0]" aria-hidden="true" />
                   <span className="tabular-nums" dir="ltr">
                     {current.time}
@@ -133,15 +138,15 @@ function ReceptionWaitingDisplayPage() {
                 {nextList.map((item, index) => (
                   <li key={item.id} className="waiting-board-row">
                     <span className="waiting-board-row-num tabular-nums">
-                      {String(item.queueNumber).padStart(2, "0")}
+                      {String(item.queueNumber || item.id).padStart(2, "0")}
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-lg font-extrabold text-[#101860]">
-                        {item.patient}
+                        {item.patient_name || item.patient}
                       </p>
                       <p className="mt-0.5 truncate text-sm font-semibold text-slate-500">
-                        {item.doctor}
-                        {index === 0 && item.status === "checked_in" ? " · جاهز" : ""}
+                        {item.doctor_name || item.doctor}
+                        {index === 0 && (item.status === "checked_in" || item.status === "pending") ? " · جاهز" : ""}
                       </p>
                     </div>
                     <span className="shrink-0 tabular-nums text-sm font-bold text-slate-400" dir="ltr">
