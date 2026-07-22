@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { CalendarPlus, Flag, Search, UserPlus } from "lucide-react";
+import { CalendarPlus, Flag, Search, UserPlus, Loader2 } from "lucide-react";
 
 import AdminPageHeader from "../../admin/components/AdminPageHeader";
 import AdminTable, { AdminTableCell, AdminTableRow } from "../../admin/components/AdminTable";
 import Toast from "../../admin/components/Toast";
 import { useToast } from "../../admin/hooks/useToast";
-import { careSystemStore } from "../../care-system/data/careSystemStore";
 import ReceptionBookModal from "../components/ReceptionBookModal";
 import ReceptionPatientMetaModal from "../components/ReceptionPatientMetaModal";
 import ReceptionRegisterPatientModal from "../components/ReceptionRegisterPatientModal";
@@ -16,25 +15,37 @@ import {
   insuranceMeta,
   todayIso,
 } from "../utils/receptionHelpers";
+import apiClient from "../../../lib/api/client";
 
 function ReceptionPatientsPage() {
   const [query, setQuery] = useState("");
   const [patients, setPatients] = useState([]);
   const [doctors, setDoctors] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [registerOpen, setRegisterOpen] = useState(false);
   const [bookForm, setBookForm] = useState(null);
   const [metaPatient, setMetaPatient] = useState(null);
   const { toast, showToast, hideToast } = useToast();
 
-  const reload = () => {
-    setPatients(careSystemStore.listPatients());
-    setDoctors(careSystemStore.listStaff("doctor").filter((d) => d.status === "active"));
+  const reload = async () => {
+    try {
+      setIsLoading(true);
+      const [patientsRes, doctorsRes] = await Promise.all([
+        apiClient.get("/reception/patients"),
+        apiClient.get("/reception/doctors"),
+      ]);
+
+      setPatients(patientsRes.data?.data ?? patientsRes.data ?? []);
+      setDoctors(doctorsRes.data?.data ?? doctorsRes.data ?? []);
+    } catch {
+      showToast("خطأ في جلب بيانات المرضى أو الأطباء", "error");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
     reload();
-    window.addEventListener("carelink-store-updated", reload);
-    return () => window.removeEventListener("carelink-store-updated", reload);
   }, []);
 
   const openRegister = useCallback(() => setRegisterOpen(true), []);
@@ -44,7 +55,7 @@ function ReceptionPatientsPage() {
     const q = query.trim().toLowerCase();
     if (!q) return patients;
     return patients.filter((p) =>
-      `${p.name} ${p.phone} ${p.email} ${p.nationalId} ${p.insuranceProvider || ""}`
+      `${p.name || ""} ${p.phone || ""} ${p.email || ""} ${p.national_id || p.nationalId || ""} ${p.insurance_provider || p.insuranceProvider || ""}`
         .toLowerCase()
         .includes(q)
     );
@@ -71,7 +82,7 @@ function ReceptionPatientsPage() {
             <button
               type="button"
               onClick={openRegister}
-              className="workspace-btn-press flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-700"
+              className="workspace-btn-press flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-700 cursor-pointer"
             >
               <UserPlus size={16} />
               تسجيل مريض
@@ -79,7 +90,7 @@ function ReceptionPatientsPage() {
             <button
               type="button"
               onClick={() => openBooking()}
-              className="workspace-btn-press flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-bold text-blue-700 hover:bg-blue-100"
+              className="workspace-btn-press flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-bold text-blue-700 hover:bg-blue-100 cursor-pointer"
             >
               <CalendarPlus size={16} />
               حجز موعد
@@ -101,102 +112,110 @@ function ReceptionPatientsPage() {
           </div>
         </div>
 
-        <AdminTable
-          bordered={false}
-          columns={[
-            { key: "name", label: "المريض" },
-            { key: "phone", label: "الجوال" },
-            { key: "insurance", label: "التأمين" },
-            { key: "flags", label: "تنبيهات" },
-            { key: "actions", label: "إجراء" },
-          ]}
-        >
-          {filteredPatients.length === 0 ? (
-            <AdminTableRow>
-              <AdminTableCell colSpan={5} className="text-center text-slate-500">
-                لا يوجد مرضى مطابقون — سجّل مريضاً جديداً
-              </AdminTableCell>
-            </AdminTableRow>
-          ) : (
-            filteredPatients.map((patient) => {
-              const insurance = insuranceMeta(patient.insuranceStatus);
-              const guardian = patient.guardianId
-                ? careSystemStore.getPatient(patient.guardianId)
-                : null;
-              const dependents = careSystemStore.listDependents(patient.id);
-              return (
-                <AdminTableRow key={patient.id} className="workspace-list-row">
-                  <AdminTableCell>
-                    <p className="font-bold text-[#101860]">{patient.name}</p>
-                    {guardian ? (
-                      <p className="mt-0.5 text-[11px] font-semibold text-slate-400">
-                        تابع لـ {guardian.name}
-                      </p>
-                    ) : null}
-                    {dependents.length > 0 ? (
-                      <p className="mt-0.5 text-[11px] font-semibold text-blue-600">
-                        {dependents.length} تابع/تابعين
-                      </p>
-                    ) : null}
-                  </AdminTableCell>
-                  <AdminTableCell>
-                    <span dir="ltr" lang="en" className="inline-block tabular-nums">
-                      {patient.phone || "—"}
-                    </span>
-                  </AdminTableCell>
-                  <AdminTableCell>
-                    <span
-                      className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${insurance.className}`}
-                    >
-                      {insurance.label}
-                    </span>
-                    {patient.insuranceProvider ? (
-                      <p className="mt-1 text-[11px] text-slate-400">{patient.insuranceProvider}</p>
-                    ) : null}
-                  </AdminTableCell>
-                  <AdminTableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {(patient.receptionFlags || []).length === 0 ? (
-                        <span className="text-xs text-slate-400">—</span>
-                      ) : (
-                        (patient.receptionFlags || []).map((flag) => {
-                          const meta = flagMeta(flag);
-                          return (
-                            <span
-                              key={flag}
-                              className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold ring-1 ${meta.className}`}
-                            >
-                              {meta.label}
-                            </span>
-                          );
-                        })
-                      )}
-                    </div>
-                  </AdminTableCell>
-                  <AdminTableCell>
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        className="workspace-btn-press rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-blue-700"
-                        onClick={() => openBooking(patient.id)}
+        {isLoading ? (
+          <div className="flex justify-center py-20">
+            <Loader2 className="animate-spin text-blue-600" size={36} />
+          </div>
+        ) : (
+          <AdminTable
+            bordered={false}
+            columns={[
+              { key: "name", label: "المريض" },
+              { key: "phone", label: "الجوال" },
+              { key: "insurance", label: "التأمين" },
+              { key: "flags", label: "تنبيهات" },
+              { key: "actions", label: "إجراء" },
+            ]}
+          >
+            {filteredPatients.length === 0 ? (
+              <AdminTableRow>
+                <AdminTableCell colSpan={5} className="text-center text-slate-500 py-10">
+                  لا يوجد مرضى مطابقون — سجّل مريضاً جديداً
+                </AdminTableCell>
+              </AdminTableRow>
+            ) : (
+              filteredPatients.map((patient) => {
+                const insurance = insuranceMeta(patient.insurance_status || patient.insuranceStatus);
+                const guardian = patient.guardian || null;
+                const dependents = patient.dependents || [];
+                const flags = patient.reception_flags || patient.receptionFlags || [];
+
+                return (
+                  <AdminTableRow key={patient.id} className="workspace-list-row">
+                    <AdminTableCell>
+                      <p className="font-bold text-[#101860]">{patient.full_name}</p>
+                      {guardian ? (
+                        <p className="mt-0.5 text-[11px] font-semibold text-slate-400">
+                          تابع لـ {guardian.name}
+                        </p>
+                      ) : null}
+                      {dependents.length > 0 ? (
+                        <p className="mt-0.5 text-[11px] font-semibold text-blue-600">
+                          {dependents.length} تابع/تابعين
+                        </p>
+                      ) : null}
+                    </AdminTableCell>
+                    <AdminTableCell>
+                      <span dir="ltr" lang="en" className="inline-block tabular-nums">
+                        {patient.phone || "—"}
+                      </span>
+                    </AdminTableCell>
+                    <AdminTableCell>
+                      <span
+                        className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${insurance.className}`}
                       >
-                        حجز موعد
-                      </button>
-                      <button
-                        type="button"
-                        className="workspace-btn-press inline-flex items-center gap-1 rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-200"
-                        onClick={() => setMetaPatient(patient)}
-                      >
-                        <Flag size={12} />
-                        تنبيه/تأمين
-                      </button>
-                    </div>
-                  </AdminTableCell>
-                </AdminTableRow>
-              );
-            })
-          )}
-        </AdminTable>
+                        {insurance.label}
+                      </span>
+                      {patient.insurance_provider || patient.insuranceProvider ? (
+                        <p className="mt-1 text-[11px] text-slate-400">
+                          {patient.insurance_provider || patient.insuranceProvider}
+                        </p>
+                      ) : null}
+                    </AdminTableCell>
+                    <AdminTableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {flags.length === 0 ? (
+                          <span className="text-xs text-slate-400">—</span>
+                        ) : (
+                          flags.map((flag) => {
+                            const meta = flagMeta(flag);
+                            return (
+                              <span
+                                key={flag}
+                                className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold ring-1 ${meta.className}`}
+                              >
+                                {meta.label}
+                              </span>
+                            );
+                          })
+                        )}
+                      </div>
+                    </AdminTableCell>
+                    <AdminTableCell>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          className="workspace-btn-press rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-blue-700 cursor-pointer"
+                          onClick={() => openBooking(patient.id)}
+                        >
+                          حجز موعد
+                        </button>
+                        <button
+                          type="button"
+                          className="workspace-btn-press inline-flex items-center gap-1 rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-200 cursor-pointer"
+                          onClick={() => setMetaPatient(patient)}
+                        >
+                          <Flag size={12} />
+                          تنبيه/تأمين
+                        </button>
+                      </div>
+                    </AdminTableCell>
+                  </AdminTableRow>
+                );
+              })
+            )}
+          </AdminTable>
+        )}
       </section>
 
       {registerOpen && (
@@ -211,6 +230,7 @@ function ReceptionPatientsPage() {
               "success"
             );
             setRegisterOpen(false);
+            reload();
             if (created?.id) openBooking(created.id);
           }}
           onError={(message) => showToast(message, "error")}
@@ -227,6 +247,7 @@ function ReceptionPatientsPage() {
           onSuccess={() => {
             showToast("تم إنشاء الموعد", "success");
             setBookForm(null);
+            reload();
           }}
           onError={(message) => showToast(message, "error")}
         />
@@ -240,6 +261,7 @@ function ReceptionPatientsPage() {
           onSaved={() => {
             showToast("تم تحديث تنبيهات/تأمين المريض", "success");
             setMetaPatient(null);
+            reload();
           }}
           onError={(message) => showToast(message, "error")}
         />

@@ -1,14 +1,17 @@
-import { useMemo, useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
 
 import CareLinkDatePicker from "../../../components/CareLinkDatePicker";
 import Modal from "../../admin/components/Modal";
-import {
-  APPOINTMENT_STATUS_LABELS,
-  CLINIC_TIME_SLOTS,
-  careSystemStore,
-} from "../../care-system/data/careSystemStore";
 import { emptyAppointmentForm } from "../utils/receptionHelpers";
+import apiClient from "../../../lib/api/client";
+
+// الأوقات المتاحة الثابتة للعيادة (يمكنك جلبها من الـ backend أو تركها هنا)
+const CLINIC_TIME_SLOTS = [
+  "09:00 AM", "09:30 AM", "10:00 AM", "10:30 AM", 
+  "11:00 AM", "11:30 AM", "12:00 PM", "12:30 PM", 
+  "01:00 PM", "01:30 PM", "02:00 PM", "02:30 PM"
+];
 
 function ReceptionBookModal({
   patients,
@@ -19,38 +22,61 @@ function ReceptionBookModal({
   onError,
 }) {
   const [form, setForm] = useState(() => emptyAppointmentForm(initialForm));
+  const [busySlots, setBusySlots] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const freeSlots = useMemo(() => {
-    if (!form.doctorId || !form.date) return [];
-    return careSystemStore.getAvailableSlots(form.doctorId, form.date);
+  // جلب المواعيد المحجوزة للطبيب في اليوم المحدد من الـ Backend
+  useEffect(() => {
+    const fetchDoctorSchedule = async () => {
+      if (!form.doctorId || !form.date) {
+        setBusySlots([]);
+        return;
+      }
+      try {
+        const response = await apiClient.get(`/reception/doctor-schedule`, {
+          params: { doctor_id: form.doctorId, date: form.date }
+        });
+        setBusySlots(response.data?.data || []);
+      } catch (err) {
+        setBusySlots([]);
+      }
+    };
+
+    fetchDoctorSchedule();
   }, [form.doctorId, form.date]);
 
-  const busySlots = useMemo(() => {
-    if (!form.doctorId || !form.date) return [];
-    return careSystemStore.getDoctorDaySchedule(form.doctorId, form.date);
-  }, [form.doctorId, form.date]);
+  // الأوقات المشغولة كنص أو أري لتسهيل الفحص
+  const busyTimes = busySlots.map((apt) => apt.time);
 
-  const saveAppointment = (event) => {
+  const saveAppointment = async (event) => {
     event.preventDefault();
     if (!form.time) {
       onError?.("اختر وقتاً فارغاً من جدول الطبيب");
       return;
     }
+
+    setIsLoading(true);
     try {
-      careSystemStore.saveAppointment({
-        ...form,
-        createdBy: "reception",
-        status: "scheduled",
+      const response = await apiClient.post("/reception/appointments", {
+        patient_id: form.patientId,
+        doctor_id: form.doctorId,
+        date: form.date,
+        time: form.time,
+        notes: form.notes || "",
+        type: form.type || "in_person",
       });
-      onSuccess?.(form);
+
+      onSuccess?.(response.data?.data || response.data);
     } catch (error) {
-      onError?.(error.message || "تعذر إنشاء الموعد");
+      onError?.(error.response?.data?.message || "تعذر إنشاء الموعد");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <Modal title="حجز موعد للمريض" onClose={onClose} maxWidth="max-w-2xl">
-      <form className="space-y-4" onSubmit={saveAppointment}>
+      <form className="space-y-4" onSubmit={saveAppointment} dir="rtl">
         <label className="block space-y-1.5">
           <span className="text-xs font-bold text-slate-600">المريض</span>
           <div className="carelink-field">
@@ -58,11 +84,12 @@ function ReceptionBookModal({
               value={form.patientId}
               onChange={(e) => setForm({ ...form, patientId: e.target.value })}
               required
+              className="w-full h-11 rounded-xl border border-slate-200 px-3 text-sm outline-none focus:border-blue-400 bg-white"
             >
               <option value="">اختر المريض</option>
               {patients.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.name}
+                  {p.full_name}
                   {p.phone ? ` — ${p.phone}` : ""}
                 </option>
               ))}
@@ -79,11 +106,12 @@ function ReceptionBookModal({
                 value={form.doctorId}
                 onChange={(e) => setForm({ ...form, doctorId: e.target.value, time: "" })}
                 required
+                className="w-full h-11 rounded-xl border border-slate-200 px-3 text-sm outline-none focus:border-blue-400 bg-white"
               >
                 <option value="">اختر الطبيب</option>
                 {doctors.map((d) => (
                   <option key={d.id} value={d.id}>
-                    {d.name} — {d.specialty}
+                    {d.name} {d.specialty ? `— ${d.specialty}` : ""}
                   </option>
                 ))}
               </select>
@@ -112,14 +140,14 @@ function ReceptionBookModal({
                 {busySlots.map((apt) => (
                   <li
                     key={apt.id}
-                    className="flex items-center justify-between gap-2 rounded-lg bg-white px-3 py-2 text-xs"
+                    className="flex items-center justify-between gap-2 rounded-lg bg-white px-3 py-2 text-xs border border-slate-100"
                   >
                     <span className="font-bold tabular-nums text-rose-700" dir="ltr" lang="en">
                       {apt.time}
                     </span>
-                    <span className="truncate font-semibold text-slate-700">{apt.patient}</span>
+                    <span className="truncate font-semibold text-slate-700">{apt.patient_name || apt.patient}</span>
                     <span className="shrink-0 text-slate-500">
-                      {APPOINTMENT_STATUS_LABELS[apt.status]}
+                      {apt.status}
                     </span>
                   </li>
                 ))}
@@ -129,7 +157,7 @@ function ReceptionBookModal({
             <p className="mb-2 text-xs font-bold text-slate-600">اختر وقتاً فارغاً</p>
             <div className="flex flex-wrap gap-2">
               {CLINIC_TIME_SLOTS.map((slot) => {
-                const free = freeSlots.includes(slot);
+                const free = !busyTimes.includes(slot);
                 const selected = form.time === slot;
                 return (
                   <button
@@ -140,7 +168,7 @@ function ReceptionBookModal({
                     disabled={!free}
                     onClick={() => setForm({ ...form, time: slot })}
                     className={[
-                      "rounded-lg px-3 py-1.5 text-xs font-bold tabular-nums transition",
+                      "rounded-lg px-3 py-1.5 text-xs font-bold tabular-nums transition cursor-pointer",
                       selected
                         ? "bg-blue-600 text-white"
                         : free
@@ -166,8 +194,12 @@ function ReceptionBookModal({
           />
         </label>
 
-        <button type="submit" className="w-full rounded-xl bg-blue-600 py-3 text-sm font-bold text-white hover:bg-blue-700">
-          تأكيد الحجز
+        <button 
+          type="submit" 
+          disabled={isLoading}
+          className="w-full rounded-xl bg-blue-600 py-3 text-sm font-bold text-white hover:bg-blue-700 cursor-pointer disabled:opacity-50"
+        >
+          {isLoading ? "جاري الحجز..." : "تأكيد الحجز"}
         </button>
       </form>
     </Modal>

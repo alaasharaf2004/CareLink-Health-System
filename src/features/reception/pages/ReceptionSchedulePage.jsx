@@ -8,100 +8,123 @@ import { useToast } from "../../admin/hooks/useToast";
 import {
   APPOINTMENT_STATUS_LABELS,
   CLINIC_TIME_SLOTS,
-  careSystemStore,
 } from "../../care-system/data/careSystemStore";
 import ReceptionBookModal from "../components/ReceptionBookModal";
 import {
-  emptyAppointmentForm,
   statusBadgeClass,
   todayIso,
 } from "../utils/receptionHelpers";
+import apiClient from "../../../lib/api/client";
 
 function ReceptionSchedulePage() {
   const [patients, setPatients] = useState([]);
   const [doctors, setDoctors] = useState([]);
   const [scheduleDoctorId, setScheduleDoctorId] = useState("");
   const [scheduleDate, setScheduleDate] = useState(todayIso());
-  const [tick, setTick] = useState(0);
+  const [daySchedule, setDaySchedule] = useState([]);
   const [bookForm, setBookForm] = useState(null);
   const { toast, showToast, hideToast } = useToast();
 
-  const reload = () => {
-    setPatients(careSystemStore.listPatients());
-    const activeDoctors = careSystemStore.listStaff("doctor").filter((d) => d.status === "active");
-    setDoctors(activeDoctors);
-    setScheduleDoctorId((current) => current || activeDoctors[0]?.id || "");
-    setTick((n) => n + 1);
+  // جلب المرضى والأطباء والجدول من الـ Backend
+  const fetchData = async () => {
+    try {
+      const [patientsRes, doctorsRes] = await Promise.all([
+        apiClient.get("/reception/patients"),
+        apiClient.get("/reception/doctors")
+      ]);
+      
+      const loadedPatients = patientsRes.data?.data || patientsRes.data || [];
+      const loadedDoctors = doctorsRes.data?.data || doctorsRes.data || [];
+
+      setPatients(loadedPatients);
+      setDoctors(loadedDoctors);
+
+      if (!scheduleDoctorId && loadedDoctors.length > 0) {
+        setScheduleDoctorId(loadedDoctors[0].id);
+      }
+    } catch (error) {
+      showToast("تعذر جلب بيانات الأساسية للنظام", "error");
+    }
+  };
+
+  // جلب مواعيد الطبيب في اليوم المحدد
+  const fetchDoctorSchedule = async () => {
+    if (!scheduleDoctorId || !scheduleDate) return;
+    try {
+      const response = await apiClient.get("/reception/doctor-schedule", {
+        params: { doctor_id: scheduleDoctorId, date: scheduleDate }
+      });
+      setDaySchedule(response.data?.data || []);
+    } catch (error) {
+      setDaySchedule([]);
+    }
   };
 
   useEffect(() => {
-    reload();
-    window.addEventListener("carelink-store-updated", reload);
-    return () => window.removeEventListener("carelink-store-updated", reload);
+    fetchData();
   }, []);
 
-  const daySchedule = useMemo(() => {
-    if (!scheduleDoctorId || !scheduleDate) return [];
-    return careSystemStore.getDoctorDaySchedule(scheduleDoctorId, scheduleDate);
-  }, [scheduleDoctorId, scheduleDate, tick]);
+  useEffect(() => {
+    fetchDoctorSchedule();
+  }, [scheduleDoctorId, scheduleDate]);
 
   const freeSlots = useMemo(() => {
-    if (!scheduleDoctorId || !scheduleDate) return [];
-    return careSystemStore.getAvailableSlots(scheduleDoctorId, scheduleDate);
-  }, [scheduleDoctorId, scheduleDate, tick]);
+    const busyTimes = daySchedule.map((apt) => apt.time);
+    return CLINIC_TIME_SLOTS.filter((slot) => !busyTimes.includes(slot));
+  }, [daySchedule]);
 
   const timeline = useMemo(() => {
     const byTime = new Map(daySchedule.map((apt) => [apt.time, apt]));
     return CLINIC_TIME_SLOTS.map((slot) => ({
       time: slot,
       appointment: byTime.get(slot) || null,
-      free: freeSlots.includes(slot),
+      free: !byTime.has(slot),
     }));
-  }, [daySchedule, freeSlots]);
+  }, [daySchedule]);
 
-  const selectedDoctor = doctors.find((d) => d.id === scheduleDoctorId);
+  const selectedDoctor = doctors.find((d) => String(d.id) === String(scheduleDoctorId));
 
   const openBooking = (time = "") => {
-    setBookForm(
-      emptyAppointmentForm({
-        doctorId: scheduleDoctorId || doctors[0]?.id || "",
-        date: scheduleDate || todayIso(),
-        time,
-      })
-    );
+    setBookForm({
+      doctorId: scheduleDoctorId || doctors[0]?.id || "",
+      date: scheduleDate || todayIso(),
+      time,
+      patientId: "",
+      notes: "",
+      type: "in_person"
+    });
   };
 
-  const transferToDoctor = (apt) => {
-    careSystemStore.setAppointmentStatus(apt.id, "with_doctor");
-    careSystemStore.upsertVisit({
-      appointmentId: apt.id,
-      patientId: apt.patientId,
-      doctorId: apt.doctorId,
-      status: "with_doctor",
-      diagnosis: "",
-      clinicalNotes: "",
-    });
-    showToast("تم تحويل المريض للطبيب", "success");
-  };
-
-  const endVisitAtReception = (apt) => {
-    careSystemStore.setAppointmentStatus(apt.id, "completed");
-    careSystemStore.upsertVisit({
-      appointmentId: apt.id,
-      patientId: apt.patientId,
-      doctorId: apt.doctorId,
-      status: "completed",
-      endedAt: new Date().toISOString(),
-    });
-    if (apt.patientId) {
-      careSystemStore.notifyPatient({
-        patientId: apt.patientId,
-        title: "انتهت زيارتك",
-        body: "أنهى الاستقبال زيارتك في العيادة. شكرًا لزيارتك CareLink.",
-        type: "visit",
+  const updateAppointmentStatus = async (appointmentId, newStatus, successMsg) => {
+    try {
+      await apiClient.patch(`/reception/appointments/${appointmentId}/status`, {
+        status: newStatus
       });
+      showToast(successMsg, "success");
+      fetchDoctorSchedule();
+    } catch (error) {
+      showToast(error.response?.data?.message || "تعذر تحديث حالة الموعد", "error");
     }
-    showToast(`تم إنهاء زيارة ${apt.patient}`, "success");
+  };
+
+  const transferToDoctor = async (apt) => {
+    try {
+      await apiClient.post(`/reception/appointments/${apt.id}/transfer`);
+      showToast("تم تحويل المريض للطبيب", "success");
+      fetchDoctorSchedule();
+    } catch (error) {
+      showToast("تعذر تحويل المريض", "error");
+    }
+  };
+
+  const endVisitAtReception = async (apt) => {
+    try {
+      await apiClient.post(`/reception/appointments/${apt.id}/end`);
+      showToast(`تم إنهاء زيارة ${apt.patient_name || apt.patient}`, "success");
+      fetchDoctorSchedule();
+    } catch (error) {
+      showToast("تعذر إنهاء الزيارة", "error");
+    }
   };
 
   return (
@@ -114,7 +137,7 @@ function ReceptionSchedulePage() {
           <button
             type="button"
             onClick={() => openBooking()}
-            className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-700"
+            className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-700 cursor-pointer"
           >
             <CalendarPlus size={16} />
             حجز موعد
@@ -130,10 +153,11 @@ function ReceptionSchedulePage() {
               <select
                 value={scheduleDoctorId}
                 onChange={(e) => setScheduleDoctorId(e.target.value)}
+                className="w-full h-11 rounded-xl border border-slate-200 px-3 text-sm outline-none focus:border-blue-400 bg-white"
               >
                 {doctors.map((d) => (
                   <option key={d.id} value={d.id}>
-                    {d.name} — {d.specialty}
+                    {d.name} {d.specialty ? `— ${d.specialty}` : ""}
                   </option>
                 ))}
               </select>
@@ -194,11 +218,11 @@ function ReceptionSchedulePage() {
                 <div className="min-w-0 flex-1">
                   {appointment ? (
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="truncate font-bold text-slate-800">{appointment.patient}</p>
+                      <p className="truncate font-bold text-slate-800">{appointment.patient_name || appointment.patient}</p>
                       <span
                         className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-bold ${statusBadgeClass(appointment.status)}`}
                       >
-                        {APPOINTMENT_STATUS_LABELS[appointment.status]}
+                        {APPOINTMENT_STATUS_LABELS[appointment.status] || appointment.status}
                       </span>
                       <span className="text-xs text-slate-400">{appointment.type || "حضوري"}</span>
                     </div>
@@ -213,11 +237,8 @@ function ReceptionSchedulePage() {
                       {appointment.status === "scheduled" && (
                         <button
                           type="button"
-                          className="rounded-lg bg-emerald-50 px-2.5 py-1.5 text-[11px] font-bold text-emerald-700 hover:bg-emerald-100"
-                          onClick={() => {
-                            careSystemStore.setAppointmentStatus(appointment.id, "checked_in");
-                            showToast("تم تسجيل الحضور", "success");
-                          }}
+                          className="rounded-lg bg-emerald-50 px-2.5 py-1.5 text-[11px] font-bold text-emerald-700 hover:bg-emerald-100 cursor-pointer"
+                          onClick={() => updateAppointmentStatus(appointment.id, "checked_in", "تم تسجيل الحضور")}
                         >
                           حضور
                         </button>
@@ -226,7 +247,7 @@ function ReceptionSchedulePage() {
                         appointment.status === "scheduled") && (
                         <button
                           type="button"
-                          className="rounded-lg bg-blue-50 px-2.5 py-1.5 text-[11px] font-bold text-blue-700 hover:bg-blue-100"
+                          className="rounded-lg bg-blue-50 px-2.5 py-1.5 text-[11px] font-bold text-blue-700 hover:bg-blue-100 cursor-pointer"
                           onClick={() => transferToDoctor(appointment)}
                         >
                           تحويل
@@ -236,11 +257,8 @@ function ReceptionSchedulePage() {
                         appointment.status !== "completed" && (
                           <button
                             type="button"
-                            className="workspace-btn-press rounded-lg bg-rose-50 px-2.5 py-1.5 text-[11px] font-bold text-rose-700 hover:bg-rose-100"
-                            onClick={() => {
-                              careSystemStore.setAppointmentStatus(appointment.id, "cancelled");
-                              showToast("تم إلغاء الموعد", "error");
-                            }}
+                            className="workspace-btn-press rounded-lg bg-rose-50 px-2.5 py-1.5 text-[11px] font-bold text-rose-700 hover:bg-rose-100 cursor-pointer"
+                            onClick={() => updateAppointmentStatus(appointment.id, "cancelled", "تم إلغاء الموعد")}
                           >
                             إلغاء
                           </button>
@@ -250,7 +268,7 @@ function ReceptionSchedulePage() {
                       ) && (
                         <button
                           type="button"
-                          className="workspace-btn-press rounded-lg bg-slate-900 px-2.5 py-1.5 text-[11px] font-bold text-white hover:bg-slate-800"
+                          className="workspace-btn-press rounded-lg bg-slate-900 px-2.5 py-1.5 text-[11px] font-bold text-white hover:bg-slate-800 cursor-pointer"
                           onClick={() => endVisitAtReception(appointment)}
                         >
                           إنهاء
@@ -260,7 +278,7 @@ function ReceptionSchedulePage() {
                   ) : free ? (
                     <button
                       type="button"
-                      className="rounded-lg bg-blue-600 px-3 py-1.5 text-[11px] font-bold text-white hover:bg-blue-700"
+                      className="rounded-lg bg-blue-600 px-3 py-1.5 text-[11px] font-bold text-white hover:bg-blue-700 cursor-pointer"
                       onClick={() => openBooking(time)}
                     >
                       حجز
@@ -275,16 +293,17 @@ function ReceptionSchedulePage() {
 
       {bookForm && (
         <ReceptionBookModal
-          key={`${bookForm.doctorId}-${bookForm.date}-${bookForm.time}-${bookForm.patientId}`}
+          key={`${bookForm.doctorId}-${bookForm.date}-${bookForm.time}`}
           patients={patients}
           doctors={doctors}
           initialForm={bookForm}
           onClose={() => setBookForm(null)}
           onSuccess={(saved) => {
-            showToast("تم إنشاء الموعد", "success");
-            setScheduleDoctorId(saved.doctorId);
-            setScheduleDate(saved.date);
+            showToast("تم إنشاء الموعد بنجاح", "success");
+            setScheduleDoctorId(saved.doctor_id || saved.doctorId);
+            setScheduleDate(saved.date || scheduleDate);
             setBookForm(null);
+            fetchDoctorSchedule();
           }}
           onError={(message) => showToast(message, "error")}
         />

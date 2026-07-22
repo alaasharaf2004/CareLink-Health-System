@@ -1,12 +1,12 @@
 import { useMemo, useState } from "react";
 
 import Modal from "../../admin/components/Modal";
-import { careSystemStore } from "../../care-system/data/careSystemStore";
 import {
   emptyPatientForm,
   INSURANCE_STATUS_OPTIONS,
   RECEPTION_FLAG_OPTIONS,
 } from "../utils/receptionHelpers";
+import apiClient from "../../../lib/api/client";
 
 function ReceptionRegisterPatientModal({
   onClose,
@@ -16,6 +16,7 @@ function ReceptionRegisterPatientModal({
   initialForm,
 }) {
   const [form, setForm] = useState(() => emptyPatientForm(initialForm || {}));
+  const [isLoading, setIsLoading] = useState(false);
 
   const guardianOptions = useMemo(
     () => patients.filter((p) => !p.guardianId),
@@ -34,17 +35,34 @@ function ReceptionRegisterPatientModal({
     });
   };
 
-  const savePatient = (event) => {
+  const savePatient = async (event) => {
     event.preventDefault();
+    setIsLoading(true);
+
     try {
-      const created = careSystemStore.savePatient({
-        ...form,
-        guardianId: form.guardianId || null,
-        createWebAccount: form.createWebAccount,
+      // إرسال البيانات للـ Backend عبر apiClient متضمنة تاريخ الميلاد
+      const response = await apiClient.post("/reception/patients", {
+        full_name: form.name,
+        phone: form.phone,
+        national_id: form.nationalId || null,
+        birth_date: form.birthDate || null,
+        gender: form.gender || "ذكر",
+        guardian_id: form.guardianId || null,
+        insurance_status: form.insuranceStatus || "none",
+        insurance_provider: form.insuranceProvider || null,
+        reception_flags: form.receptionFlags || [],
+        reception_note: form.receptionNote || null,
+        create_web_account: form.createWebAccount || false,
+        email: form.createWebAccount ? form.email : null,
+        password: form.createWebAccount ? form.password : null,
       });
-      onSuccess?.(created, form);
+
+      const createdPatient = response.data?.data ?? response.data?.patient ?? response.data;
+      onSuccess?.(createdPatient, form);
     } catch (error) {
-      onError?.(error.message || "تعذر تسجيل المريض");
+      onError?.(error.response?.data?.message || "تعذر تسجيل المريض");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -72,6 +90,15 @@ function ReceptionRegisterPatientModal({
             value={form.nationalId}
             onChange={(e) => setForm({ ...form, nationalId: e.target.value })}
           />
+          <label className="block space-y-1">
+            <span className="text-[11px] font-bold text-slate-500">تاريخ الميلاد</span>
+            <input
+              type="date"
+              className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm outline-none focus:border-blue-400 bg-white"
+              value={form.birthDate || ""}
+              onChange={(e) => setForm({ ...form, birthDate: e.target.value })}
+            />
+          </label>
           <select
             className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm outline-none focus:border-blue-400"
             value={form.gender}
@@ -137,7 +164,7 @@ function ReceptionRegisterPatientModal({
                   key={flag.value}
                   type="button"
                   onClick={() => toggleFlag(flag.value)}
-                  className={`rounded-full px-3 py-1.5 text-xs font-bold ring-1 transition ${
+                  className={`rounded-full px-3 py-1.5 text-xs font-bold ring-1 transition cursor-pointer ${
                     active
                       ? flag.className
                       : "bg-white text-slate-500 ring-slate-200 hover:bg-slate-50"
@@ -156,7 +183,7 @@ function ReceptionRegisterPatientModal({
           />
         </div>
 
-        <label className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm font-bold text-slate-700">
+        <label className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm font-bold text-slate-700 cursor-pointer">
           <input
             type="checkbox"
             checked={form.createWebAccount}
@@ -189,9 +216,10 @@ function ReceptionRegisterPatientModal({
 
         <button
           type="submit"
-          className="w-full rounded-xl bg-blue-600 py-3 text-sm font-bold text-white hover:bg-blue-700"
+          disabled={isLoading}
+          className="w-full rounded-xl bg-blue-600 py-3 text-sm font-bold text-white hover:bg-blue-700 cursor-pointer disabled:opacity-50"
         >
-          حفظ المريض ومتابعة الحجز
+          {isLoading ? "جاري الحفظ..." : "حفظ المريض ومتابعة الحجز"}
         </button>
       </form>
     </Modal>
